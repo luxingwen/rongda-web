@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, message, Tag } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import ProTable from '@ant-design/pro-table';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getTeams, addTeam, updateTeam, deleteTeam } from '@/services/team';
 
@@ -9,25 +10,28 @@ const TeamManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-  const [filters, setFilters] = useState({});
 
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    fetchTeams();
-  }, [pagination, filters]);
-
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async (params) => {
     setLoading(true);
     try {
-      const response = await getTeams({ ...filters, ...pagination });
+      const response = await getTeams(params);
       setTeams(response.data.data);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data.total,
+      }));
     } catch (error) {
       message.error('获取团队列表失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
+  }, [pagination.current, pagination.pageSize, fetchTeams]);
 
   const handleAddTeam = () => {
     setEditingTeam(null);
@@ -46,7 +50,7 @@ const TeamManagement = () => {
     try {
       await deleteTeam(id);
       message.success('删除成功');
-      fetchTeams();
+      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('删除失败');
     } finally {
@@ -65,7 +69,7 @@ const TeamManagement = () => {
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchTeams();
+      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('操作失败');
     }
@@ -73,10 +77,6 @@ const TeamManagement = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-  };
-
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
   };
 
   const renderIsActive = (isActive) => (
@@ -98,18 +98,21 @@ const TeamManagement = () => {
     {
       title: '操作',
       key: 'action',
-      render: (text, record) => (
+      render: (_, record) => (
         <span>
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditTeam(record)}
             style={{ marginRight: 8 }}
           />
-          <Button
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteTeam(record.id)}
-            danger
-          />
+          <Popconfirm
+            title="确定删除吗?"
+            onConfirm={() => handleDeleteTeam(record.id)}
+            okText="是"
+            cancelText="否"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
         </span>
       ),
     },
@@ -125,13 +128,21 @@ const TeamManagement = () => {
       >
         添加团队
       </Button>
-      <Table
+      <ProTable
         columns={columns}
         dataSource={teams}
         rowKey="id"
         loading={loading}
-        pagination={pagination}
-        onChange={handleTableChange}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => {
+            setPagination({ current: page, pageSize });
+          },
+        }}
+        search={false}
+        options={false}
       />
       <Modal
         title={editingTeam ? '编辑团队' : '添加团队'}
@@ -140,7 +151,6 @@ const TeamManagement = () => {
         onCancel={handleCancel}
       >
         <Form form={form} layout="vertical">
-        
           <Form.Item
             name="name"
             label="名称"
@@ -159,7 +169,6 @@ const TeamManagement = () => {
           >
             <Switch />
           </Form.Item>
-        
         </Form>
       </Modal>
     </div>

@@ -1,38 +1,48 @@
 import { addUser, deleteUser, getUsers, updateUser } from '@/services/user';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, message, Modal, Table, Select, Tag } from 'antd';
-import { useEffect, useState } from 'react';
+import ProTable from '@ant-design/pro-table';
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Select,
+  Tag,
+} from 'antd';
+import { useEffect, useState, useCallback } from 'react';
+
+const { Option } = Select;
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-  const [filters, setFilters] = useState({});
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 1, total: 0 });
 
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [pagination, filters]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (params) => {
     setLoading(true);
     try {
-      const response = await getUsers({ ...filters, ...pagination });
-      console.log(response);
+      const response = await getUsers(params);
       setUsers(response.data.data);
-      //   setPagination({
-      //     ...pagination,
-      //     total: response.data.total,
-      //   });
+      setPagination({
+        ...params,
+        total: response.data.total,
+      });
     } catch (error) {
       message.error('获取用户列表失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
+  }, [pagination.current, pagination.pageSize, fetchUsers]);
 
   const handleAddUser = () => {
     setEditingUser(null);
@@ -49,9 +59,13 @@ const UserManagement = () => {
   const handleDeleteUser = async (id) => {
     setLoading(true);
     try {
-      await deleteUser(id);
-      message.success('删除成功');
-      fetchUsers();
+      const res = await deleteUser({ uuid: id });
+      if (res.code !== 200) {
+        message.error('删除失败 :' + res.message);
+      } else {
+        message.success('删除成功');
+        fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
+      }
     } catch (error) {
       message.error('删除失败');
     } finally {
@@ -63,7 +77,6 @@ const UserManagement = () => {
     try {
       const values = await form.validateFields();
       values.age = parseInt(values.age ? values.age : 0);
-      console.log('handleOk', values);
       if (editingUser) {
         await updateUser({ ...editingUser, ...values });
         message.success('更新成功');
@@ -76,7 +89,7 @@ const UserManagement = () => {
         }
       }
       setIsModalVisible(false);
-      fetchUsers();
+      fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('操作失败');
     }
@@ -85,11 +98,6 @@ const UserManagement = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
-  };
-
 
   const renderStatus = (status) => {
     switch (status) {
@@ -104,14 +112,13 @@ const UserManagement = () => {
     }
   };
 
-
   const renderSex = (sex) => {
     switch (sex) {
-      case "0":
+      case '0':
         return <Tag color="red">未知</Tag>;
-      case "1":
+      case '1':
         return <Tag color="green">男</Tag>;
-      case "2":
+      case '2':
         return <Tag color="grey">女</Tag>;
       default:
         return null;
@@ -125,25 +132,38 @@ const UserManagement = () => {
     { title: '用户名', dataIndex: 'username', key: 'username' },
     { title: '手机号', dataIndex: 'phone', key: 'phone' },
     { title: '昵称', dataIndex: 'nickname', key: 'nickname' },
-    { title: '状态', dataIndex: 'status', key: 'status', render: (status) => renderStatus(status), },
-    { title: '年龄', dataIndex: 'age', key: 'age'},
-    { title: '性别', dataIndex: 'sex', key: 'sex',  render: (sex) => renderSex(sex),  },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => renderStatus(status),
+    },
+    { title: '年龄', dataIndex: 'age', key: 'age' },
+    {
+      title: '性别',
+      dataIndex: 'sex',
+      key: 'sex',
+      render: (sex) => renderSex(sex),
+    },
     { title: '个性签名', dataIndex: 'signed', key: 'signed' },
     {
       title: '操作',
       key: 'action',
-      render: (text, record) => (
+      render: (_, record) => (
         <span>
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditUser(record)}
             style={{ marginRight: 8 }}
           />
-          <Button
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteUser(record.id)}
-            danger
-          />
+          <Popconfirm
+            title="确定删除吗?"
+            onConfirm={() => handleDeleteUser(record.uuid)}
+            okText="是"
+            cancelText="否"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
         </span>
       ),
     },
@@ -159,13 +179,21 @@ const UserManagement = () => {
       >
         添加用户
       </Button>
-      <Table
+      <ProTable
         columns={columns}
         dataSource={users}
         rowKey="id"
         loading={loading}
-        pagination={pagination}
-        onChange={handleTableChange}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => {
+            setPagination({ current: page, pageSize });
+          },
+        }}
+        search={false}
+        options={false}
       />
       <Modal
         title={editingUser ? '编辑用户' : '添加用户'}

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Switch, message, Tag } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import ProTable from '@ant-design/pro-table';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getRoles, addRole, updateRole, deleteRole } from '@/services/role';
 
@@ -9,25 +10,28 @@ const RoleManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-  const [filters, setFilters] = useState({});
 
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    fetchRoles();
-  }, [pagination, filters]);
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async (params) => {
     setLoading(true);
     try {
-      const response = await getRoles({ ...filters, ...pagination });
+      const response = await getRoles(params);
       setRoles(response.data.data);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data.total,
+      }));
     } catch (error) {
       message.error('获取角色列表失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchRoles({ current: pagination.current, pageSize: pagination.pageSize });
+  }, [pagination.current, pagination.pageSize, fetchRoles]);
 
   const handleAddRole = () => {
     setEditingRole(null);
@@ -46,7 +50,7 @@ const RoleManagement = () => {
     try {
       await deleteRole(id);
       message.success('删除成功');
-      fetchRoles();
+      fetchRoles({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('删除失败');
     } finally {
@@ -65,7 +69,7 @@ const RoleManagement = () => {
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchRoles();
+      fetchRoles({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('操作失败');
     }
@@ -73,10 +77,6 @@ const RoleManagement = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-  };
-
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
   };
 
   const renderIsActive = (isActive) => (
@@ -97,18 +97,21 @@ const RoleManagement = () => {
     {
       title: '操作',
       key: 'action',
-      render: (text, record) => (
+      render: (_, record) => (
         <span>
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditRole(record)}
             style={{ marginRight: 8 }}
           />
-          <Button
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteRole(record.id)}
-            danger
-          />
+          <Popconfirm
+            title="确定删除吗?"
+            onConfirm={() => handleDeleteRole(record.id)}
+            okText="是"
+            cancelText="否"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
         </span>
       ),
     },
@@ -124,13 +127,21 @@ const RoleManagement = () => {
       >
         添加角色
       </Button>
-      <Table
+      <ProTable
         columns={columns}
         dataSource={roles}
         rowKey="id"
         loading={loading}
-        pagination={pagination}
-        onChange={handleTableChange}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => {
+            setPagination({ current: page, pageSize });
+          },
+        }}
+        search={false}
+        options={false}
       />
       <Modal
         title={editingRole ? '编辑角色' : '添加角色'}

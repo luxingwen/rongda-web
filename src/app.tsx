@@ -1,11 +1,45 @@
 // 运行时配置
 import type { AxiosError, RequestConfig, RequestOptions } from '@umijs/max';
+import { history } from 'umi';
 import Cookies from 'js-cookie';
+import RightContent from '@/components/RightContent';
+import { getMyUserInfo } from '@/services/user';
+
+
+const loginPath = '/login';
+
 
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
-export async function getInitialState(): Promise<{ name: string }> {
-  return { name: '@umijs/max' };
+export async function getInitialState(): Promise<{ 
+  
+   currentUser?: API.User;
+   fetchUserInfo?: () => Promise<API.User | undefined>;
+  }> {
+
+    const fetchUserInfo = async () => {
+      try {
+        const userInfo = await getMyUserInfo();
+        if(userInfo.code !== 200){
+          history.push(loginPath);
+          return undefined;
+        }
+        return userInfo.data;
+      } catch (error) {
+        history.push(loginPath);
+      }
+      return undefined;
+    };
+    // 如果是登录页面，不执行
+    if (history.location.pathname !== loginPath) {
+      const currentUser = await fetchUserInfo();
+      return {
+        currentUser,
+        fetchUserInfo,
+      };
+    }
+
+  return {fetchUserInfo};
 }
 
 export const layout = () => {
@@ -14,6 +48,8 @@ export const layout = () => {
     menu: {
       locale: false,
     },
+    layout: 'mix',
+    rightContentRender: () => <RightContent />,
   };
 };
 

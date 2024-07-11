@@ -8,6 +8,14 @@ export async function getUserInfo(uuid: string) {
 }
 
 
+
+export async function getMyUserInfo() {
+  return await request('/api/v1/user/myinfo', {
+    method: 'GET',
+  })
+}
+
+
 export async function login(data: { username: string, password: string }) {
   return await request('/api/v1/login', {
     method: 'POST',
@@ -36,5 +44,9 @@ export async function updateUser(data: API.User) {
         data,
     })
 }
-export async function deleteUser(id: number) {
+export async function deleteUser(data) {
+  return await request('/api/v1/user/delete', {
+    method: 'POST',
+    data,
+  })
 }

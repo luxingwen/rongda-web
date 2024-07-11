@@ -2,6 +2,8 @@ import React from 'react';
 import { Form, Input, Button, Checkbox, Card, message  } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { login } from '@/services/user';
+import Cookie from 'js-cookie';
+import { history } from 'umi';
 
 
 const LoginPage = () => {
@@ -11,6 +13,8 @@ const LoginPage = () => {
         console.log(res);
         if (res.code === 200) {
             message.success('登录成功');
+            Cookie.set('token', res.data.token);
+            history.push('/');
         } else {
             message.error(res.message);
         }
