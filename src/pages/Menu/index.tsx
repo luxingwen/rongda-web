@@ -255,14 +255,6 @@ const MenuManagement = () => {
 
   return (
     <div>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={() => handleAddMenu(null)}
-        style={{ marginBottom: 16 }}
-      >
-        添加菜单
-      </Button>
       <ProTable
         columns={columns}
         dataSource={menus}
@@ -273,6 +265,16 @@ const MenuManagement = () => {
         expandable={{
           childrenColumnName: 'children',
         }}
+        toolBarRender={() => [
+          <Button
+            key="button"
+            icon={<PlusOutlined />}
+            onClick={() => handleAddMenu(null)}
+            type="primary"
+          >
+            添加菜单
+          </Button>,
+        ]}
       />
       <Modal
         title={editingMenu ? '编辑菜单' : '添加菜单'}

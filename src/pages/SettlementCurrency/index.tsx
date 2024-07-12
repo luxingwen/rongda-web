@@ -2,55 +2,55 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getTeams, addTeam, updateTeam, deleteTeam } from '@/services/team';
+import { getSettlementCurrencies, addSettlementCurrency, updateSettlementCurrency, deleteSettlementCurrency } from '@/services/settlement_currency';
 
-const TeamManagement = () => {
-  const [teams, setTeams] = useState([]);
+const SettlementCurrencyManagement = () => {
+  const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingTeam, setEditingTeam] = useState(null);
+  const [editingCurrency, setEditingCurrency] = useState(null);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const [form] = Form.useForm();
 
-  const fetchTeams = useCallback(async (params) => {
+  const fetchCurrencies = useCallback(async (params) => {
     setLoading(true);
     try {
-      const response = await getTeams(params);
-      setTeams(response.data.data);
+      const response = await getSettlementCurrencies(params);
+      setCurrencies(response.data.data);
       setPagination((prev) => ({
         ...prev,
         total: response.data.total,
       }));
     } catch (error) {
-      message.error('获取团队列表失败');
+      message.error('获取结算币种列表失败');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchTeams]);
+    fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
+  }, [pagination.current, pagination.pageSize, fetchCurrencies]);
 
-  const handleAddTeam = () => {
-    setEditingTeam(null);
+  const handleAddCurrency = () => {
+    setEditingCurrency(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditTeam = (record) => {
-    setEditingTeam(record);
+  const handleEditCurrency = (record) => {
+    setEditingCurrency(record);
     form.setFieldsValue(record);
     setIsModalVisible(true);
   };
 
-  const handleDeleteTeam = async (id) => {
+  const handleDeleteCurrency = async (id) => {
     setLoading(true);
     try {
-      await deleteTeam(id);
+      await deleteSettlementCurrency({uuid:id });
       message.success('删除成功');
-      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
+      fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('删除失败');
     } finally {
@@ -61,15 +61,17 @@ const TeamManagement = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      if (editingTeam) {
-        await updateTeam({ ...editingTeam, ...values });
+      values.status = values.status ? 1 : 0;
+      values.exchange_rate = parseFloat(values.exchange_rate);
+      if (editingCurrency) {
+        await updateSettlementCurrency({ ...editingCurrency, ...values });
         message.success('更新成功');
       } else {
-        await addTeam(values);
+        await addSettlementCurrency(values);
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
+      fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
     } catch (error) {
       message.error('操作失败');
     }
@@ -79,23 +81,17 @@ const TeamManagement = () => {
     setIsModalVisible(false);
   };
 
-  const renderIsActive = (isActive) => (
-    <Tag color={isActive ? 'green' : 'red'}>{isActive ? '活跃' : '禁用'}</Tag>
+  const renderStatus = (status) => (
+    <Tag color={status ? 'green' : 'red'}>{status ? '启用' : '未启用'}</Tag>
   );
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id',  hideInSearch: true, },
+    { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: '描述', dataIndex: 'desc', key: 'desc',  hideInSearch: true, },
-    {
-      title: '活跃状态',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      hideInSearch: true,
-      render: (isActive) => renderIsActive(isActive),
-    },
-    { title: '创建者', dataIndex: 'creater', key: 'creater',  hideInSearch: true, },
+    { title: '代码', dataIndex: 'code', key: 'code', hideInSearch: true },
+    { title: '汇率', dataIndex: 'exchange_rate', key: 'exchange_rate', hideInSearch: true },
+    { title: '状态', dataIndex: 'status', key: 'status', hideInSearch: true, render: (status) => renderStatus(status) },
     {
       title: '操作',
       key: 'action',
@@ -104,12 +100,12 @@ const TeamManagement = () => {
         <span>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditTeam(record)}
+            onClick={() => handleEditCurrency(record)}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteTeam(record.id)}
+            onConfirm={() => handleDeleteCurrency(record.uuid)}
             okText="是"
             cancelText="否"
           >
@@ -124,7 +120,7 @@ const TeamManagement = () => {
     <div>
       <ProTable
         columns={columns}
-        dataSource={teams}
+        dataSource={currencies}
         rowKey="id"
         loading={loading}
         pagination={{
@@ -143,15 +139,15 @@ const TeamManagement = () => {
           <Button
             key="button"
             icon={<PlusOutlined />}
-            onClick={handleAddTeam}
+            onClick={handleAddCurrency}
             type="primary"
           >
-            添加团队
+            添加结算币种
           </Button>,
         ]}
       />
       <Modal
-        title={editingTeam ? '编辑团队' : '添加团队'}
+        title={editingCurrency ? '编辑结算币种' : '添加结算币种'}
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -164,12 +160,23 @@ const TeamManagement = () => {
           >
             <Input />
           </Form.Item>
-          <Form.Item name="desc" label="描述">
+          <Form.Item
+            name="code"
+            label="代码"
+            rules={[{ required: true, message: '请输入代码' }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item
-            name="is_active"
-            label="活跃状态"
+            name="exchange_rate"
+            label="汇率"
+            rules={[{ required: true, message: '请输入汇率' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="状态"
             valuePropName="checked"
             initialValue={true}
           >
@@ -181,4 +188,4 @@ const TeamManagement = () => {
   );
 };
 
-export default TeamManagement;
+export default SettlementCurrencyManagement;

@@ -49,7 +49,10 @@ import {
                 const { key } = event;
                 console.log(key);
                 if (key === 'center') {
-                  history.push('/user/account')
+                  history.push('/user/profile')
+                }
+                if (key === 'setting') {
+                  history.push('/user/setting')
                 }
                 if (key === 'logout') {
                   handleLogout();
@@ -60,6 +63,11 @@ import {
                   key: 'center',
                   icon: <UserOutlined />,
                   label: '个人中心',
+                },
+                {
+                  key: 'setting',
+                  icon: <UserOutlined />,
+                  label: '设置',
                 },
                 {
                   type: 'divider' as const,

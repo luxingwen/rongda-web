@@ -10,17 +10,25 @@ import {
   Popconfirm,
   Select,
   Tag,
+  Typography,
+  Progress,
 } from 'antd';
 import { useEffect, useState, useCallback } from 'react';
 
 const { Option } = Select;
+
+const { Title, Paragraph, Text } = Typography;
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 1, total: 0 });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [strengthLabel, setStrengthLabel] = useState('');
+  const [progressColor, setProgressColor] = useState('#f5222d'); // 初始为红色
 
   const [form] = Form.useForm();
 
@@ -77,6 +85,7 @@ const UserManagement = () => {
     try {
       const values = await form.validateFields();
       values.age = parseInt(values.age ? values.age : 0);
+      values.password_strength = passwordStrength
       if (editingUser) {
         await updateUser({ ...editingUser, ...values });
         message.success('更新成功');
@@ -125,8 +134,35 @@ const UserManagement = () => {
     }
   };
 
+  const checkPasswordStrength = (value) => {
+    let strength = 0;
+    if (value.length > 5) strength += 20;
+    if (value.length > 8) strength += 30;
+    if (/[A-Z]/.test(value)) strength += 20;
+    if (/[0-9]/.test(value)) strength += 20;
+    if (/[^A-Za-z0-9]/.test(value)) strength += 10;
+
+    let label = '弱';
+    let color = '#f5222d'; // 红色
+
+    if (strength > 60) {
+      label = '中等';
+      color = '#faad14'; // 橙色
+    }
+    if (strength > 80) {
+      label = '强';
+      color = '#52c41a'; // 绿色
+    }
+
+    setPasswordStrength(strength);
+    setStrengthLabel(label);
+    setProgressColor(color);
+    return strength;
+  };
+
+
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
+    { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '邮箱', dataIndex: 'email', key: 'email' },
     { title: '用户名', dataIndex: 'username', key: 'username' },
@@ -138,17 +174,19 @@ const UserManagement = () => {
       key: 'status',
       render: (status) => renderStatus(status),
     },
-    { title: '年龄', dataIndex: 'age', key: 'age' },
+    { title: '年龄', dataIndex: 'age', key: 'age', hideInSearch: true, },
     {
       title: '性别',
       dataIndex: 'sex',
       key: 'sex',
       render: (sex) => renderSex(sex),
+      hideInSearch: true,
     },
-    { title: '个性签名', dataIndex: 'signed', key: 'signed' },
+    { title: '个性签名', dataIndex: 'signed', key: 'signed', hideInSearch: true },
     {
       title: '操作',
       key: 'action',
+      hideInSearch: true,
       render: (_, record) => (
         <span>
           <Button
@@ -171,14 +209,7 @@ const UserManagement = () => {
 
   return (
     <div>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAddUser}
-        style={{ marginBottom: 16 }}
-      >
-        添加用户
-      </Button>
+
       <ProTable
         columns={columns}
         dataSource={users}
@@ -192,8 +223,21 @@ const UserManagement = () => {
             setPagination({ current: page, pageSize });
           },
         }}
-        search={false}
+        search={{
+          labelWidth: 'auto',
+        }}
         options={false}
+        toolBarRender={() => [
+          <Button
+            key="button"
+            icon={<PlusOutlined />}
+            onClick={handleAddUser}
+            type="primary"
+          >
+            添加用户
+          </Button>,
+        ]}
+
       />
       <Modal
         title={editingUser ? '编辑用户' : '添加用户'}
@@ -222,6 +266,17 @@ const UserManagement = () => {
           <Form.Item name="nickname" label="昵称">
             <Input />
           </Form.Item>
+          <Form.Item
+            name="password"
+            label="密码"
+            rules={[{ required: !editingUser, message: '请输入密码' }]}
+          >
+            <Input.Password onChange={(e) => checkPasswordStrength(e.target.value)} />
+          </Form.Item>
+          <div>
+            <Text>密码强度: {strengthLabel}</Text>
+            <Progress percent={passwordStrength} showInfo={false} strokeColor={progressColor} />
+          </div>
           <Form.Item
             name="status"
             label="状态"
