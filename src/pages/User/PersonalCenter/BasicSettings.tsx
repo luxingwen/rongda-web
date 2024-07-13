@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Form, Input, Button, message, Upload, Avatar } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
 import { getMyUserInfo, updateUser } from '@/services/user';
+import { UploadOutlined } from '@ant-design/icons';
+import {
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Form,
+  Input,
+  message,
+  Row,
+  Upload,
+} from 'antd';
+import { useEffect, useState } from 'react';
 
 const BasicSettings = () => {
   const [user, setUser] = useState(null);
@@ -28,7 +38,11 @@ const BasicSettings = () => {
   const handleUpdate = async (values) => {
     setLoading(true);
     try {
-      await updateUser(values);
+      const res =await updateUser({uuid: user.uuid,  ...values});
+      if (res.code !== 200) {
+        message.error('更新失败 :' + res.message);
+        return;
+      }
       message.success('更新成功');
       setUser(values);
     } catch (error) {
@@ -59,15 +73,12 @@ const BasicSettings = () => {
     <Card loading={loading}>
       <Row gutter={16}>
         <Col span={16}>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleUpdate}
-          >
-            <Form.Item name="email" label="邮箱" rules={[{ required: true, message: '请输入邮箱' }]}>
-              <Input />
-            </Form.Item>
-            <Form.Item name="nickname" label="昵称" rules={[{ required: true, message: '请输入昵称' }]}>
+          <Form form={form} layout="vertical" onFinish={handleUpdate}>
+            <Form.Item
+              name="nickname"
+              label="昵称"
+              rules={[{ required: true, message: '请输入昵称' }]}
+            >
               <Input />
             </Form.Item>
             <Form.Item name="signed" label="个人简介">
@@ -82,19 +93,25 @@ const BasicSettings = () => {
             <Form.Item name="address" label="街道地址">
               <Input />
             </Form.Item>
-            <Form.Item name="phone" label="联系电话">
-              <Input />
-            </Form.Item>
+
             <Form.Item>
-              <Button type="primary" htmlType="submit" loading={loading}>更新基本信息</Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                更新基本信息
+              </Button>
             </Form.Item>
           </Form>
         </Col>
         <Col span={8} style={{ textAlign: 'center' }}>
-          <Avatar size={120} src={user?.avatar} />
-          <Upload {...uploadProps}>
-            <Button icon={<UploadOutlined />} style={{ marginTop: 16 }}>更换头像</Button>
-          </Upload>
+          <Row justify="center">
+            <Col span={24} style={{ textAlign: 'center' }}>
+              <Avatar size={120} src={user?.avatar} />
+            </Col>
+            <Col span={24} style={{ textAlign: 'center', marginTop: 16 }}>
+              <Upload {...uploadProps}>
+                <Button icon={<UploadOutlined />}>更换头像</Button>
+              </Upload>
+            </Col>
+          </Row>
         </Col>
       </Row>
     </Card>

@@ -25,8 +25,6 @@ const PersonalSettings = () => {
           <Menu.Item key="1">个人信息</Menu.Item>
           <Menu.Item key="2">基本设置</Menu.Item>
           <Menu.Item key="3">安全设置</Menu.Item>
-          <Menu.Item key="4">账户绑定</Menu.Item>
-          <Menu.Item key="5">新消息通知</Menu.Item>
         </Menu>
       </Sider>
       <Layout style={{ padding: '0 24px 24px' }}>
@@ -41,8 +39,7 @@ const PersonalSettings = () => {
           {selectedMenuItem === '1' && <PersonalCenter />}
           {selectedMenuItem === '2' && <BasicSettings />}
           {selectedMenuItem === '3' && <SecuritySettings />}
-          {selectedMenuItem === '4' && <Card>账户绑定内容</Card>}
-          {selectedMenuItem === '5' && <Card>新消息通知内容</Card>}
+
         </Content>
       </Layout>
     </Layout>

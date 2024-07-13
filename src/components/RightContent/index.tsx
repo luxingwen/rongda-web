@@ -36,6 +36,9 @@ import {
     const handleLogout = () => {
     //   logout();
       console.log('logout');
+      Cookies.remove('token');
+      setInitialState((s) => ({ ...s, currentUser: null }));
+      history.push('/login');
     };
   
     return (
@@ -51,9 +54,7 @@ import {
                 if (key === 'center') {
                   history.push('/user/profile')
                 }
-                if (key === 'setting') {
-                  history.push('/user/setting')
-                }
+          
                 if (key === 'logout') {
                   handleLogout();
                 }
@@ -64,11 +65,7 @@ import {
                   icon: <UserOutlined />,
                   label: '个人中心',
                 },
-                {
-                  key: 'setting',
-                  icon: <UserOutlined />,
-                  label: '设置',
-                },
+              
                 {
                   type: 'divider' as const,
                 },

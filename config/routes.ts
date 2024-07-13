@@ -40,45 +40,68 @@ export default [
     component: './User/Setting',
     hideInMenu: true,
   },
+
+  {
+    name: '资料管理',
+    path: '/resource',
+    routes: [
+      {
+        name: '客户管理',
+        path: '/resource/customer',
+        component: './Customer',
+      },
+      {
+        name: '代理机构',
+        path: '/resource/agent',
+        component: './Agent',
+      },
+      {
+        name: '供应商管理',
+        path: '/resource/supplier',
+        component: './Supplier',
+      },
+      {
+        name: 'SKU管理',
+        path: '/resource/sku',
+        component: './Sku',
+      },
+
+    ],
+  },
+
+  {
+    name: '员工管理',
+    path: '/staff',
+    routes: [
+      {
+        name: '部门管理',
+        path: '/staff/department',
+        component: './Department',
+      },
+      {
+        name: '用户管理',
+        path: '/staff/user',
+        component: './User/Maneger',
+      },
+      {
+        name: '权限管理',
+        path: '/staff/permission',
+        component: './User/Maneger',
+      },
+    ],
+  },
+
   {
     name: '系统管理',
     path: '/system',
     routes: [
-      {
-        name: '用户管理',
-        path: '/system/user',
-        component: './User/Maneger',
-      },
-      {
-        name: '角色管理',
-        path: '/system/role',
-        component: './Role',
-      },
-      {
-        name: '团队管理',
-        path: '/system/team',
-        component: './Team',
-      },
+
       {
         name: '菜单管理',
         path: '/system/menu',
         component: './Menu',
       },
-      {
-        name: '客户管理',
-        path: '/system/customer',
-        component: './Customer',
-      },
-      {
-        name: '代理机构',
-        path: '/system/agent',
-        component: './Agent',
-      },
-      {
-        name: '供应商管理',
-        path: '/system/supplier',
-        component: './Supplier',
-      },
+     
       {
         name: '结算币种',
         path: '/system/currency',

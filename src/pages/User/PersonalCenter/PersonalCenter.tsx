@@ -49,9 +49,6 @@ const PersonalCenter = () => {
               <Text strong>性别: </Text>{user?.sex}
             </Paragraph>
             <Paragraph>
-              <Text strong>年龄: </Text>{user?.age}
-            </Paragraph>
-            <Paragraph>
               <Text strong>状态: </Text>{user?.status === 1 ? '启用' : '禁用'}
             </Paragraph>
           </div>

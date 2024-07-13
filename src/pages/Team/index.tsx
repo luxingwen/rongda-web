@@ -1,37 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getTeams, addTeam, updateTeam, deleteTeam } from '@/services/team';
 
 const TeamManagement = () => {
-  const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-
   const [form] = Form.useForm();
+  const actionRef = useRef();
 
-  const fetchTeams = useCallback(async (params) => {
-    setLoading(true);
-    try {
-      const response = await getTeams(params);
-      setTeams(response.data.data);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.total,
-      }));
-    } catch (error) {
-      message.error('获取团队列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchTeams]);
+  
 
   const handleAddTeam = () => {
     setEditingTeam(null);
@@ -46,15 +25,12 @@ const TeamManagement = () => {
   };
 
   const handleDeleteTeam = async (id) => {
-    setLoading(true);
     try {
       await deleteTeam(id);
       message.success('删除成功');
-      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('删除失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -69,7 +45,7 @@ const TeamManagement = () => {
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchTeams({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('操作失败');
     }
@@ -84,10 +60,10 @@ const TeamManagement = () => {
   );
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id',  hideInSearch: true, },
+    { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: '描述', dataIndex: 'desc', key: 'desc',  hideInSearch: true, },
+    { title: '描述', dataIndex: 'desc', key: 'desc', hideInSearch: true },
     {
       title: '活跃状态',
       dataIndex: 'is_active',
@@ -95,7 +71,7 @@ const TeamManagement = () => {
       hideInSearch: true,
       render: (isActive) => renderIsActive(isActive),
     },
-    { title: '创建者', dataIndex: 'creater', key: 'creater',  hideInSearch: true, },
+    { title: '创建者', dataIndex: 'creater', key: 'creater', hideInSearch: true },
     {
       title: '操作',
       key: 'action',
@@ -120,20 +96,40 @@ const TeamManagement = () => {
     },
   ];
 
+  const fetchTeams = async (params) => {
+    try {
+      const response = await getTeams(params);
+      if (response.code !== 200) {
+        return {
+          data: [],
+          success: false,
+          total: 0,
+        };
+      }
+      return {
+        data: response.data.data,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
+
   return (
     <div>
       <ProTable
         columns={columns}
-        dataSource={teams}
         rowKey="id"
-        loading={loading}
+        actionRef={actionRef}
+        request={fetchTeams}
         pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ current: page, pageSize });
-          },
+          defaultPageSize: 10,
+          showSizeChanger: true,
         }}
         search={{
           labelWidth: 'auto',

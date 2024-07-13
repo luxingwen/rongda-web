@@ -13,44 +13,20 @@ import {
   Typography,
   Progress,
 } from 'antd';
-import { useEffect, useState, useCallback } from 'react';
+import { useRef, useState } from 'react';
 
 const { Option } = Select;
-
-const { Title, Paragraph, Text } = Typography;
+const { Text } = Typography;
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [strengthLabel, setStrengthLabel] = useState('');
   const [progressColor, setProgressColor] = useState('#f5222d'); // 初始为红色
 
   const [form] = Form.useForm();
-
-  const fetchUsers = useCallback(async (params) => {
-    setLoading(true);
-    try {
-      const response = await getUsers(params);
-      setUsers(response.data.data);
-      setPagination({
-        ...params,
-        total: response.data.total,
-      });
-    } catch (error) {
-      message.error('获取用户列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchUsers]);
+  const actionRef = useRef();
 
   const handleAddUser = () => {
     setEditingUser(null);
@@ -65,19 +41,16 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = async (id) => {
-    setLoading(true);
     try {
       const res = await deleteUser({ uuid: id });
       if (res.code !== 200) {
         message.error('删除失败 :' + res.message);
       } else {
         message.success('删除成功');
-        fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
+        actionRef.current?.reload();
       }
     } catch (error) {
       message.error('删除失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,7 +58,7 @@ const UserManagement = () => {
     try {
       const values = await form.validateFields();
       values.age = parseInt(values.age ? values.age : 0);
-      values.password_strength = passwordStrength
+      values.password_strength = passwordStrength;
       if (editingUser) {
         await updateUser({ ...editingUser, ...values });
         message.success('更新成功');
@@ -98,7 +71,7 @@ const UserManagement = () => {
         }
       }
       setIsModalVisible(false);
-      fetchUsers({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('操作失败');
     }
@@ -160,6 +133,35 @@ const UserManagement = () => {
     return strength;
   };
 
+  const queryUser = async (params, sort, filter) => {
+    const queryParams = {
+     ...params,
+      ...sort,
+      ...filter,
+    };
+
+    try {
+      const response = await getUsers(queryParams);
+      if (response.code !== 200) {
+        return {
+          data: [],
+          success: false,
+          total: 0,
+        };
+      }
+      return {
+        data: response.data.data,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
@@ -174,7 +176,7 @@ const UserManagement = () => {
       key: 'status',
       render: (status) => renderStatus(status),
     },
-    { title: '年龄', dataIndex: 'age', key: 'age', hideInSearch: true, },
+    { title: '年龄', dataIndex: 'age', key: 'age', hideInSearch: true },
     {
       title: '性别',
       dataIndex: 'sex',
@@ -209,19 +211,14 @@ const UserManagement = () => {
 
   return (
     <div>
-
       <ProTable
         columns={columns}
-        dataSource={users}
         rowKey="id"
-        loading={loading}
+        actionRef={actionRef}
+        request={queryUser}
         pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ current: page, pageSize });
-          },
+          defaultPageSize: 10,
+          showSizeChanger: true,
         }}
         search={{
           labelWidth: 'auto',
@@ -237,7 +234,6 @@ const UserManagement = () => {
             添加用户
           </Button>,
         ]}
-
       />
       <Modal
         title={editingUser ? '编辑用户' : '添加用户'}

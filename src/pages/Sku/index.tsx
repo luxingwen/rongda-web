@@ -2,29 +2,29 @@ import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getAgents, addAgent, updateAgent, deleteAgent } from '@/services/agent';
+import { getSkus, addSku, updateSku, deleteSku } from '@/services/sku';
 
-const AgentManagement = () => {
+const SkuManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAgent, setEditingAgent] = useState(null);
+  const [editingSku, setEditingSku] = useState(null);
   const [form] = Form.useForm();
   const actionRef = useRef();
 
-  const handleAddAgent = () => {
-    setEditingAgent(null);
+  const handleAddSku = () => {
+    setEditingSku(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditAgent = (record) => {
-    setEditingAgent(record);
+  const handleEditSku = (record) => {
+    setEditingSku(record);
     form.setFieldsValue(record);
     setIsModalVisible(true);
   };
 
-  const handleDeleteAgent = async (id) => {
+  const handleDeleteSku = async (id) => {
     try {
-      await deleteAgent({ uuid: id });
+      await deleteSku({ uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -35,13 +35,12 @@ const AgentManagement = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      values.status = values.status ? 1 : 0;
-      values.rate = parseFloat(values.rate);
-      if (editingAgent) {
-        await updateAgent({ ...editingAgent, ...values });
+      values.num = parseInt(values.num);
+      if (editingSku) {
+        await updateSku({ ...editingSku, ...values });
         message.success('更新成功');
       } else {
-        await addAgent(values);
+        await addSku(values);
         message.success('添加成功');
       }
       setIsModalVisible(false);
@@ -63,12 +62,10 @@ const AgentManagement = () => {
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
-    { title: '联系方式', dataIndex: 'contact_info', key: 'contact_info', hideInSearch: true },
-    { title: '银行账号', dataIndex: 'bank_account', key: 'bank_account', hideInSearch: true },
-    { title: '信用状态', dataIndex: 'credit_status', key: 'credit_status', hideInSearch: true },
-    { title: '费率', dataIndex: 'rate', key: 'rate', hideInSearch: true },
-    { title: '状态', dataIndex: 'status', key: 'status', hideInSearch: true, render: (status) => renderStatus(status) },
+    { title: '单位', dataIndex: 'unit', key: 'unit', hideInSearch: true },
+    { title: '数量', dataIndex: 'num', key: 'num', hideInSearch: true },
+    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', hideInSearch: true },
+    { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', hideInSearch: true },
     {
       title: '操作',
       key: 'action',
@@ -77,12 +74,12 @@ const AgentManagement = () => {
         <span>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditAgent(record)}
+            onClick={() => handleEditSku(record)}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteAgent(record.uuid)}
+            onConfirm={() => handleDeleteSku(record.uuid)}
             okText="是"
             cancelText="否"
           >
@@ -93,9 +90,9 @@ const AgentManagement = () => {
     },
   ];
 
-  const fetchAgents = async (params) => {
+  const fetchSkus = async (params) => {
     try {
-      const response = await getAgents(params);
+      const response = await getSkus(params);
       if (response.code !== 200) {
         return {
           data: [],
@@ -123,7 +120,7 @@ const AgentManagement = () => {
         columns={columns}
         rowKey="id"
         actionRef={actionRef}
-        request={fetchAgents}
+        request={fetchSkus}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
@@ -136,15 +133,15 @@ const AgentManagement = () => {
           <Button
             key="button"
             icon={<PlusOutlined />}
-            onClick={handleAddAgent}
+            onClick={handleAddSku}
             type="primary"
           >
-            添加代理
+            添加SKU
           </Button>,
         ]}
       />
       <Modal
-        title={editingAgent ? '编辑代理' : '添加代理'}
+        title={editingSku ? '编辑SKU' : '添加SKU'}
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -158,52 +155,24 @@ const AgentManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="address"
-            label="地址"
-            rules={[{ required: true, message: '请输入地址' }]}
+            name="unit"
+            label="单位"
+            rules={[{ required: true, message: '请输入单位' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="contact_info"
-            label="联系方式"
-            rules={[{ required: true, message: '请输入联系方式' }]}
+            name="num"
+            label="数量"
+            rules={[{ required: true, message: '请输入数量' }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="bank_account"
-            label="银行账号"
-            rules={[{ required: true, message: '请输入银行账号' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="credit_status"
-            label="信用状态"
-            rules={[{ required: true, message: '请输入信用状态' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="rate"
-            label="费率"
-            rules={[{ required: true, message: '请输入费率' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="状态"
-            valuePropName="checked"
-            initialValue={true}
-          >
-            <Switch />
-          </Form.Item>
+
         </Form>
       </Modal>
     </div>
   );
 };
 
-export default AgentManagement;
+export default SkuManagement;

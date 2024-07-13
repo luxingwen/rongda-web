@@ -1,37 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getSuppliers, addSupplier, updateSupplier, deleteSupplier } from '@/services/supplier';
 
 const SupplierManagement = () => {
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-
   const [form] = Form.useForm();
-
-  const fetchSuppliers = useCallback(async (params) => {
-    setLoading(true);
-    try {
-      const response = await getSuppliers(params);
-      setSuppliers(response.data.data);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.total,
-      }));
-    } catch (error) {
-      message.error('获取供应商列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSuppliers({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchSuppliers]);
+  const actionRef = useRef();
 
   const handleAddSupplier = () => {
     setEditingSupplier(null);
@@ -46,15 +23,12 @@ const SupplierManagement = () => {
   };
 
   const handleDeleteSupplier = async (id) => {
-    setLoading(true);
     try {
       await deleteSupplier({ id });
       message.success('删除成功');
-      fetchSuppliers({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('删除失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -71,7 +45,7 @@ const SupplierManagement = () => {
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchSuppliers({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('操作失败');
     }
@@ -119,20 +93,40 @@ const SupplierManagement = () => {
     },
   ];
 
+  const fetchSuppliers = async (params) => {
+    try {
+      const response = await getSuppliers(params);
+      if (response.code !== 200) {
+        return {
+          data: [],
+          success: false,
+          total: 0,
+        };
+      }
+      return {
+        data: response.data.data,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
+
   return (
     <div>
       <ProTable
         columns={columns}
-        dataSource={suppliers}
         rowKey="id"
-        loading={loading}
+        actionRef={actionRef}
+        request={fetchSuppliers}
         pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ current: page, pageSize });
-          },
+          defaultPageSize: 10,
+          showSizeChanger: true,
         }}
         search={{
           labelWidth: 'auto',

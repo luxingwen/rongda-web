@@ -1,41 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from '@/services/customer';
 
 const CustomerManagement = () => {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-
   const [form] = Form.useForm();
-
-  const fetchCustomers = useCallback(async (params) => {
-    setLoading(true);
-    try {
-      const response = await getCustomers(params);
-      if(response.code !== 200) {
-        message.error(response.message);
-        return;
-      }
-      setCustomers(response.data.data);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.total,
-      }));
-    } catch (error) {
-      message.error('获取客户列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCustomers({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchCustomers]);
+  const actionRef = useRef();
 
   const handleAddCustomer = () => {
     setEditingCustomer(null);
@@ -50,15 +23,12 @@ const CustomerManagement = () => {
   };
 
   const handleDeleteCustomer = async (id) => {
-    setLoading(true);
     try {
       await deleteCustomer(id);
       message.success('删除成功');
-      fetchCustomers({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('删除失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -69,21 +39,21 @@ const CustomerManagement = () => {
       values.discount = parseFloat(values.discount);
       if (editingCustomer) {
         const res = await updateCustomer({ ...editingCustomer, ...values });
-        if(res.code !== 200) {
-            message.error(res.message);
-            return;
-            }
+        if (res.code !== 200) {
+          message.error(res.message);
+          return;
+        }
         message.success('更新成功');
       } else {
         const res = await addCustomer(values);
-        if(res.code !== 200) {
-            message.error(res.message);
-            return;
-            }
+        if (res.code !== 200) {
+          message.error(res.message);
+          return;
+        }
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchCustomers({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('操作失败');
     }
@@ -106,7 +76,7 @@ const CustomerManagement = () => {
     { title: '银行账号', dataIndex: 'bank_account', key: 'bank_account', hideInSearch: true },
     { title: '信用状态', dataIndex: 'credit_status', key: 'credit_status', hideInSearch: true },
     { title: '折扣', dataIndex: 'discount', key: 'discount', hideInSearch: true },
-    { title: '状态', dataIndex: 'status', key: 'status', hideInSearch: true },
+    { title: '状态', dataIndex: 'status', key: 'status', hideInSearch: true, render: renderIsActive },
     {
       title: '操作',
       key: 'action',
@@ -131,20 +101,40 @@ const CustomerManagement = () => {
     },
   ];
 
+  const fetchCustomers = async (params) => {
+    try {
+      const response = await getCustomers(params);
+      if (response.code !== 200) {
+        return {
+          data: [],
+          success: false,
+          total: 0,
+        };
+      }
+      return {
+        data: response.data.data,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
+
   return (
     <div>
       <ProTable
         columns={columns}
-        dataSource={customers}
         rowKey="id"
-        loading={loading}
+        actionRef={actionRef}
+        request={fetchCustomers}
         pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ current: page, pageSize });
-          },
+          defaultPageSize: 10,
+          showSizeChanger: true,
         }}
         search={{
           labelWidth: 'auto',

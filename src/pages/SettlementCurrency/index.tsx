@@ -1,37 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getSettlementCurrencies, addSettlementCurrency, updateSettlementCurrency, deleteSettlementCurrency } from '@/services/settlement_currency';
 
 const SettlementCurrencyManagement = () => {
-  const [currencies, setCurrencies] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-
   const [form] = Form.useForm();
-
-  const fetchCurrencies = useCallback(async (params) => {
-    setLoading(true);
-    try {
-      const response = await getSettlementCurrencies(params);
-      setCurrencies(response.data.data);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.total,
-      }));
-    } catch (error) {
-      message.error('获取结算币种列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
-  }, [pagination.current, pagination.pageSize, fetchCurrencies]);
+  const actionRef = useRef();
 
   const handleAddCurrency = () => {
     setEditingCurrency(null);
@@ -46,15 +23,12 @@ const SettlementCurrencyManagement = () => {
   };
 
   const handleDeleteCurrency = async (id) => {
-    setLoading(true);
     try {
-      await deleteSettlementCurrency({uuid:id });
+      await deleteSettlementCurrency({ uuid: id });
       message.success('删除成功');
-      fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('删除失败');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -71,7 +45,7 @@ const SettlementCurrencyManagement = () => {
         message.success('添加成功');
       }
       setIsModalVisible(false);
-      fetchCurrencies({ current: pagination.current, pageSize: pagination.pageSize });
+      actionRef.current?.reload();
     } catch (error) {
       message.error('操作失败');
     }
@@ -116,20 +90,40 @@ const SettlementCurrencyManagement = () => {
     },
   ];
 
+  const fetchCurrencies = async (params) => {
+    try {
+      const response = await getSettlementCurrencies(params);
+      if (response.code !== 200) {
+        return {
+          data: [],
+          success: false,
+          total: 0,
+        };
+      }
+      return {
+        data: response.data.data,
+        success: true,
+        total: response.data.total,
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
+
   return (
     <div>
       <ProTable
         columns={columns}
-        dataSource={currencies}
         rowKey="id"
-        loading={loading}
+        actionRef={actionRef}
+        request={fetchCurrencies}
         pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          onChange: (page, pageSize) => {
-            setPagination({ current: page, pageSize });
-          },
+          defaultPageSize: 10,
+          showSizeChanger: true,
         }}
         search={{
           labelWidth: 'auto',
