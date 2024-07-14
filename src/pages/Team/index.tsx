@@ -148,7 +148,7 @@ const TeamManagement = () => {
       />
       <Modal
         title={editingTeam ? '编辑团队' : '添加团队'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

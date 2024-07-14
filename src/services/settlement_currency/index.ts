@@ -27,3 +27,9 @@ export async function deleteSettlementCurrency(data) {
     data,
   });
 }
+
+export async function getSettlementCurrencyOptions() {
+  return request('/api/v1/settlement_currency/all', {
+    method: 'GET',
+  });
+}

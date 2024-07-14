@@ -24,11 +24,21 @@ const PersonalCenter = () => {
     fetchUserInfo();
   }, []);
 
+  const getAvatar = () => {
+    if (user?.avatar) {
+
+      const res= "/public" + user.avatar;
+      console.log(res);
+      return res;
+    }
+    return '';
+  }
+
   return (
     <Card loading={loading}>
       <Row gutter={16} justify="start" align="middle">
         <Col style={{ textAlign: 'center' }}>
-          <Avatar size={120} src={user?.avatar} />
+          <Avatar size={120} src={ getAvatar()} />
           <Title level={2}>{user?.username}</Title>
           <Paragraph>{user?.nickname}</Paragraph>
           <Divider />

@@ -145,7 +145,7 @@ const RoleManagement = () => {
       />
       <Modal
         title={editingRole ? '编辑角色' : '添加角色'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

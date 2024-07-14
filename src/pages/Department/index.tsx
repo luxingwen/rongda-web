@@ -178,7 +178,7 @@ const DepartmentManagement = () => {
       />
       <Modal
         title={editingDepartment ? '编辑部门' : '添加部门'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

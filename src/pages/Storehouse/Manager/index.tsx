@@ -1,60 +1,32 @@
-import { getProductOptions } from '@/services/product';
-import { addSku, deleteSku, getSkus, updateSku } from '@/services/sku';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import {
-  Button,
-  Form,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Select,
-  Tag,
-} from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { getStorehouses, addStorehouse, updateStorehouse, deleteStorehouse } from '@/services/storehouse';
 
 const { Option } = Select;
 
-const SkuManagement = () => {
+const StorehouseManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingSku, setEditingSku] = useState(null);
+  const [editingStorehouse, setEditingStorehouse] = useState(null);
   const [form] = Form.useForm();
   const actionRef = useRef();
-  const [productOptions, setProductOptions] = useState([]);
 
-  useEffect(() => {
-    fetchProductOptions();
-  }, []);
-
-  const fetchProductOptions = async () => {
-    try {
-      const response = await getProductOptions();
-      if (response.code === 200) {
-        setProductOptions(response.data);
-      } else {
-        message.error('获取产品选项失败');
-      }
-    } catch (error) {
-      message.error('获取产品选项失败');
-    }
-  };
-
-  const handleAddSku = () => {
-    setEditingSku(null);
+  const handleAddStorehouse = () => {
+    setEditingStorehouse(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditSku = (record) => {
-    setEditingSku(record);
+  const handleEditStorehouse = (record) => {
+    setEditingStorehouse(record);
     form.setFieldsValue(record);
     setIsModalVisible(true);
   };
 
-  const handleDeleteSku = async (id) => {
+  const handleDeleteStorehouse = async (uuid) => {
     try {
-      await deleteSku({ uuid: id });
+      await deleteStorehouse({ uuid });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -65,12 +37,12 @@ const SkuManagement = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      values.num = parseInt(values.num);
-      if (editingSku) {
-        await updateSku({ ...editingSku, ...values });
+      values.status = values.status ? 1 : 0;
+      if (editingStorehouse) {
+        await updateStorehouse({ ...editingStorehouse, ...values });
         message.success('更新成功');
       } else {
-        await addSku(values);
+        await addStorehouse(values);
         message.success('添加成功');
       }
       setIsModalVisible(false);
@@ -85,35 +57,24 @@ const SkuManagement = () => {
   };
 
   const renderStatus = (status) => (
-    <Tag color={status ? 'green' : 'red'}>{status ? '活跃' : '禁用'}</Tag>
+    <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '启用' : '未启用'}</Tag>
   );
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
-    {
-      title: '产品',
-      dataIndex: 'product_uuid',
-      key: 'product_uuid',
-      render: (_, record) => {
-        return record.product.name;
-      },
-    },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: '单位', dataIndex: 'unit', key: 'unit', hideInSearch: true },
-    { title: '数量', dataIndex: 'num', key: 'num', hideInSearch: true },
+    { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
+    { title: '联系人', dataIndex: 'contact_person', key: 'contact_person', hideInSearch: true },
+    { title: '联系电话', dataIndex: 'contact_phone', key: 'contact_phone', hideInSearch: true },
     {
-      title: '创建时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
       hideInSearch: true,
+      render: (status) => renderStatus(status),
     },
-    {
-      title: '更新时间',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
-      hideInSearch: true,
-    },
+    { title: '类型', dataIndex: 'type', key: 'type', hideInSearch: true },
     {
       title: '操作',
       key: 'action',
@@ -122,12 +83,12 @@ const SkuManagement = () => {
         <span>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditSku(record)}
+            onClick={() => handleEditStorehouse(record)}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteSku(record.uuid)}
+            onConfirm={() => handleDeleteStorehouse(record.uuid)}
             okText="是"
             cancelText="否"
           >
@@ -138,9 +99,9 @@ const SkuManagement = () => {
     },
   ];
 
-  const fetchSkus = async (params) => {
+  const fetchStorehouses = async (params) => {
     try {
-      const response = await getSkus(params);
+      const response = await getStorehouses(params);
       if (response.code !== 200) {
         return {
           data: [],
@@ -168,7 +129,7 @@ const SkuManagement = () => {
         columns={columns}
         rowKey="id"
         actionRef={actionRef}
-        request={fetchSkus}
+        request={fetchStorehouses}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
@@ -181,33 +142,20 @@ const SkuManagement = () => {
           <Button
             key="button"
             icon={<PlusOutlined />}
-            onClick={handleAddSku}
+            onClick={handleAddStorehouse}
             type="primary"
           >
-            添加SKU
+            添加仓库
           </Button>,
         ]}
       />
       <Modal
-        title={editingSku ? '编辑SKU' : '添加SKU'}
+        title={editingStorehouse ? '编辑仓库' : '添加仓库'}
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="product_uuid"
-            label="产品"
-            rules={[{ required: true, message: '请选择产品' }]}
-          >
-            <Select placeholder="请选择产品">
-              {productOptions.map((product) => (
-                <Option key={product.uuid} value={product.uuid}>
-                  {product.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
           <Form.Item
             name="name"
             label="名称"
@@ -216,18 +164,43 @@ const SkuManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="unit"
-            label="单位"
-            rules={[{ required: true, message: '请输入单位' }]}
+            name="address"
+            label="地址"
+            rules={[{ required: true, message: '请输入地址' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="num"
-            label="数量"
-            rules={[{ required: true, message: '请输入数量' }]}
+            name="contact_person"
+            label="联系人"
+            rules={[{ required: true, message: '请输入联系人' }]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            name="contact_phone"
+            label="联系电话"
+            rules={[{ required: true, message: '请输入联系电话' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="状态"
+            valuePropName="checked"
+            initialValue={true}
+          >
+            <Switch />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="类型"
+            rules={[{ required: true, message: '请选择类型' }]}
+          >
+            <Select>
+              <Option value="1">自有仓库</Option>
+              <Option value="2">第三方仓库</Option>
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
@@ -235,4 +208,4 @@ const SkuManagement = () => {
   );
 };
 
-export default SkuManagement;
+export default StorehouseManagement;

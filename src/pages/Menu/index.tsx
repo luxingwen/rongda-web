@@ -278,7 +278,7 @@ const MenuManagement = () => {
       />
       <Modal
         title={editingMenu ? '编辑菜单' : '添加菜单'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

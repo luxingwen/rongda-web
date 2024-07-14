@@ -1,50 +1,42 @@
-import { getMyUserInfo, updateUser } from '@/services/user';
+import { getMyUserInfo, updateUser, updateAvatar } from '@/services/user';
 import { UploadOutlined } from '@ant-design/icons';
-import {
-  Avatar,
-  Button,
-  Card,
-  Col,
-  Form,
-  Input,
-  message,
-  Row,
-  Upload,
-} from 'antd';
+import { Avatar, Button, Card, Col, Form, Input, message, Row, Upload } from 'antd';
 import { useEffect, useState } from 'react';
+import { useModel } from '@umijs/max';
 
 const BasicSettings = () => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      setLoading(true);
-      try {
-        const response = await getMyUserInfo();
-        setUser(response.data);
-        form.setFieldsValue(response.data);
-      } catch (error) {
-        message.error('获取用户信息失败');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { initialState, setInitialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const fetchUserInfo = initialState?.fetchUserInfo;
 
-    fetchUserInfo();
-  }, [form]);
+  useEffect(() => {
+    if (!currentUser) {
+      fetchUserInfo?.().then((res) => {
+        if (res) {
+          setInitialState((s) => ({ ...s, currentUser: res }));
+        }
+      });
+    }
+    form.setFieldsValue(currentUser);
+  }, [currentUser, form, fetchUserInfo, setInitialState]);
 
   const handleUpdate = async (values) => {
     setLoading(true);
     try {
-      const res =await updateUser({uuid: user.uuid,  ...values});
+      const res = await updateUser({ uuid: currentUser.uuid, ...values });
       if (res.code !== 200) {
         message.error('更新失败 :' + res.message);
         return;
       }
       message.success('更新成功');
-      setUser(values);
+      fetchUserInfo?.().then((res) => {
+        if (res) {
+          setInitialState((s) => ({ ...s, currentUser: res }));
+        }
+      });
     } catch (error) {
       message.error('更新失败');
     } finally {
@@ -56,17 +48,34 @@ const BasicSettings = () => {
     name: 'file',
     showUploadList: false,
     customRequest: async (info) => {
-      // Simulate uploading
-      setTimeout(() => {
+      const formData = new FormData();
+      const file = info.file;
+      formData.append('file', file);
+
+      try {
+        const res = await updateAvatar(formData); // 确保 updateAvatar 发送请求到服务器的正确端点
+        if (res.code !== 200) {
+          message.error('上传失败 :' + res.message);
+          return;
+        }
         const updatedUser = {
-          ...user,
-          avatar: URL.createObjectURL(info.file),
+          ...currentUser,
+          avatar: res.data.avatar, // 确保 res.data.avatar 是包含完整路径或可访问 URL 的头像 URL
         };
-        setUser(updatedUser);
-        form.setFieldsValue(updatedUser);
+        setInitialState((s) => ({ ...s, currentUser: updatedUser }));
         message.success('头像上传成功');
-      }, 1000);
+      } catch (error) {
+        message.error('上传失败');
+      }
     },
+  };
+
+  const getAvatar = () => {
+    if (currentUser?.avatar) {
+      const res = currentUser.avatar.startsWith('http') ? currentUser.avatar : `/public${currentUser.avatar}`;
+      return res;
+    }
+    return '';
   };
 
   return (
@@ -104,7 +113,7 @@ const BasicSettings = () => {
         <Col span={8} style={{ textAlign: 'center' }}>
           <Row justify="center">
             <Col span={24} style={{ textAlign: 'center' }}>
-              <Avatar size={120} src={user?.avatar} />
+              <Avatar size={120} src={getAvatar()} />
             </Col>
             <Col span={24} style={{ textAlign: 'center', marginTop: 16 }}>
               <Upload {...uploadProps}>

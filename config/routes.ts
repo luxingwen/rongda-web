@@ -65,6 +65,11 @@ export default [
         path: '/resource/sku',
         component: './Sku',
       },
+      {
+        name: '商品管理',
+        path: '/resource/product',
+        component: './Product',
+      },
 
     ],
   },
@@ -90,6 +95,44 @@ export default [
       },
     ],
   },
+  {
+    name: '仓库管理',
+    path: '/storehouse',
+    routes: [
+      {
+        name: '仓库信息管理',
+        path: '/storehouse/manage',
+        component: './Storehouse/Manager',
+      },
+      {
+        name: '库存管理',
+        path: '/storehouse/inventory',
+        routes: [
+          {
+            name: '库存查询',
+            path: '/storehouse/inventory/query',
+            component: './Storehouse/InventoryQuery',
+          },
+          {
+            name: '入库',
+            path: '/storehouse/inventory/in',
+            component: './Storehouse/InventoryIn',
+          },
+          {
+            name: '出库',
+            path: '/storehouse/inventory/out',
+            component: './Storehouse/InventoryOut',
+          },
+          {
+            name: '库存盘点',
+            path: '/storehouse/inventory/check',
+            component: './Storehouse/InventoryCheck',
+          }
+        ],
+      },
+    ],
+  },
+
 
   {
     name: '系统管理',

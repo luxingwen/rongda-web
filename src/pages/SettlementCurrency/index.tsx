@@ -142,7 +142,7 @@ const SettlementCurrencyManagement = () => {
       />
       <Modal
         title={editingCurrency ? '编辑结算币种' : '添加结算币种'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

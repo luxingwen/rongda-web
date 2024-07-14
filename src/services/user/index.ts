@@ -50,3 +50,14 @@ export async function deleteUser(data) {
     data,
   })
 }
+
+// 更新头像
+export async function updateAvatar(data) {
+  return await request('/api/v1/user/avatar', {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+}

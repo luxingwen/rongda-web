@@ -145,7 +145,7 @@ const AgentManagement = () => {
       />
       <Modal
         title={editingAgent ? '编辑代理' : '添加代理'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >

@@ -27,3 +27,10 @@ export async function deleteSupplier(data) {
     data,
   });
 }
+
+// 获取所有供应商
+export async function getSupplierOptions() {
+  return request('/api/v1/supplier/all', {
+    method: 'POST',
+  });
+}

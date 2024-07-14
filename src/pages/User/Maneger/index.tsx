@@ -83,12 +83,10 @@ const UserManagement = () => {
 
   const renderStatus = (status) => {
     switch (status) {
-      case 0:
-        return <Tag color="red">禁用</Tag>;
       case 1:
         return <Tag color="green">启用</Tag>;
       case 2:
-        return <Tag color="grey">删除</Tag>;
+        return <Tag color="grey">禁用</Tag>;
       default:
         return <Tag color="blue">未知</Tag>;
     }
@@ -176,7 +174,6 @@ const UserManagement = () => {
       key: 'status',
       render: (status) => renderStatus(status),
     },
-    { title: '年龄', dataIndex: 'age', key: 'age', hideInSearch: true },
     {
       title: '性别',
       dataIndex: 'sex',
@@ -237,7 +234,7 @@ const UserManagement = () => {
       />
       <Modal
         title={editingUser ? '编辑用户' : '添加用户'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
@@ -280,9 +277,8 @@ const UserManagement = () => {
             initialValue={1}
           >
             <Select>
-              <Option value={0}>禁用</Option>
               <Option value={1}>启用</Option>
-              <Option value={2}>删除</Option>
+              <Option value={2}>禁用</Option>
             </Select>
           </Form.Item>
           <Form.Item name="age" label="年龄">

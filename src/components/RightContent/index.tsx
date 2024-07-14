@@ -41,6 +41,15 @@ import {
       history.push('/login');
     };
   
+    const getAvatar = () => {
+      if (currentUser?.avatar) {
+        const res= "/public" + currentUser.avatar;
+        console.log(res);
+        return res;
+      }
+      return '';
+    }
+
     return (
       <Space className={`mr-4 cursor-pointer`}>
         {currentUser ? (
@@ -78,7 +87,7 @@ import {
             }}
           >
             <Space>
-              <Avatar src={currentUser.avatar}></Avatar>
+              <Avatar src={ getAvatar()}></Avatar>
               {!isHome && <span>{currentUser.nickname}</span>}
             </Space>
           </HeaderDropdown>

@@ -1,14 +1,50 @@
-import React, { useState, useRef } from 'react';
+import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
+import {
+  addSupplier,
+  deleteSupplier,
+  getSuppliers,
+  updateSupplier,
+} from '@/services/supplier';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getSuppliers, addSupplier, updateSupplier, deleteSupplier } from '@/services/supplier';
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Select,
+  Switch,
+  Tag,
+} from 'antd';
+import { useEffect, useRef, useState } from 'react';
+
+const { Option } = Select;
 
 const SupplierManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [form] = Form.useForm();
   const actionRef = useRef();
+  const [currencyOptions, setCurrencyOptions] = useState([]);
+
+  useEffect(() => {
+    fetchSettlementCurrencyOptions();
+  }, []);
+
+  const fetchSettlementCurrencyOptions = async () => {
+    try {
+      const response = await getSettlementCurrencyOptions();
+      if (response.code === 200) {
+        setCurrencyOptions(response.data);
+      } else {
+        message.error('获取结算币种失败');
+      }
+    } catch (error) {
+      message.error('获取结算币种失败');
+    }
+  };
 
   const handleAddSupplier = () => {
     setEditingSupplier(null);
@@ -24,7 +60,7 @@ const SupplierManagement = () => {
 
   const handleDeleteSupplier = async (id) => {
     try {
-      await deleteSupplier({ id });
+      await deleteSupplier({ uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -64,11 +100,40 @@ const SupplierManagement = () => {
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
-    { title: '国家厂号', dataIndex: 'country_no', key: 'country_no', hideInSearch: true },
-    { title: '联系方式', dataIndex: 'contact_info', key: 'contact_info', hideInSearch: true },
-    { title: '结算币种', dataIndex: 'settlement_currency', key: 'settlement_currency', hideInSearch: true },
-    { title: '定金比率', dataIndex: 'deposit_rate', key: 'deposit_rate', hideInSearch: true },
-    { title: '状态', dataIndex: 'status', key: 'status', hideInSearch: true, render: (status) => renderStatus(status) },
+    {
+      title: '国家厂号',
+      dataIndex: 'country_no',
+      key: 'country_no',
+      hideInSearch: true,
+    },
+    {
+      title: '联系方式',
+      dataIndex: 'contact_info',
+      key: 'contact_info',
+      hideInSearch: true,
+    },
+    {
+      title: '结算币种',
+      dataIndex: 'settlement_currency',
+      key: 'settlement_currency',
+      hideInSearch: true,
+      render: (_, record) => {
+        return (<span>{record.settlement_currency_info.name}</span>);
+      },
+    },
+    {
+      title: '定金比率',
+      dataIndex: 'deposit_rate',
+      key: 'deposit_rate',
+      hideInSearch: true,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      hideInSearch: true,
+      render: (status) => renderStatus(status),
+    },
     {
       title: '操作',
       key: 'action',
@@ -82,7 +147,7 @@ const SupplierManagement = () => {
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteSupplier(record.id)}
+            onConfirm={() => handleDeleteSupplier(record.uuid)}
             okText="是"
             cancelText="否"
           >
@@ -145,7 +210,7 @@ const SupplierManagement = () => {
       />
       <Modal
         title={editingSupplier ? '编辑供应商' : '添加供应商'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
@@ -181,9 +246,15 @@ const SupplierManagement = () => {
           <Form.Item
             name="settlement_currency"
             label="结算币种"
-            rules={[{ required: true, message: '请输入结算币种' }]}
+            rules={[{ required: true, message: '请选择结算币种' }]}
           >
-            <Input />
+            <Select>
+              {currencyOptions.map((currency) => (
+                <Option key={currency.uuid} value={currency.uuid}>
+                  {currency.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item
             name="deposit_rate"

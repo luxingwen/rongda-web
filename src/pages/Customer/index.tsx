@@ -153,7 +153,7 @@ const CustomerManagement = () => {
       />
       <Modal
         title={editingCustomer ? '编辑客户' : '添加客户'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
