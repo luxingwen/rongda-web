@@ -1,6 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Avatar, Typography, Tag, message, Space, Divider } from 'antd';
 import { getMyUserInfo } from '@/services/user';
+import {
+  Avatar,
+  Card,
+  Col,
+  Divider,
+  message,
+  Row,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
+import { useEffect, useState } from 'react';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -26,40 +36,44 @@ const PersonalCenter = () => {
 
   const getAvatar = () => {
     if (user?.avatar) {
-
-      const res= "/public" + user.avatar;
-      console.log(res);
+      const res = '/public' + user.avatar;
       return res;
     }
     return '';
-  }
+  };
 
   return (
     <Card loading={loading}>
       <Row gutter={16} justify="start" align="middle">
         <Col style={{ textAlign: 'center' }}>
-          <Avatar size={120} src={ getAvatar()} />
+          <Avatar size={120} src={getAvatar()} />
           <Title level={2}>{user?.username}</Title>
           <Paragraph>{user?.nickname}</Paragraph>
           <Divider />
           <div style={{ textAlign: 'left' }}>
             <Paragraph>
-              <Text strong>UUID: </Text>{user?.uuid}
+              <Text strong>UUID: </Text>
+              {user?.uuid}
             </Paragraph>
             <Paragraph>
-              <Text strong>邮箱: </Text>{user?.email}
+              <Text strong>邮箱: </Text>
+              {user?.email}
             </Paragraph>
             <Paragraph>
-              <Text strong>电话: </Text>{user?.phone}
+              <Text strong>电话: </Text>
+              {user?.phone}
             </Paragraph>
             <Paragraph>
-              <Text strong>签名: </Text>{user?.signed}
+              <Text strong>签名: </Text>
+              {user?.signed}
             </Paragraph>
             <Paragraph>
-              <Text strong>性别: </Text>{user?.sex}
+              <Text strong>性别: </Text>
+              {user?.sex}
             </Paragraph>
             <Paragraph>
-              <Text strong>状态: </Text>{user?.status === 1 ? '启用' : '禁用'}
+              <Text strong>状态: </Text>
+              {user?.status === 1 ? '启用' : '禁用'}
             </Paragraph>
           </div>
         </Col>
@@ -80,12 +94,24 @@ const PersonalCenter = () => {
       <div style={{ textAlign: 'left' }}>
         <Title level={4}>团队</Title>
         <Space size="large">
-          <Tag icon={<Avatar src="path_to_icon1.png" />} color="default">科学搬砖组</Tag>
-          <Tag icon={<Avatar src="path_to_icon2.png" />} color="default">全组都是黑马</Tag>
-          <Tag icon={<Avatar src="path_to_icon3.png" />} color="default">中二少女团</Tag>
-          <Tag icon={<Avatar src="path_to_icon4.png" />} color="default">程序员日常</Tag>
-          <Tag icon={<Avatar src="path_to_icon5.png" />} color="default">高逼格设计天团</Tag>
-          <Tag icon={<Avatar src="path_to_icon6.png" />} color="default">骗你来学计算机</Tag>
+          <Tag icon={<Avatar src="path_to_icon1.png" />} color="default">
+            科学搬砖组
+          </Tag>
+          <Tag icon={<Avatar src="path_to_icon2.png" />} color="default">
+            全组都是黑马
+          </Tag>
+          <Tag icon={<Avatar src="path_to_icon3.png" />} color="default">
+            中二少女团
+          </Tag>
+          <Tag icon={<Avatar src="path_to_icon4.png" />} color="default">
+            程序员日常
+          </Tag>
+          <Tag icon={<Avatar src="path_to_icon5.png" />} color="default">
+            高逼格设计天团
+          </Tag>
+          <Tag icon={<Avatar src="path_to_icon6.png" />} color="default">
+            骗你来学计算机
+          </Tag>
         </Space>
       </div>
     </Card>
