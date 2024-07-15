@@ -132,6 +132,34 @@ export default [
       },
     ],
   },
+  {
+    name: '采购管理',
+    path: '/purchase',
+    routes: [
+
+      {
+        name: '合同管理',
+        path: '/purchase/agreement',
+        component: './Purchase/Agreement',
+      },
+     
+      {
+        name: '采购订单',
+        path: '/purchase/order',
+        component: './Purchase/Order',
+      },
+      {
+        name: '到库登记',
+        path: '/purchase/arrival',
+        component: './Purchase/Arrival',
+      },
+      {
+        name: '结算',
+        path: '/purchase/settlement',
+        component: './Purchase/PurchaseBill',
+      },
+    ],
+  },
 
 
   {
