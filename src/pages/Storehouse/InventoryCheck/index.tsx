@@ -75,7 +75,7 @@ const StorehouseInventoryCheckManagement = () => {
 
   const handleDeleteInventoryCheck = async (id) => {
     try {
-      await deleteInventoryCheck({ id });
+      await deleteInventoryCheck({ uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -140,7 +140,7 @@ const StorehouseInventoryCheckManagement = () => {
     { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
     { title: '盘点日期', dataIndex: 'check_date', key: 'check_date', hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
-    { title: '盘点人', dataIndex: 'check_by', key: 'check_by', hideInSearch: true },
+    { title: '盘点人', dataIndex: 'check_by', key: 'check_by', hideInSearch: true, render: (_, record) => record.check_by_user?.nickname },
     {
       title: '操作',
       key: 'action',
@@ -148,7 +148,7 @@ const StorehouseInventoryCheckManagement = () => {
       render: (_, record) => (
         <span>
           <Button icon={<EditOutlined />} onClick={() => handleEditInventoryCheck(record)} style={{ marginRight: 8 }} />
-          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInventoryCheck(record.id)} okText="是" cancelText="否">
+          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInventoryCheck(record.check_order_no)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </span>

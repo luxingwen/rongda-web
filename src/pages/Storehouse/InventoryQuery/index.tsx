@@ -69,7 +69,7 @@ const StorehouseProductManagement = () => {
 
   const handleDeleteProduct = async (id) => {
     try {
-      await deleteStorehouseProduct({ id });
+      await deleteStorehouseProduct({ uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -126,7 +126,7 @@ const StorehouseProductManagement = () => {
       render: (_, record) => (
         <span>
           <Button icon={<EditOutlined />} onClick={() => handleEditProduct(record)} style={{ marginRight: 8 }} />
-          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteProduct(record.id)} okText="是" cancelText="否">
+          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteProduct(record.uuid)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </span>

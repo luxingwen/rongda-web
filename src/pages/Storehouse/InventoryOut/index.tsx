@@ -75,7 +75,7 @@ const StorehouseOutboundManagement = () => {
 
   const handleDeleteOutbound = async (id) => {
     try {
-      await deleteOutbound({ id });
+      await deleteOutbound({uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -141,7 +141,7 @@ const StorehouseOutboundManagement = () => {
     { title: '出库类型', dataIndex: 'outbound_type', key: 'outbound_type', hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
     { title: '出库日期', dataIndex: 'outbound_date', key: 'outbound_date', hideInSearch: true },
-    { title: '出库人', dataIndex: 'outbound_by', key: 'outbound_by', hideInSearch: true },
+    { title: '出库人', dataIndex: 'outbound_by', key: 'outbound_by', hideInSearch: true, render: (_, record) => record.outbound_by_user?.nickname },
     {
       title: '操作',
       key: 'action',
@@ -149,7 +149,7 @@ const StorehouseOutboundManagement = () => {
       render: (_, record) => (
         <span>
           <Button icon={<EditOutlined />} onClick={() => handleEditOutbound(record)} style={{ marginRight: 8 }} />
-          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteOutbound(record.id)} okText="是" cancelText="否">
+          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteOutbound(record.outbound_order_no)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </span>

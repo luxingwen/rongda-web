@@ -34,3 +34,9 @@ export async function getCustomerInfo(data) {
     data,
   });
 }
+
+export async function getCustomerOptions() {
+  return request('/api/v1/customer/all', {
+    method: 'POST',
+  });
+}

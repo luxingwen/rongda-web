@@ -124,7 +124,7 @@ const StorehouseInboundManagement = () => {
     { title: '入库类型', dataIndex: 'inbound_type', key: 'inbound_type', hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
     { title: '入库日期', dataIndex: 'inbound_date', key: 'inbound_date', hideInSearch: true },
-    { title: '入库人', dataIndex: 'inbound_by', key: 'inbound_by', hideInSearch: true },
+    { title: '入库人', dataIndex: 'inbound_by', key: 'inbound_by', hideInSearch: true, render:(_, record) => record.inbound_by_user?.nickname },
     {
       title: '操作',
       key: 'action',
@@ -132,7 +132,7 @@ const StorehouseInboundManagement = () => {
       render: (_, record) => (
         <span>
           <Button icon={<EditOutlined />} onClick={() => handleEditInbound(record)} style={{ marginRight: 8 }} />
-          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInbound(record.uuid)} okText="是" cancelText="否">
+          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInbound(record.inbound_order_no)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </span>

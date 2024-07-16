@@ -160,6 +160,38 @@ export default [
       },
     ],
   },
+  {
+    name: '销售管理',
+    path: '/sales',
+    routes: [
+
+      {
+        name: '合同管理',
+        path: '/sales/agreement',
+        component: './Sales/Agreement',
+      },
+      {
+        name: '销售订单',
+        path: '/sales/order',
+        component: './Sales/Order',
+      },
+      {
+        name: '出库登记',
+        path: '/sales/outbound',
+        component: './Sales/OutOfStock',
+      },
+      {
+        name: '结算',
+        path: '/sales/settlement',
+        component: './Sales/Settlement',
+      },
+      {
+        name: '发票',
+        path: '/sales/bill',
+        component: './Bill',
+      } 
+    ],
+  },
 
 
   {
