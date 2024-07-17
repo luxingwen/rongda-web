@@ -28,10 +28,23 @@ export async function deleteInbound(data) {
   });
 }
 
+export async function getInbound(data) {
+  return request('/api/v1/storehouse_inbound/info', {
+    method: 'POST',
+    data,
+  });
+}
 
+export async function getInboundDetail(data) {
+  return request('/api/v1/storehouse_inbound/detail', {
+    method: 'POST',
+    data,
+  });
+}
 
 export async function getProductOptions() {
   return request('/api/v1/product/all', {
     method: 'GET',
   });
 }
+

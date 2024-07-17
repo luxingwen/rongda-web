@@ -39,3 +39,17 @@ export async function getSalesOrderOptions() {
     method: 'POST',
   });
 }
+
+export async function getSalesOrderDetail(data) {
+  return request('/api/v1/sales_order/info', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function getSalesOrderProductlList(data) {
+  return request('/api/v1/sales_order/product_item/list', {
+    method: 'POST',
+    data,
+  });
+}

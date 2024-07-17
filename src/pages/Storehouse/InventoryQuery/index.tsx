@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Select, message, Tag, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Modal, Form, Input, Select, message, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import {
   getStorehouseProducts,
   addStorehouseProduct,
@@ -9,8 +10,7 @@ import {
   deleteStorehouseProduct,
   getStorehouseOptions,
 } from '@/services/storehouse_product';
-import {getProductOptions, getProductSkuOptions} from '@/services/product';
-import { render } from 'react-dom';
+import { getProductOptions, getProductSkuOptions } from '@/services/product';
 
 const { Option } = Select;
 
@@ -22,6 +22,7 @@ const StorehouseProductManagement = () => {
   const [skuOptions, setSkuOptions] = useState([]);
   const [form] = Form.useForm();
   const actionRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchStorehouseOptions();
@@ -77,6 +78,10 @@ const StorehouseProductManagement = () => {
     }
   };
 
+  const handleViewProduct = (id) => {
+    navigate(`/storehouse/inventory/storehouse-product-detail/${id}`);
+  };
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
@@ -125,6 +130,7 @@ const StorehouseProductManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button icon={<EyeOutlined />} onClick={() => handleViewProduct(record.uuid)} style={{ marginRight: 8 }} />
           <Button icon={<EditOutlined />} onClick={() => handleEditProduct(record)} style={{ marginRight: 8 }} />
           <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteProduct(record.uuid)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
@@ -190,8 +196,8 @@ const StorehouseProductManagement = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="product_uuid" label="商品" rules={[{ required: true, message: '请选择商品' }]}>
-            <Select placeholder="请选择商品" onChange={handleProductChange}>
+          <Form.Item name="product_uuid" label="商品" rules={[{ required: true, message: '请选择商品' }]} onChange={handleProductChange}>
+            <Select placeholder="请选择商品">
               {productOptions.map((product) => (
                 <Option key={product.uuid} value={product.uuid}>
                   {product.name}

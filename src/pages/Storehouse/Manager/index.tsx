@@ -3,6 +3,8 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getStorehouses, addStorehouse, updateStorehouse, deleteStorehouse } from '@/services/storehouse';
+import { EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
@@ -11,6 +13,7 @@ const StorehouseManagement = () => {
   const [editingStorehouse, setEditingStorehouse] = useState(null);
   const [form] = Form.useForm();
   const actionRef = useRef();
+  const navigate = useNavigate();
 
   const handleAddStorehouse = () => {
     setEditingStorehouse(null);
@@ -52,6 +55,11 @@ const StorehouseManagement = () => {
     }
   };
 
+
+  const handleViewStorehouse = (uuid) => {
+    navigate(`/storehouse/detail/${uuid}`);
+  }
+
   const handleCancel = () => {
     setIsModalVisible(false);
   };
@@ -81,11 +89,13 @@ const StorehouseManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+           <Button icon={<EyeOutlined />} onClick={() => handleViewStorehouse(record.uuid)} style={{ marginRight: 8 }} />
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditStorehouse(record)}
             style={{ marginRight: 8 }}
           />
+
           <Popconfirm
             title="确定删除吗?"
             onConfirm={() => handleDeleteStorehouse(record.uuid)}

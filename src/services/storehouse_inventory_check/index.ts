@@ -28,6 +28,20 @@ export async function deleteInventoryCheck(data) {
   });
 }
 
+export async function getInventoryCheck(data) {
+  return request('/api/v1/storehouse_inventory_check/info', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function getInventoryCheckDetail(data) {
+  return request('/api/v1/storehouse_inventory_check/detail', {
+    method: 'POST',
+    data,
+  });
+}
+
 export async function getProductOptions() {
   return request('/api/v1/product/all', {
     method: 'GET',

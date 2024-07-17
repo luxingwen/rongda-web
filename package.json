@@ -13,6 +13,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
     "@ant-design/pro-components": "^2.4.4",
+    "@ant-design/pro-descriptions": "^2.5.48",
     "@ant-design/pro-table": "^3.16.1",
     "@umijs/max": "^4.3.1",
     "antd": "^5.4.0",
@@ -20,7 +21,8 @@
     "dayjs": "^1.11.11",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
-    "postcss": "^8.4.39"
+    "postcss": "^8.4.39",
+    "react-router-dom": "^6.25.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",

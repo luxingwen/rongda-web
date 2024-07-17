@@ -28,6 +28,13 @@ export async function deleteStorehouse(data) {
   });
 }
 
+export async function getStorehouse(data) {
+  return request('/api/v1/storehouse/info', {
+    method: 'POST',
+    data,
+  });
+}
+
 export async function getStorehouseOptions() {
   return request('/api/v1/storehouse/all', {
     method: 'POST',

@@ -105,6 +105,12 @@ export default [
         component: './Storehouse/Manager',
       },
       {
+        name: '仓库信息详情',
+        path: '/storehouse/detail/:uuid',
+        component: './Storehouse/Manager/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '库存管理',
         path: '/storehouse/inventory',
         routes: [
@@ -114,9 +120,27 @@ export default [
             component: './Storehouse/InventoryQuery',
           },
           {
+            name: '库存详情',
+            path: '/storehouse/inventory/storehouse-product-detail/:uuid',
+            component: './Storehouse/InventoryQuery/Detail',
+            hideInMenu: true,
+          },
+          {
             name: '入库',
             path: '/storehouse/inventory/in',
             component: './Storehouse/InventoryIn',
+          },
+          {
+            name: '入库详情',
+            path: '/storehouse/inventory/inbound-detail/:uuid',
+            component: './Storehouse/InventoryIn/Detail',
+            hideInMenu: true,
+          },
+          {
+            name: '添加入库',
+            path: '/storehouse/inventory/inbound-add',
+            component: './Storehouse/InventoryIn/Add',
+            hideInMenu: true,
           },
           {
             name: '出库',
@@ -124,9 +148,34 @@ export default [
             component: './Storehouse/InventoryOut',
           },
           {
+            name: '添加出库',
+            path: '/storehouse/inventory/outbound-add',
+            component: './Storehouse/InventoryOut/Add',
+            hideInMenu: true,
+          },
+          {
+            name: '出库详情',
+            path: '/storehouse/inventory/outbound-detail/:uuid',
+            component: './Storehouse/InventoryOut/Detail',
+            hideInMenu: true,
+          },
+         
+          {
             name: '库存盘点',
             path: '/storehouse/inventory/check',
             component: './Storehouse/InventoryCheck',
+          },
+          {
+            name: '添加盘点',
+            path: '/storehouse/inventory/check-add',
+            component: './Storehouse/InventoryCheck/Add',
+            hideInMenu: true,
+          },
+          {
+            name: '盘点明细',
+            path: '/storehouse/inventory/check-detail/:uuid',
+            component: './Storehouse/InventoryCheck/Detail',
+            hideInMenu: true,
           }
         ],
       },
@@ -147,6 +196,18 @@ export default [
         name: '采购订单',
         path: '/purchase/order',
         component: './Purchase/Order',
+      },
+      {
+        name: '创建采购订单',
+        path: '/purchase/order/add',
+        component: './Purchase/Order/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑采购订单',
+        path: '/purchase/order/edit/:uuid',
+        component: './Purchase/Order/Add',
+        hideInMenu: true,
       },
       {
         name: '到库登记',
@@ -176,6 +237,24 @@ export default [
         component: './Sales/Order',
       },
       {
+        name: '订单详情',
+        path: '/sales/order/detail/:uuid',
+        component: './Sales/Order/Detail',
+        hideInMenu: true,
+      },
+      {
+        name: '添加订单',
+        path: '/sales/order/add',
+        component: './Sales/Order/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑订单',
+        path: '/sales/order/edit/:uuid',
+        component: './Sales/Order/Add',
+        hideInMenu: true,
+      },
+      {
         name: '出库登记',
         path: '/sales/outbound',
         component: './Sales/OutOfStock',
@@ -189,7 +268,27 @@ export default [
         name: '发票',
         path: '/sales/bill',
         component: './Bill',
-      } 
+      },
+      {
+        name: '添加发票',
+        path: '/sales/bill/add',
+        component: './Bill/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑发票',
+        path: '/sales/bill/edit/:uuid',
+        component: './Bill/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '详情',
+        path: '/sales/bill/detail/:uuid',
+        component: './Bill/Detail',
+        hideInMenu: true,
+      },
+
+
     ],
   },
 

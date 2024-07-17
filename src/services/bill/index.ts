@@ -27,3 +27,10 @@ export async function deleteBill(data) {
     data,
   });
 }
+
+export async function getBill(data) {
+  return request('/api/v1/bill/info', {
+    method: 'POST',
+    data,
+  });
+}

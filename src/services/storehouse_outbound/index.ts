@@ -28,11 +28,27 @@ export async function deleteOutbound(data) {
   });
 }
 
+export async function getOutbound(data) {
+  return request('/api/v1/storehouse_outbound/info', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function getOutboundDetail(data) {
+  return request('/api/v1/storehouse_outbound/detail', {
+    method: 'POST',
+    data,
+  });
+}
+
+
 export async function getProductOptions() {
   return request('/api/v1/product/all', {
     method: 'GET',
   });
 }
+
 
 export async function getStorehouseOptions() {
   return request('/api/v1/storehouse/all', {
