@@ -27,3 +27,10 @@ export async function deleteAgreement(data) {
     data,
   });
 }
+
+export async function getAgreement(data) {
+  return request('/api/v1/agreement/info', {
+    method: 'POST',
+    data,
+  });
+}

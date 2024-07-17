@@ -191,6 +191,18 @@ export default [
         path: '/purchase/agreement',
         component: './Purchase/Agreement',
       },
+      {
+        name: '添加合同',
+        path: '/purchase/agreement/add',
+        component: './Purchase/Agreement/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑合同',
+        path: '/purchase/agreement/edit/:uuid',
+        component: './Purchase/Agreement/Add',
+        hideInMenu: true,
+      },
      
       {
         name: '采购订单',
@@ -207,6 +219,12 @@ export default [
         name: '编辑采购订单',
         path: '/purchase/order/edit/:uuid',
         component: './Purchase/Order/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '采购订单详情',
+        path: '/purchase/order/detail/:uuid',
+        component: './Purchase/Order/Detail',
         hideInMenu: true,
       },
       {

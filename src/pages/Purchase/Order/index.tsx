@@ -5,6 +5,7 @@ import { Button, Popconfirm, Tag, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getPurchaseOrders, deletePurchaseOrder } from '@/services/purchase_order';
+import { EyeOutlined } from '@ant-design/icons';
 
 const PurchaseOrderManagement = () => {
   const navigate = useNavigate();
@@ -26,6 +27,10 @@ const PurchaseOrderManagement = () => {
     </Tag>
   );
 
+  const handleViewDetail = (record) => {
+    navigate(`/purchase/order/detail/${record.order_no}`);
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: '采购单号', dataIndex: 'order_no', key: 'order_no' },
@@ -43,6 +48,7 @@ const PurchaseOrderManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
           <Button icon={<EditOutlined />} onClick={() => navigate(`/purchase/order/edit/${record.uuid}`)} style={{ marginRight: 8 }} />
           <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteOrder(record.uuid)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />

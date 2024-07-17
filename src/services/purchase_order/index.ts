@@ -34,3 +34,17 @@ export async function getProductOptions() {
   });
 }
 
+export async function getPurchaseOrdersInfo(data) {
+  return request('/api/v1/purchase_order/info', {
+    method: 'POST',
+    data,
+  });
+}
+
+// 获取采购单商品列表
+export async function getPurchaseOrderProductList(data) {
+  return request('/api/v1/purchase_order/item/list', {
+    method: 'POST',
+    data,
+  });
+}

@@ -1,30 +1,14 @@
-import React, { useState, useRef } from 'react';
+// src/pages/AgreementManagement.jsx
+import React, { useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Select, message, Tag, Popconfirm, Upload } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
-import { getAgreements, addAgreement, updateAgreement, deleteAgreement } from '@/services/agreement';
-
-const { Option } = Select;
+import { Button, Popconfirm, message } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { getAgreements, deleteAgreement } from '@/services/agreement';
 
 const AgreementManagement = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAgreement, setEditingAgreement] = useState(null);
-  const [form] = Form.useForm();
+  const navigate = useNavigate();
   const actionRef = useRef();
-  const [fileList, setFileList] = useState([]);
-
-  const handleAddAgreement = () => {
-    setEditingAgreement(null);
-    form.resetFields();
-    setFileList([]);
-    setIsModalVisible(true);
-  };
-
-  const handleEditAgreement = (record) => {
-    setEditingAgreement(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
 
   const handleDeleteAgreement = async (id) => {
     try {
@@ -34,38 +18,6 @@ const AgreementManagement = () => {
     } catch (error) {
       message.error('删除失败');
     }
-  };
-
-  const handleOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const formData = new FormData();
-
-      Object.keys(values).forEach(key => {
-        formData.append(key, values[key]);
-      });
-
-      fileList.forEach(file => {
-        formData.append('attachment', file.originFileObj);
-      });
-
-      if (editingAgreement) {
-        formData.append('uuid', editingAgreement.uuid);
-        await updateAgreement(formData);
-        message.success('更新成功');
-      } else {
-        await addAgreement(formData);
-        message.success('添加成功');
-      }
-      setIsModalVisible(false);
-      actionRef.current?.reload();
-    } catch (error) {
-      message.error('操作失败');
-    }
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
   };
 
   const columns = [
@@ -84,7 +36,7 @@ const AgreementManagement = () => {
         <span>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditAgreement(record)}
+            onClick={() => navigate(`/purchase/agreement/edit/${record.uuid}`)}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
@@ -124,15 +76,11 @@ const AgreementManagement = () => {
     }
   };
 
-  const handleFileChange = ({ fileList }) => {
-    setFileList(fileList);
-  };
-
   return (
     <div>
       <ProTable
         columns={columns}
-        rowKey="id"
+        rowKey="uuid"
         actionRef={actionRef}
         request={fetchAgreements}
         pagination={{
@@ -144,43 +92,11 @@ const AgreementManagement = () => {
         }}
         options={false}
         toolBarRender={() => [
-          <Button key="button" icon={<PlusOutlined />} onClick={handleAddAgreement} type="primary">
+          <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/agreement/add')} type="primary">
             添加合同
           </Button>,
         ]}
       />
-      <Modal title={editingAgreement ? '编辑合同' : '添加合同'} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
-        <Form form={form} layout="vertical">
-        <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入合同标题' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="date" label="日期" rules={[{ required: true, message: '请输入日期' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="content" label="内容" rules={[{ required: true, message: '请输入内容' }]}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-        
-          <Form.Item name="type" label="合同类型" rules={[{ required: true, message: '请选择合同类型' }]}>
-            <Select placeholder="请选择合同类型">
-              <Option value="1">销售合同</Option>
-              <Option value="2">采购合同</Option>
-              <Option value="3">服务合同</Option>
-              <Option value="4">其他</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="attachment" label="附件">
-            <Upload
-              multiple
-              listType="picture"
-              fileList={fileList}
-              onChange={handleFileChange}
-            >
-              <Button icon={<UploadOutlined />}>上传附件</Button>
-            </Upload>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
