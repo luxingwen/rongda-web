@@ -19,6 +19,8 @@ import {
   Tag,
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
+import { history } from '@umijs/max';
+import { EyeOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -95,6 +97,10 @@ const SupplierManagement = () => {
     <Tag color={status ? 'green' : 'red'}>{status ? '启用' : '未启用'}</Tag>
   );
 
+  const handleViewDetail = (record) => {
+       history.push(`/resource/supplier/detail/${record.uuid}`);
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
@@ -140,6 +146,7 @@ const SupplierManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditSupplier(record)}

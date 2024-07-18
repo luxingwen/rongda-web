@@ -33,3 +33,18 @@ export async function getProductOptions() {
     method: 'GET',
   });
 }
+
+export async function getPurchaseArrival(params) {
+  return request('/api/v1/purchase_arrival/info', {
+    method: 'POST',
+    data: params,
+  });
+}
+
+// 获取采购订单到货明细 
+export async function getPurchaseArrivalItems(params) {
+  return request('/api/v1/purchase_arrival/item/list', {
+    method: 'POST',
+    data: params,
+  });
+}

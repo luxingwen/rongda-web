@@ -34,3 +34,10 @@ export async function getSupplierOptions() {
     method: 'POST',
   });
 }
+
+export async function getSupplierInfo(data) {
+  return request(`/api/v1/supplier/info`, {
+    method: 'POST',
+    data,
+  });
+}

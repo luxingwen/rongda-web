@@ -33,3 +33,10 @@ export async function getSupplierOptions() {
     method: 'GET',
   });
 }
+
+export async function getPurchaseBill(params) {
+  return request('/api/v1/purchase_bill/info', {
+    method: 'POST',
+    data: params,
+  });
+}

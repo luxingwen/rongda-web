@@ -28,21 +28,18 @@ export async function deleteSalesOutOfStock(data) {
   });
 }
 
-export async function getProductOptions() {
-  return request('/api/v1/product/all', {
-    method: 'GET',
+export async function getSalesOutOfStock(params) {
+  return request('/api/v1/sales_out_of_stock/info', {
+    method: 'POST',
+    data: params,
   });
 }
 
-export async function getCustomerOptions() {
-  return request('/api/v1/customer/all', {
-    method: 'GET',
-  });
-}
 
-export async function getStorehouseOptions() {
-  return request('/api/v1/storehouse/all', {
-    method: 'GET',
+export async function getSalesOutOfStockItems(params) {
+  return request('/api/v1/sales_out_of_stock/product_item/list', {
+    method: 'POST',
+    data: params,
   });
 }
 

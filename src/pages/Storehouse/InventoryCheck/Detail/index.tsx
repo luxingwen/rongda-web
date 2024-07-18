@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { getInventoryCheck, getInventoryCheckDetail } from '@/services/storehouse_inventory_check';
-import { message, Spin, Card, Divider, Row, Col } from 'antd';
+import { message, Spin, Card, Divider, Table, Tag } from 'antd';
 
 const InventoryCheckDetail = () => {
   const { uuid } = useParams();
   const [inventoryCheckInfo, setInventoryCheckInfo] = useState(null);
-  const [inventoryCheckDetail, setInventoryCheckDetail] = useState(null);
+  const [inventoryCheckDetail, setInventoryCheckDetail] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,6 +43,46 @@ const InventoryCheckDetail = () => {
     }
   };
 
+  const columns = [
+    {
+      title: '商品',
+      dataIndex: 'product',
+      key: 'product',
+      render: (text, record) => record.product?.name,
+    },
+    {
+      title: 'SKU',
+      dataIndex: 'sku',
+      key: 'sku',
+      render: (text, record) => record.sku?.name,
+    },
+    {
+      title: '数量',
+      dataIndex: 'quantity',
+      key: 'quantity',
+    },
+    {
+      title: '差异',
+      dataIndex: 'difference_op',
+      key: 'difference_op',
+      render: (text) => (
+        <Tag color={text === '1' ? 'green' : 'red'}>
+          {text === '1' ? '盘盈' : '盘亏'}
+        </Tag>
+      ),
+    },
+    {
+      title: '差异数量',
+      dataIndex: 'difference_quantity',
+      key: 'difference_quantity',
+      render: (text, record) => (
+        <span style={{ color: record.difference_op === '1' ? 'green' : 'red' }}>
+          {text}
+        </span>
+      ),
+    }
+  ];
+
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="盘点详情">
@@ -55,22 +95,12 @@ const InventoryCheckDetail = () => {
         </ProDescriptions>
         <Divider />
         <Card title="盘点明细" bordered={false}>
-          {inventoryCheckDetail?.map((item) => (
-            <div key={item.id}>
-              <Row gutter={[16, 16]}>
-                <Col span={8}>
-                  <strong>商品:</strong> {item.product?.name}
-                </Col>
-                <Col span={8}>
-                  <strong>SKU:</strong> {item.sku?.name}
-                </Col>
-                <Col span={8}>
-                  <strong>数量:</strong> {item.quantity}
-                </Col>
-              </Row>
-              <Divider />
-            </div>
-          ))}
+          <Table
+            dataSource={inventoryCheckDetail}
+            columns={columns}
+            rowKey="id"
+            pagination={false}
+          />
         </Card>
       </Card>
     </Spin>

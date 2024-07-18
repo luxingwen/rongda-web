@@ -27,3 +27,10 @@ export async function deleteAgent(data) {
     data,
   });
 }
+
+export async function getAgentInfo(data) {
+  return request(`/api/v1/agent/info`, {
+    method: 'POST',
+    data,
+  });
+}

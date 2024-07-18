@@ -4,6 +4,7 @@ import { history } from 'umi';
 import Cookies from 'js-cookie';
 import RightContent from '@/components/RightContent';
 import { getMyUserInfo } from '@/services/user';
+import Footer from '@/components/Footer';
 
 
 const loginPath = '/login';
@@ -50,6 +51,7 @@ export const layout = () => {
     },
     layout: 'mix',
     rightContentRender: () => <RightContent />,
+    footerRender: () => <Footer />,
   };
 };
 

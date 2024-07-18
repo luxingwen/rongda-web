@@ -3,6 +3,8 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from '@/services/customer';
+import { EyeOutlined } from '@ant-design/icons';
+import { history } from '@umijs/max';
 
 const CustomerManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -67,6 +69,11 @@ const CustomerManagement = () => {
     <Tag color={isActive ? 'green' : 'red'}>{isActive ? '活跃' : '禁用'}</Tag>
   );
 
+  const handleViewDetail = (record) => {
+    console.log(record);
+    history.push(`/resource/customer/detail/${record.uuid}`);
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
@@ -83,6 +90,7 @@ const CustomerManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditCustomer(record)}

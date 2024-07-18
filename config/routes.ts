@@ -4,7 +4,7 @@ export default [
     redirect: '/home',
   },
   {
-    name: '首页1',
+    name: '首页',
     path: '/home',
     component: './Home',
 
@@ -40,7 +40,6 @@ export default [
     component: './User/Setting',
     hideInMenu: true,
   },
-
   {
     name: '资料管理',
     path: '/resource',
@@ -51,14 +50,32 @@ export default [
         component: './Customer',
       },
       {
+        name: '客户详细',
+        path: '/resource/customer/detail/:uuid',
+        component: './Customer/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '代理机构',
         path: '/resource/agent',
         component: './Agent',
       },
       {
+        name: '代理机构详情',
+        path: '/resource/agent/detail/:uuid',
+        component: './Agent/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '供应商管理',
         path: '/resource/supplier',
         component: './Supplier',
+      },
+      {
+        name: '供应商详情',
+        path: '/resource/supplier/detail/:uuid',
+        component: './Supplier/Detail',
+        hideInMenu: true,
       },
       {
         name: 'SKU管理',
@@ -198,6 +215,12 @@ export default [
         hideInMenu: true,
       },
       {
+        name: '合同详情',
+        path: '/purchase/agreement/detail/:uuid',
+        component: './Purchase/Agreement/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '编辑合同',
         path: '/purchase/agreement/edit/:uuid',
         component: './Purchase/Agreement/Add',
@@ -233,9 +256,46 @@ export default [
         component: './Purchase/Arrival',
       },
       {
+        name: '添加到库登记',
+        path: '/purchase/arrival/add',
+        component: './Purchase/Arrival/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑到库登记',
+        path: '/purchase/arrival/edit/:uuid',
+        component: './Purchase/Arrival/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '到库详情',
+        path: '/purchase/arrival/detail/:uuid',
+        component: './Purchase/Arrival/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '结算',
         path: '/purchase/settlement',
         component: './Purchase/PurchaseBill',
+      },
+      {
+        name: '添加结算',
+        path: '/purchase/settlement/add',
+        component: './Purchase/PurchaseBill/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑结算',
+        path: '/purchase/settlement/edit/:uuid',
+        component: './Purchase/PurchaseBill/Add',
+        hideInMenu: true,
+      },
+
+      {
+        name: '结算详情',
+        path: '/purchase/settlement/detail/:uuid',
+        component: './Purchase/PurchaseBill/Detail',
+        hideInMenu: true,
       },
     ],
   },
@@ -276,6 +336,24 @@ export default [
         name: '出库登记',
         path: '/sales/outbound',
         component: './Sales/OutOfStock',
+      },
+      {
+        name: '添加出库登记',
+        path: '/sales/outbound/add',
+        component: './Sales/OutOfStock/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑出库登记',
+        path: '/sales/outbound/edit/:uuid',
+        component: './Sales/OutOfStock/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '出库登记详情',
+        path: '/sales/outbound/detail/:uuid',
+        component: './Sales/OutOfStock/Detail',
+        hideInMenu: true,
       },
       {
         name: '结算',
@@ -328,5 +406,9 @@ export default [
         component: './SettlementCurrency',
       },
     ],
+  },
+  {
+    component: '404',
+    path: '/*',
   },
 ];

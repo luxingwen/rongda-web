@@ -6,6 +6,7 @@ import { useModel } from '@umijs/max';
 
 const BasicSettings = () => {
   const [loading, setLoading] = useState(false);
+  const [avatarKey, setAvatarKey] = useState(Date.now()); // 用于强制刷新头像
   const [form] = Form.useForm();
 
   const { initialState, setInitialState } = useModel('@@initialState');
@@ -58,11 +59,14 @@ const BasicSettings = () => {
           message.error('上传失败 :' + res.message);
           return;
         }
+        console.log("res:", res);
         const updatedUser = {
           ...currentUser,
           avatar: res.data.avatar, // 确保 res.data.avatar 是包含完整路径或可访问 URL 的头像 URL
         };
+        console.log("updatedUser:", updatedUser);
         setInitialState((s) => ({ ...s, currentUser: updatedUser }));
+        setAvatarKey(Date.now()); // 强制刷新头像
         message.success('头像上传成功');
       } catch (error) {
         message.error('上传失败');
@@ -113,7 +117,7 @@ const BasicSettings = () => {
         <Col span={8} style={{ textAlign: 'center' }}>
           <Row justify="center">
             <Col span={24} style={{ textAlign: 'center' }}>
-              <Avatar size={120} src={getAvatar()} />
+              <Avatar size={120} src={getAvatar()} key={avatarKey} />
             </Col>
             <Col span={24} style={{ textAlign: 'center', marginTop: 16 }}>
               <Upload {...uploadProps}>

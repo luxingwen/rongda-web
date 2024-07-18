@@ -1,10 +1,15 @@
 // src/pages/AgreementManagement.jsx
-import React, { useRef } from 'react';
+import { deleteAgreement, getAgreements } from '@/services/agreement';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import ProTable from '@ant-design/pro-table';
 import { Button, Popconfirm, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAgreements, deleteAgreement } from '@/services/agreement';
 
 const AgreementManagement = () => {
   const navigate = useNavigate();
@@ -20,20 +25,44 @@ const AgreementManagement = () => {
     }
   };
 
+  const handleViewDetail = (record) => {
+    navigate(`/purchase/agreement/detail/${record.uuid}`);
+  };
+
   const columns = [
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '日期', dataIndex: 'date', key: 'date' },
     { title: '标题', dataIndex: 'title', key: 'title', hideInSearch: true },
-    { title: '创建人', dataIndex: 'creater', key: 'creater', hideInSearch: true },
+    {
+      title: '创建人',
+      dataIndex: 'creater',
+      key: 'creater',
+      hideInSearch: true,
+    },
     { title: '合同类型', dataIndex: 'type', key: 'type', hideInSearch: true },
-    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', hideInSearch: true },
-    { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', hideInSearch: true },
+    {
+      title: '创建时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      hideInSearch: true,
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
+      hideInSearch: true,
+    },
     {
       title: '操作',
       key: 'action',
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetail(record)}
+            style={{ marginRight: 8 }}
+          />
           <Button
             icon={<EditOutlined />}
             onClick={() => navigate(`/purchase/agreement/edit/${record.uuid}`)}
@@ -92,7 +121,12 @@ const AgreementManagement = () => {
         }}
         options={false}
         toolBarRender={() => [
-          <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/agreement/add')} type="primary">
+          <Button
+            key="button"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/purchase/agreement/add')}
+            type="primary"
+          >
             添加合同
           </Button>,
         ]}

@@ -5,6 +5,7 @@ import { Form, Input, Select, message, Button, Upload, Card } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { addAgreement, updateAgreement, getAgreement } from '@/services/agreement';
 import { useNavigate } from 'react-router-dom';
+import {deleteFile} from '@/services/file';
 
 const { Option } = Select;
 
@@ -27,8 +28,25 @@ const AgreementForm = () => {
       if (response.code === 200) {
         form.setFieldsValue(response.data);
         // 如果有附件，处理附件的展示
+
+        
+
         if (response.data.attachment) {
-          setFileList(response.data.attachment.map((file, index) => ({
+          let attachment = JSON.parse(response.data.attachment);
+          console.log(attachment);
+
+           attachment.map((file, index) => {
+            console.log("file:",file);
+            // return {
+            //   uid: index,
+            //   name: file.name,
+            //   status: 'done',
+            //   url: file.url,
+            // }
+          });
+         
+
+          setFileList(attachment.map((file, index) => ({
             uid: index,
             name: file.name,
             status: 'done',

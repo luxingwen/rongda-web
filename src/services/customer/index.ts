@@ -40,3 +40,10 @@ export async function getCustomerOptions() {
     method: 'POST',
   });
 }
+
+export async function getCustomer(data) {
+  return request('/api/v1/customer/info', {
+    method: 'POST',
+    data,
+  });
+}

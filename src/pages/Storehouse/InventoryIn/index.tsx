@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { getInbounds, deleteInbound } from '@/services/storehouseInbound';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { EyeOutlined } from '@ant-design/icons';
+import { render } from 'react-dom';
 
 const StorehouseInboundManagement = () => {
   const navigate = useNavigate();
@@ -49,15 +50,66 @@ const StorehouseInboundManagement = () => {
   };
 
 
-  const renderStatus = (status) => (
-    <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '已入库' : '未入库'}</Tag>
-  );
+  // 状态 1:待处理 2: 已处理 3:已取消 4:已完成
+
+  const renderStatus = (status) => {
+    let str = '';
+
+    switch (status) {
+      case 1:
+        str = '待处理';
+        break;
+      case 2:
+        str = '已处理';
+        break;
+      case 3:
+        str = '已取消';
+        break;
+      case 4:
+        str = '已完成';
+        break;
+      default:
+        str = '未知状态';
+    }
+
+    return (
+      <Tag color={status === 1 ? 'blue' : status === 2 ? 'green' : status === 3 ? 'red' : status === 4 ? 'gray' : 'gray'}>
+        {str}
+      </Tag>
+    );
+  }
+
+  //入库类型 1:采购入库 2:退货入库 3:手工入库
+  const renderInboundType = (inbound_type) => {
+    let str = '';
+  
+    switch (inbound_type) {
+      case "1":
+        str = '采购入库';
+        break;
+      case "2":
+        str = '退货入库';
+        break;
+      case "3":
+        str = '手工入库';
+        break;
+      default:
+        str = '未知类型';
+    }
+  
+    return (
+      <Tag color={inbound_type === "1" ? 'green' : inbound_type === "2" ? 'blue' : inbound_type === "3" ? 'red' : 'gray'}>
+        {str}
+      </Tag>
+    );
+  };
+  
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
     { title: '标题', dataIndex: 'title', key: 'title' },
-    { title: '入库类型', dataIndex: 'inbound_type', key: 'inbound_type', hideInSearch: true },
+    { title: '入库类型', dataIndex: 'inbound_type', key: 'inbound_type', render: renderInboundType, hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
     { title: '入库日期', dataIndex: 'inbound_date', key: 'inbound_date', hideInSearch: true },
     { title: '入库人', dataIndex: 'inbound_by', key: 'inbound_by', hideInSearch: true, render:(_, record) => record.inbound_by_user?.nickname },

@@ -9,6 +9,7 @@ import {
 } from '@/services/storehouse_outbound';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { EyeOutlined } from '@ant-design/icons';
+import { render } from 'react-dom';
 
 const StorehouseOutboundManagement = () => {
   const navigate = useNavigate();
@@ -50,14 +51,65 @@ const StorehouseOutboundManagement = () => {
     navigate(`/storehouse/inventory/outbound-detail/${record.outbound_order_no}`);
   };
 
-  const renderStatus = (status) => (
-    <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '已出库' : '未出库'}</Tag>
-  );
+
+  // 状态 1:待处理 2: 已处理 3:已取消 4:已完成
+
+  const renderStatus = (status) => {
+    let str = '';
+
+    switch (status) {
+      case 1:
+        str = '待处理';
+        break;
+      case 2:
+        str = '已处理';
+        break;
+      case 3:
+        str = '已取消';
+        break;
+      case 4:
+        str = '已完成';
+        break;
+      default:
+        str = '未知状态';
+    }
+
+    return (
+      <Tag color={status === 1 ? 'blue' : status === 2 ? 'green' : status === 3 ? 'red' : status === 4 ? 'gray' : 'gray'}>
+        {str}
+      </Tag>
+    );
+  }
+
+  // 出库类型 1:销售出库 2:退货出库 3:手工出库
+  const renderOutboundType = (outboundType) => {
+    let str = '';
+
+    switch (outboundType) {
+      case "1":
+        str = '销售出库';
+        break;
+      case "2":
+        str = '退货出库';
+        break;
+      case "3":
+        str = '手工出库';
+        break;
+      default:
+        str = '未知';
+    }
+
+   return (
+      <Tag color={outboundType === "1" ? 'blue' : outboundType === "2" ? 'green' : outboundType === "3" ? 'red' : 'gray'}>
+        {str}
+      </Tag>
+   );
+  }
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
-    { title: '出库类型', dataIndex: 'outbound_type', key: 'outbound_type', hideInSearch: true },
+    { title: '出库类型', dataIndex: 'outbound_type', key: 'outbound_type', render: renderOutboundType, hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
     { title: '出库日期', dataIndex: 'outbound_date', key: 'outbound_date', hideInSearch: true },
     { title: '出库人', dataIndex: 'outbound_by', key: 'outbound_by', hideInSearch: true, render: (_, record) => record.outbound_by_user?.nickname },

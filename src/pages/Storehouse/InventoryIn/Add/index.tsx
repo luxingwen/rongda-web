@@ -85,6 +85,8 @@ const StorehouseInboundForm = () => {
     }
   };
 
+
+
   return (
     <Form form={form} layout="vertical" onFinish={handleFinish}>
       <Form.Item name="storehouse_uuid" label="仓库" rules={[{ required: true, message: '请选择仓库' }]}>
@@ -104,12 +106,6 @@ const StorehouseInboundForm = () => {
           <Option value="1">采购入库</Option>
           <Option value="2">退货入库</Option>
           <Option value="3">手工入库</Option>
-        </Select>
-      </Form.Item>
-      <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
-        <Select placeholder="请选择状态">
-          <Option value="1">已入库</Option>
-          <Option value="2">未入库</Option>
         </Select>
       </Form.Item>
       <Form.Item name="inbound_date" label="入库日期">
