@@ -21,9 +21,9 @@ const AgreementDetail = () => {
         response.data.attachments = JSON.parse(response.data.attachment);
         response.data.attachments  = response.data.attachments.map((file, index) => ({
             uid: index,
-            name: file,
+            name: file.name,
             status: 'done',
-            url: file,
+            url: "/public/" + file.url,
             }));
         setAgreementInfo(response.data);
       } else {
@@ -63,7 +63,6 @@ const AgreementDetail = () => {
               <List.Item>
                 <List.Item.Meta
                   title={<a href={item.url} target="_blank" rel="noopener noreferrer">{item.name}</a>}
-                  description={`上传时间: ${item.upload_time}`}
                 />
               </List.Item>
             )}

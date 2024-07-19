@@ -1,18 +1,10 @@
-import { getProductOptions } from '@/services/product';
-import { addSku, deleteSku, getSkus, updateSku } from '@/services/sku';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import {
-  Button,
-  Form,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Select,
-  Tag,
-} from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Button, Modal, Form, Input, message, Popconfirm, Select, Tag } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { getProductOptions } from '@/services/product';
+import {getProductCategoryOptions} from '@/services/product_category';
+import { addSku, deleteSku, getSkus, updateSku } from '@/services/sku';
 
 const { Option } = Select;
 
@@ -22,9 +14,12 @@ const SkuManagement = () => {
   const [form] = Form.useForm();
   const actionRef = useRef();
   const [productOptions, setProductOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [currentCategory, setCurrentCategory] = useState(null);
 
   useEffect(() => {
     fetchProductOptions();
+    fetchProductCategoryOptions();
   }, []);
 
   const fetchProductOptions = async () => {
@@ -40,6 +35,19 @@ const SkuManagement = () => {
     }
   };
 
+  const fetchProductCategoryOptions = async () => {
+    try {
+      const response = await getProductCategoryOptions();
+      if (response.code === 200) {
+        setCategoryOptions(response.data);
+      } else {
+        message.error('获取产品分类选项失败');
+      }
+    } catch (error) {
+      message.error('获取产品分类选项失败');
+    }
+  };
+
   const handleAddSku = () => {
     setEditingSku(null);
     form.resetFields();
@@ -48,6 +56,7 @@ const SkuManagement = () => {
 
   const handleEditSku = (record) => {
     setEditingSku(record);
+    setCurrentCategory(record.product_category_uuid);
     form.setFieldsValue(record);
     setIsModalVisible(true);
   };
@@ -99,7 +108,18 @@ const SkuManagement = () => {
         return record.product.name;
       },
     },
+    {
+      title: '产品分类',
+      dataIndex: 'product_category_uuid',
+      key: 'product_category_uuid',
+      render: (_, record) => {
+        return record.product_category?.name;
+      },
+    },
     { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: '规格', dataIndex: 'specification', key: 'specification' },
+    { title: '国家', dataIndex: 'country', key: 'country', hideInSearch: true },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', hideInSearch: true },
     { title: '单位', dataIndex: 'unit', key: 'unit', hideInSearch: true },
     { title: '数量', dataIndex: 'num', key: 'num', hideInSearch: true },
     {
@@ -162,6 +182,37 @@ const SkuManagement = () => {
     }
   };
 
+  const handleCategoryChange = (value) => {
+    setCurrentCategory(value);
+  };
+
+  const renderDynamicFields = () => {
+    const currentCategoryObject = categoryOptions.find(
+      (category) => category.uuid === currentCategory
+    );
+    if (currentCategoryObject?.attribute === '1') {
+      return (
+        <Form.Item
+          name="specification"
+          label="规格"
+          rules={[{ required: true, message: '请输入规格' }]}
+        >
+          <Input />
+        </Form.Item>
+      );
+    } else {
+      return (
+        <Form.Item
+          name="name"
+          label="SKU代码"
+          rules={[{ required: true, message: '请输入sku代码' }]}
+        >
+          <Input />
+        </Form.Item>
+      );
+    }
+  };
+
   return (
     <div>
       <ProTable
@@ -209,13 +260,20 @@ const SkuManagement = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            name="name"
-            label="名称"
-            rules={[{ required: true, message: '请输入名称' }]}
+            name="product_category_uuid"
+            label="产品分类"
+            rules={[{ required: true, message: '请选择产品分类' }]}
           >
-            <Input />
+            <Select placeholder="请选择产品分类" onChange={handleCategoryChange}>
+              {categoryOptions.map((category) => (
+                <Option key={category.uuid} value={category.uuid}>
+                  {category.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
-          <Form.Item
+          { currentCategory &&  renderDynamicFields()}
+          {currentCategory && (<> <Form.Item
             name="unit"
             label="单位"
             rules={[{ required: true, message: '请输入单位' }]}
@@ -223,12 +281,20 @@ const SkuManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="num"
-            label="数量"
-            rules={[{ required: true, message: '请输入数量' }]}
+            name="country"
+            label="国家"
+            rules={[{ required: true, message: '请输入国家' }]}
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            name="factory_no"
+            label="厂号"
+            rules={[{ required: true, message: '请输入厂号' }]}
+          >
+            <Input />
+          </Form.Item> </>) }
+      
         </Form>
       </Modal>
     </div>

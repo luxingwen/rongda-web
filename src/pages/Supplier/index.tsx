@@ -102,7 +102,6 @@ const SupplierManagement = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
@@ -110,6 +109,12 @@ const SupplierManagement = () => {
       title: '国家厂号',
       dataIndex: 'country_no',
       key: 'country_no',
+      hideInSearch: true,
+    },
+    {
+      title: '联系人',
+      dataIndex: 'contact_person',
+      key: 'contact_person',
       hideInSearch: true,
     },
     {
@@ -239,14 +244,21 @@ const SupplierManagement = () => {
           <Form.Item
             name="country_no"
             label="国家厂号"
-            rules={[{ required: true, message: '请输入国家厂号' }]}
+            rules={[{ required: false, message: '请输入国家厂号' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="contact_person"
+            label="联系人"
+            rules={[{ required: false, message: '请输入联系人' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="contact_info"
             label="联系方式"
-            rules={[{ required: true, message: '请输入联系方式' }]}
+            rules={[{ required: false, message: '请输入联系方式' }]}
           >
             <Input />
           </Form.Item>

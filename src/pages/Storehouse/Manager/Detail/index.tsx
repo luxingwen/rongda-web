@@ -3,9 +3,8 @@ import { useParams } from 'react-router-dom';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
 import { getStorehouse } from '@/services/storehouse';
-import {getStorehouseProducts} from '@/services/storehouse_product';
-import { message, Spin, Card, Divider } from 'antd';
-import { render } from 'react-dom';
+import { getStorehouseProducts } from '@/services/storehouse_product';
+import { message, Spin, Card, Divider, Tag } from 'antd';
 
 const StorehouseDetail = () => {
   const { uuid } = useParams();
@@ -31,6 +30,14 @@ const StorehouseDetail = () => {
     }
   };
 
+  const renderStatus = (status) => {
+    return status === 1 ? <Tag color="green">启用</Tag> : <Tag color="red">未启用</Tag>;
+  };
+
+  const renderType = (type) => {
+    return type === 1 ? <Tag color="blue">自有仓库</Tag> : <Tag color="purple">第三方仓库</Tag>;
+  };
+
   const columns = [
     { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: (_, record) => record.product?.name },
     { title: 'SKU', dataIndex: 'sku_uuid', key: 'sku_uuid', render: (_, record) => record.sku?.name },
@@ -40,18 +47,21 @@ const StorehouseDetail = () => {
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="仓库详情">
-        <ProDescriptions column={2}>
+        <ProDescriptions 
+          column={1} 
+          bordered 
+          labelStyle={{ fontWeight: 'bold', paddingRight: '8px' }}
+          contentStyle={{ paddingLeft: '8px' }}
+        >
           <ProDescriptions.Item label="名称">{storehouseInfo?.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="UUID">{storehouseInfo?.uuid}</ProDescriptions.Item>
           <ProDescriptions.Item label="地址">{storehouseInfo?.address}</ProDescriptions.Item>
           <ProDescriptions.Item label="联系人">{storehouseInfo?.contact_person}</ProDescriptions.Item>
           <ProDescriptions.Item label="联系电话">{storehouseInfo?.contact_phone}</ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">
-            {storehouseInfo?.status === 1 ? '启用' : '未启用'}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="类型">
-            {storehouseInfo?.type === 1 ? '自有仓库' : '第三方仓库'}
-          </ProDescriptions.Item>
+          <ProDescriptions.Item label="开户行">{storehouseInfo?.bank_name}</ProDescriptions.Item>
+          <ProDescriptions.Item label="银行账户">{storehouseInfo?.bank_account}</ProDescriptions.Item>
+          <ProDescriptions.Item label="状态">{renderStatus(storehouseInfo?.status)}</ProDescriptions.Item>
+          <ProDescriptions.Item label="类型">{renderType(storehouseInfo?.type)}</ProDescriptions.Item>
         </ProDescriptions>
         <Divider />
         <Card title="库存信息" bordered={false}>

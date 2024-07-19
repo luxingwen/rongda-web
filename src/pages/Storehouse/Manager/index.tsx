@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select, Badge } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getStorehouses, addStorehouse, updateStorehouse, deleteStorehouse } from '@/services/storehouse';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { render } from 'react-dom';
 
 const { Option } = Select;
 
@@ -68,6 +69,18 @@ const StorehouseManagement = () => {
     <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '启用' : '未启用'}</Tag>
   );
 
+  const renderType = (type) => {
+    switch (type) {
+      case "1":
+        return <Badge status="success" text="自有仓库" />;
+      case "2":
+        return <Badge status="processing" text="第三方仓库" />;
+      default:
+        return <Badge status="error" text="未知" />;
+    }
+  };
+  
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
@@ -75,6 +88,8 @@ const StorehouseManagement = () => {
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
     { title: '联系人', dataIndex: 'contact_person', key: 'contact_person', hideInSearch: true },
     { title: '联系电话', dataIndex: 'contact_phone', key: 'contact_phone', hideInSearch: true },
+    { title: '银行开户行', dataIndex: 'bank_name', key: 'bank_name', hideInSearch: true },
+    { title: '银行账户', dataIndex: 'bank_account', key: 'bank_account', hideInSearch: true },
     {
       title: '状态',
       dataIndex: 'status',
@@ -82,7 +97,7 @@ const StorehouseManagement = () => {
       hideInSearch: true,
       render: (status) => renderStatus(status),
     },
-    { title: '类型', dataIndex: 'type', key: 'type', hideInSearch: true },
+    { title: '类型', dataIndex: 'type', key: 'type', render: renderType, hideInSearch: true },
     {
       title: '操作',
       key: 'action',
@@ -194,6 +209,22 @@ const StorehouseManagement = () => {
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            name="bank_name"
+            label="开户行"
+            rules={[{ required: false, message: '请输入银行开户行' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="bank_account"
+            label="银行账户"
+            rules={[{ required: false, message: '请输入银行账户' }]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="status"
             label="状态"

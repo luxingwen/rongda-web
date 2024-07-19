@@ -181,6 +181,13 @@ const CustomerManagement = () => {
             <Input />
           </Form.Item>
           <Form.Item
+            name="contact_person"
+            label="联系人"
+            rules={[{ required: true, message: '请输入联系人' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
             name="contact_info"
             label="联系方式"
             rules={[{ required: true, message: '请输入联系方式' }]}
@@ -191,6 +198,13 @@ const CustomerManagement = () => {
             name="bank_account"
             label="银行账号"
             rules={[{ required: true, message: '请输入银行账号' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="bank_name"
+            label="开户行"
+            rules={[{ required: true, message: '请输入开户行' }]}
           >
             <Input />
           </Form.Item>

@@ -281,9 +281,6 @@ const UserManagement = () => {
               <Option value={2}>禁用</Option>
             </Select>
           </Form.Item>
-          <Form.Item name="age" label="年龄">
-            <Input type="number" />
-          </Form.Item>
           <Form.Item
             name="sex"
             label="性别"

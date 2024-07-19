@@ -87,6 +87,11 @@ export default [
         path: '/resource/product',
         component: './Product',
       },
+      {
+        name: '商品类别',
+        path: '/resource/product-category',
+        component: './ProductCategory',
+      },
 
     ],
   },
@@ -223,7 +228,7 @@ export default [
       {
         name: '编辑合同',
         path: '/purchase/agreement/edit/:uuid',
-        component: './Purchase/Agreement/Add',
+        component: './Purchase/Agreement/Edit',
         hideInMenu: true,
       },
      
