@@ -422,6 +422,16 @@ export default [
         path: '/system/currency',
         component: './SettlementCurrency',
       },
+      {
+        name: '银行信息',
+        path: '/system/bankinfo',
+        component: './Sys/BankInfo',
+      },
+      {
+        name: '登录日志',
+        path: '/system/loginlog',
+        component: './Sys/LoginLog',
+      },
     ],
   },
   {

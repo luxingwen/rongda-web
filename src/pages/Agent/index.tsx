@@ -1,16 +1,37 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getAgents, addAgent, updateAgent, deleteAgent } from '@/services/agent';
 import { history } from '@umijs/max';
 import { EyeOutlined } from '@ant-design/icons';
+import {getSysBankInfoOptions} from '@/services/sys/bankinfo';
+import {PageContainer} from '@ant-design/pro-components';
 
 const AgentManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
   const [form] = Form.useForm();
+  const [bankInfoOptions, setBankInfoOptions] = useState([]);
   const actionRef = useRef();
+
+
+  useEffect(() => {
+    fetchBankInfoOptions();
+  }, []);
+
+  const fetchBankInfoOptions = async () => {
+    try {
+      const response = await getSysBankInfoOptions();
+      if (response.code === 200) {
+        setBankInfoOptions(response.data);
+      } else {
+        message.error('获取银行信息选项失败');
+      }
+    } catch (error) {
+      message.error('获取银行信息选项失败');
+    }
+  };
 
   const handleAddAgent = () => {
     setEditingAgent(null);
@@ -37,6 +58,7 @@ const AgentManagement = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.bank_name = values.bank_name[0];
       values.status = values.status ? 1 : 0;
       values.rate = parseFloat(values.rate);
       if (editingAgent) {
@@ -71,6 +93,7 @@ const AgentManagement = () => {
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
     { title: '联系方式', dataIndex: 'contact_info', key: 'contact_info', hideInSearch: true },
+    { title: '开户行', dataIndex: 'bank_name', key: 'bank_name', hideInSearch: true },
     { title: '银行账号', dataIndex: 'bank_account', key: 'bank_account', hideInSearch: true },
     { title: '信用状态', dataIndex: 'credit_status', key: 'credit_status', hideInSearch: true },
     { title: '费率', dataIndex: 'rate', key: 'rate', hideInSearch: true },
@@ -125,7 +148,7 @@ const AgentManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -139,6 +162,7 @@ const AgentManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button
             key="button"
@@ -197,7 +221,22 @@ const AgentManagement = () => {
             label="开户行"
             rules={[{ required: true, message: '请输入开户行' }]}
           >
-            <Input />
+           <Select
+            showSearch
+            placeholder="请选择开户行"
+            optionFilterProp="children"
+            maxCount={1}
+            mode='tags'
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+           >
+            {bankInfoOptions.map((bankInfo) => (
+              <Select.Option key={bankInfo.uuid} value={bankInfo.name}>
+                {bankInfo.name}
+              </Select.Option>
+            ))}
+          </Select>
           </Form.Item>
           <Form.Item
             name="credit_status"
@@ -223,7 +262,7 @@ const AgentManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

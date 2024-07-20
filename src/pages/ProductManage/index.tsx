@@ -22,6 +22,7 @@ import {
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Tag } from 'antd';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -267,7 +268,7 @@ const ProductManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -281,6 +282,7 @@ const ProductManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button
             key="button"
@@ -419,7 +421,7 @@ const ProductManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -179,6 +179,7 @@ const StorehouseProductManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} onClick={handleAddProduct} type="primary">
             添加仓库物品

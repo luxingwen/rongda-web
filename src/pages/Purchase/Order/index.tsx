@@ -113,6 +113,7 @@ const PurchaseOrderManagement = () => {
         search={{
           labelWidth: 'auto',
         }}
+        scroll={{ x: 'max-content' }}
         options={false}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/order/add-futures')} type="primary">

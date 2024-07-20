@@ -40,6 +40,7 @@ const AgentDetail = () => {
           <ProDescriptions.Item label="名称">{agentInfo?.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="地址">{agentInfo?.address}</ProDescriptions.Item>
           <ProDescriptions.Item label="联系方式">{agentInfo?.contact_info}</ProDescriptions.Item>
+          <ProDescriptions.Item label="开户行">{agentInfo?.bank_name}</ProDescriptions.Item>
           <ProDescriptions.Item label="银行账号">{agentInfo?.bank_account}</ProDescriptions.Item>
           <ProDescriptions.Item label="信用状态">{agentInfo?.credit_status}</ProDescriptions.Item>
           <ProDescriptions.Item label="费率">{agentInfo?.rate}</ProDescriptions.Item>

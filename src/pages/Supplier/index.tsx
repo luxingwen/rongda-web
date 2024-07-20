@@ -21,6 +21,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { history } from '@umijs/max';
 import { EyeOutlined } from '@ant-design/icons';
+import {PageContainer} from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -106,9 +107,15 @@ const SupplierManagement = () => {
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
     {
-      title: '国家厂号',
+      title: '国家',
       dataIndex: 'country_no',
       key: 'country_no',
+      hideInSearch: true,
+    },
+    {
+      title: '厂号',
+      dataIndex: 'factory_no',
+      key: 'factory_no',
       hideInSearch: true,
     },
     {
@@ -195,7 +202,7 @@ const SupplierManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -209,6 +216,7 @@ const SupplierManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button
             key="button"
@@ -252,7 +260,7 @@ const SupplierManagement = () => {
 
           <Form.Item
             name="factory_no"
-            label="国家厂号"
+            label="厂号"
             rules={[{ required: false, message: '请输入厂号' }]}
           >
             <Input />
@@ -301,7 +309,7 @@ const SupplierManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

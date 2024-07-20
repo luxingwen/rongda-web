@@ -5,6 +5,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getProductOptions } from '@/services/product';
 import { getProductCategoryOptions } from '@/services/product_category';
 import { addSku, deleteSku, getSkus, updateSku } from '@/services/sku';
+import {PageContainer} from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -221,7 +222,7 @@ const SkuManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -235,6 +236,7 @@ const SkuManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button
             key="button"
@@ -317,7 +319,7 @@ const SkuManagement = () => {
           )}
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

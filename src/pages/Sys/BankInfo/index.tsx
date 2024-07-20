@@ -1,33 +1,36 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, message, Popconfirm, Select, Tag, Switch  } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getProductCategories, addProductCategory, updateProductCategory, deleteProductCategory } from '@/services/product_category';
-import {PageContainer} from '@ant-design/pro-components';
+import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { getSysBankInfos, addSysBankInfo, updateSysBankInfo, deleteSysBankInfo } from '@/services/sys/bankinfo';
+import { history } from '@umijs/max';
 
 const { Option } = Select;
 
-const ProductCategoryManagement = () => {
+const SysBankInfoManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingSysBankInfo, setEditingSysBankInfo] = useState(null);
   const [form] = Form.useForm();
   const actionRef = useRef();
 
-  const handleAddCategory = () => {
-    setEditingCategory(null);
+  const handleAddSysBankInfo = () => {
+    setEditingSysBankInfo(null);
     form.resetFields();
     setIsModalVisible(true);
   };
 
-  const handleEditCategory = (record) => {
-    setEditingCategory(record);
-    form.setFieldsValue(record);
+  const handleEditSysBankInfo = (record) => {
+    setEditingSysBankInfo(record);
+    form.setFieldsValue({
+      ...record,
+      status: record.status === 1,
+    });
     setIsModalVisible(true);
   };
 
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteSysBankInfo = async (id) => {
     try {
-      await deleteProductCategory({ uuid: id });
+      await deleteSysBankInfo({ uuid: id });
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -39,11 +42,12 @@ const ProductCategoryManagement = () => {
     try {
       const values = await form.validateFields();
       values.sort = parseInt(values.sort);
-      if (editingCategory) {
-        await updateProductCategory({ ...editingCategory, ...values });
+      values.status = values.status ? 1 : 2; // Converting switch boolean to status integer
+      if (editingSysBankInfo) {
+        await updateSysBankInfo({ ...editingSysBankInfo, ...values });
         message.success('更新成功');
       } else {
-        await addProductCategory(values);
+        await addSysBankInfo(values);
         message.success('添加成功');
       }
       setIsModalVisible(false);
@@ -58,39 +62,26 @@ const ProductCategoryManagement = () => {
   };
 
   const renderStatus = (status) => (
-    <Tag color={status ? 'green' : 'red'}>{status ? '启用' : '未启用'}</Tag>
+    <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '启用' : '禁用'}</Tag>
   );
+
+  const handleViewDetail = (record) => {
+    history.push(`/resource/sysBankInfo/detail/${record.uuid}`);
+  };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
-    { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: '类别属性', dataIndex: 'attribute', key: 'attribute', hideInSearch: true, render: (attribute) => {
-        switch(attribute) {
-          case "1":
-            return "规格";
-          case "2":
-            return "SKU";
-          case "3":
-            return "其他";
-          default:
-            return attribute;
-        }
-      }
-    },
-
+    { title: '银行名称', dataIndex: 'name', key: 'name' },
     { title: '排序', dataIndex: 'sort', key: 'sort', hideInSearch: true },
+    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', hideInSearch: true },
+    { title: '更新时间', dataIndex: 'updated_at', key: 'updated_at', hideInSearch: true },
     {
-      title: '创建时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
       hideInSearch: true,
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
-      hideInSearch: true,
+      render: (status) => renderStatus(status),
     },
     {
       title: '操作',
@@ -98,14 +89,15 @@ const ProductCategoryManagement = () => {
       hideInSearch: true,
       render: (_, record) => (
         <span>
+          <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEditCategory(record)}
+            onClick={() => handleEditSysBankInfo(record)}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteCategory(record.uuid)}
+            onConfirm={() => handleDeleteSysBankInfo(record.uuid)}
             okText="是"
             cancelText="否"
           >
@@ -116,9 +108,9 @@ const ProductCategoryManagement = () => {
     },
   ];
 
-  const fetchProductCategories = async (params) => {
+  const fetchSysBankInfos = async (params) => {
     try {
-      const response = await getProductCategories(params);
+      const response = await getSysBankInfos(params);
       if (response.code !== 200) {
         return {
           data: [],
@@ -141,12 +133,12 @@ const ProductCategoryManagement = () => {
   };
 
   return (
-    <PageContainer>
+    <div>
       <ProTable
         columns={columns}
         rowKey="id"
         actionRef={actionRef}
-        request={fetchProductCategories}
+        request={fetchSysBankInfos}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
@@ -154,49 +146,37 @@ const ProductCategoryManagement = () => {
         search={{
           labelWidth: 'auto',
         }}
-        options={false}
         scroll={{ x: 'max-content' }}
+        options={false}
         toolBarRender={() => [
           <Button
             key="button"
             icon={<PlusOutlined />}
-            onClick={handleAddCategory}
+            onClick={handleAddSysBankInfo}
             type="primary"
           >
-            添加产品类别
+            添加银行信息
           </Button>,
         ]}
       />
       <Modal
-        title={editingCategory ? '编辑产品类别' : '添加产品类别'}
-        open={isModalVisible}
+        title={editingSysBankInfo ? '编辑银行信息' : '添加银行信息'}
+        visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <Form form={form} layout="vertical" initialValues={{ attribute: "1" }}>
+        <Form form={form} layout="vertical">
           <Form.Item
             name="name"
-            label="名称"
-            rules={[{ required: true, message: '请输入名称' }]}
+            label="银行名称"
+            rules={[{ required: true, message: '请输入银行名称' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="attribute"
-            label="类别属性"
-            rules={[{ required: true, message: '请选择类别属性' }]}
-          >
-            <Select placeholder="请选择类别属性">
-              <Option value="1">规格</Option>
-              <Option value="2">SKU</Option>
-              <Option value="3">其他</Option>
-            </Select>
-          </Form.Item>
-         
-          <Form.Item
             name="sort"
             label="排序"
-            rules={[{ required: false, message: '请输入排序' }]}
+            rules={[{ required: true, message: '请输入排序' }]}
           >
             <Input />
           </Form.Item>
@@ -210,8 +190,8 @@ const ProductCategoryManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </PageContainer>
+    </div>
   );
 };
 
-export default ProductCategoryManagement;
+export default SysBankInfoManagement;

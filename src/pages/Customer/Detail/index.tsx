@@ -36,6 +36,7 @@ const CustomerDetail = () => {
           <ProDescriptions.Item label="名称">{customerInfo?.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="地址">{customerInfo?.address}</ProDescriptions.Item>
           <ProDescriptions.Item label="联系方式">{customerInfo?.contact_info}</ProDescriptions.Item>
+          <ProDescriptions.Item label="开户行">{customerInfo?.bank_name}</ProDescriptions.Item>
           <ProDescriptions.Item label="银行账号">{customerInfo?.bank_account}</ProDescriptions.Item>
           <ProDescriptions.Item label="信用状态">{customerInfo?.credit_status}</ProDescriptions.Item>
           <ProDescriptions.Item label="折扣">{customerInfo?.discount}</ProDescriptions.Item>

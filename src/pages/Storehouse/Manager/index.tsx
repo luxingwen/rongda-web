@@ -162,6 +162,7 @@ const StorehouseManagement = () => {
         search={{
           labelWidth: 'auto',
         }}
+        scroll={{ x: 'max-content' }}
         options={false}
         toolBarRender={() => [
           <Button
