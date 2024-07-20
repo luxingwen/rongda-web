@@ -241,10 +241,19 @@ const SupplierManagement = () => {
           >
             <Input />
           </Form.Item>
+
           <Form.Item
             name="country_no"
+            label="国家"
+            rules={[{ required: false, message: '请输入国家' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="factory_no"
             label="国家厂号"
-            rules={[{ required: false, message: '请输入国家厂号' }]}
+            rules={[{ required: false, message: '请输入厂号' }]}
           >
             <Input />
           </Form.Item>

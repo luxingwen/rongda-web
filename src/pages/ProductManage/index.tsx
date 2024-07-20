@@ -387,15 +387,15 @@ const ProductManagement = () => {
             <>
               <Form.Item
                 name="price"
-                label="价格"
-                rules={[{ required: true, message: '请输入价格' }]}
+                label="销售价格"
+                rules={[{ required: true, message: '请输入销售价格' }]}
               >
                 <Input type="number" />
               </Form.Item>
               <Form.Item
                 name="cost"
-                label="成本"
-                rules={[{ required: true, message: '请输入成本' }]}
+                label="成本价格"
+                rules={[{ required: true, message: '请输入成本价格' }]}
               >
                 <Input type="number" />
               </Form.Item>

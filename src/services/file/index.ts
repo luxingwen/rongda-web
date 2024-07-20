@@ -6,3 +6,13 @@ export async function deleteFile(data) {
     data,
   });
 }
+
+export async function uploadFile(address, data) {
+  return request(`/api/v1/upload/file/${address}`, {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}

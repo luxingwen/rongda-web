@@ -7,12 +7,20 @@ export async function getPurchaseOrders(params) {
   });
 }
 
-export async function addPurchaseOrder(data) {
-  return request('/api/v1/purchase_order/create', {
+export async function addPurchaseOrderFutures(data) {
+  return request('/api/v1/purchase_order/create_futures', {
     method: 'POST',
     data,
   });
 }
+
+export async function addPurchaseOrderSpot(data) {
+  return request('/api/v1/purchase_order/create_spot', {
+    method: 'POST',
+    data,
+  });
+}
+
 
 export async function updatePurchaseOrder(data) {
   return request('/api/v1/purchase_order/update', {
