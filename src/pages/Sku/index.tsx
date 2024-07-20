@@ -3,7 +3,7 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, message, Popconfirm, Select, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getProductOptions } from '@/services/product';
-import {getProductCategoryOptions} from '@/services/product_category';
+import { getProductCategoryOptions } from '@/services/product_category';
 import { addSku, deleteSku, getSkus, updateSku } from '@/services/sku';
 
 const { Option } = Select;
@@ -50,6 +50,7 @@ const SkuManagement = () => {
 
   const handleAddSku = () => {
     setEditingSku(null);
+    setCurrentCategory(null);
     form.resetFields();
     setIsModalVisible(true);
   };
@@ -57,7 +58,8 @@ const SkuManagement = () => {
   const handleEditSku = (record) => {
     setEditingSku(record);
     setCurrentCategory(record.product_category_uuid);
-    form.setFieldsValue(record);
+    form.setFieldsValue({name:record.product?.name,  ...record});
+
     setIsModalVisible(true);
   };
 
@@ -75,12 +77,18 @@ const SkuManagement = () => {
     try {
       const values = await form.validateFields();
       values.num = parseInt(values.num);
+      values.name = values.name[0]; // 使用数组的第一个值
       if (editingSku) {
         await updateSku({ ...editingSku, ...values });
         message.success('更新成功');
       } else {
-        await addSku(values);
+       const res = await addSku(values);
+        if (res.code !== 200) {
+          message.error(res.message);
+          return;
+        }
         message.success('添加成功');
+        fetchProductOptions();
       }
       setIsModalVisible(false);
       actionRef.current?.reload();
@@ -116,12 +124,11 @@ const SkuManagement = () => {
         return record.product_category?.name;
       },
     },
-    { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: 'SKU代码', dataIndex: 'code', key: 'code' },
     { title: '规格', dataIndex: 'specification', key: 'specification' },
     { title: '国家', dataIndex: 'country', key: 'country', hideInSearch: true },
     { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', hideInSearch: true },
     { title: '单位', dataIndex: 'unit', key: 'unit', hideInSearch: true },
-    { title: '数量', dataIndex: 'num', key: 'num', hideInSearch: true },
     {
       title: '创建时间',
       dataIndex: 'created_at',
@@ -203,7 +210,7 @@ const SkuManagement = () => {
     } else {
       return (
         <Form.Item
-          name="name"
+          name="code"
           label="SKU代码"
           rules={[{ required: true, message: '请输入sku代码' }]}
         >
@@ -247,13 +254,23 @@ const SkuManagement = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="product_uuid"
-            label="产品"
-            rules={[{ required: true, message: '请选择产品' }]}
+            name="name"
+            label="产品名称"
+            rules={[{ required: true, message: '请输入产品名称' }]}
           >
-            <Select placeholder="请选择产品">
+            <Select
+              placeholder="请输入产品名称"
+              showSearch
+              allowClear
+              mode="tags"
+              maxTagCount={1}
+              tokenSeparators={[',']}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
               {productOptions.map((product) => (
-                <Option key={product.uuid} value={product.uuid}>
+                <Option key={product.uuid} value={product.name}>
                   {product.name}
                 </Option>
               ))}
@@ -272,29 +289,32 @@ const SkuManagement = () => {
               ))}
             </Select>
           </Form.Item>
-          { currentCategory &&  renderDynamicFields()}
-          {currentCategory && (<> <Form.Item
-            name="unit"
-            label="单位"
-            rules={[{ required: true, message: '请输入单位' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="country"
-            label="国家"
-            rules={[{ required: true, message: '请输入国家' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="factory_no"
-            label="厂号"
-            rules={[{ required: true, message: '请输入厂号' }]}
-          >
-            <Input />
-          </Form.Item> </>) }
-      
+          {currentCategory && renderDynamicFields()}
+          {currentCategory && (
+            <>
+              <Form.Item
+                name="unit"
+                label="单位"
+                rules={[{ required: true, message: '请输入单位' }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="country"
+                label="国家"
+                rules={[{ required: true, message: '请输入国家' }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="factory_no"
+                label="厂号"
+                rules={[{ required: true, message: '请输入厂号' }]}
+              >
+                <Input />
+              </Form.Item>
+            </>
+          )}
         </Form>
       </Modal>
     </div>

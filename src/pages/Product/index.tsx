@@ -3,6 +3,7 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getProducts, addProduct, updateProduct, deleteProduct } from '@/services/product';
+import { getProductCategoryOptions } from '@/services/product_category';
 import { getSupplierOptions } from '@/services/supplier';
 import { render } from 'react-dom';
 
@@ -14,9 +15,11 @@ const ProductManagement = () => {
   const [form] = Form.useForm();
   const actionRef = useRef();
   const [supplierOptions, setSupplierOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
   useEffect(() => {
     fetchSupplierOptions();
+    fetchProductCategoryOptions();
   }, []);
 
   const fetchSupplierOptions = async () => {
@@ -29,6 +32,19 @@ const ProductManagement = () => {
       }
     } catch (error) {
       message.error('获取供应商选项失败');
+    }
+  };
+
+  const fetchProductCategoryOptions = async () => {
+    try {
+      const response = await getProductCategoryOptions();
+      if (response.code === 200) {
+        setCategoryOptions(response.data);
+      } else {
+        message.error('获取产品分类选项失败');
+      }
+    } catch (error) {
+      message.error('获取产品分类选项失败');
     }
   };
 
@@ -57,6 +73,7 @@ const ProductManagement = () => {
       message.error('删除失败');
     }
   };
+  
 
   const handleOk = async () => {
     try {
@@ -78,6 +95,7 @@ const ProductManagement = () => {
     }
   };
 
+
   const handleCancel = () => {
     setIsModalVisible(false);
   };
@@ -87,7 +105,6 @@ const ProductManagement = () => {
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '类别', dataIndex: 'category', key: 'category', hideInSearch: true },
-    { title: '规格', dataIndex: 'specification', key: 'specification', hideInSearch: true },
     { title: '描述', dataIndex: 'description', key: 'description', hideInSearch: true },
     { title: '价格', dataIndex: 'price', key: 'price', hideInSearch: true },
     { title: '成本', dataIndex: 'cost', key: 'cost', hideInSearch: true },
@@ -186,22 +203,15 @@ const ProductManagement = () => {
             label="类别"
             rules={[{ required: true, message: '请输入类别' }]}
           >
-            <Input />
+            <Select placeholder="请选择产品类别">
+              {categoryOptions.map((category) => (
+                <Option key={category.uuid} value={category.uuid}>
+                  {category.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
-          <Form.Item
-            name="specification"
-            label="规格"
-            rules={[{ required: true, message: '请输入规格' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="描述"
-            rules={[{ required: true, message: '请输入描述' }]}
-          >
-            <Input />
-          </Form.Item>
+
           <Form.Item
             name="price"
             label="价格"
@@ -228,6 +238,13 @@ const ProductManagement = () => {
                 </Option>
               ))}
             </Select>
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="描述"
+            rules={[{ required: false, message: '请输入描述' }]}
+          >
+            <Input />
           </Form.Item>
           <Form.Item
             name="is_active"

@@ -84,8 +84,8 @@ export default [
       },
       {
         name: '商品管理',
-        path: '/resource/product',
-        component: './Product',
+        path: '/resource/product-manage',
+        component: './ProductManage',
       },
       {
         name: '商品类别',
