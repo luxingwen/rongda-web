@@ -1,12 +1,19 @@
-import { getProductSkuOptions } from '@/services/product';
-import { addPurchaseOrderFutures } from '@/services/purchase_order';
-import { getProductOptions } from '@/services/product';
+import { getCustomerOptions } from '@/services/customer';
+import { uploadFile } from '@/services/file';
+import { getProductOptions, getProductSkuOptions } from '@/services/product';
+import {
+  addPurchaseOrderFutures,
+  uploadImportFutruesExcel,
+} from '@/services/purchase_order';
 import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { getSupplierOptions } from '@/services/supplier';
-import { getCustomerOptions } from '@/services/customer';
-import { PlusOutlined } from '@ant-design/icons';
-import {uploadFile} from '@/services/file';
+import {
+  DownloadOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
 import {
   Button,
   Form,
@@ -16,13 +23,10 @@ import {
   Popconfirm,
   Select,
   Table,
-  Upload
+  Upload,
 } from 'antd';
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {PageContainer} from '@ant-design/pro-components';
-import { UploadOutlined } from '@ant-design/icons';
-import { DeleteOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const EditableContext = React.createContext(null);
@@ -164,7 +168,10 @@ const AddPurchaseOrder = () => {
   );
   const [storehouseOptions, setStorehouseOptions] = useState([]);
   const [fileList, setFileList] = useState([]);
+
   const [customerOptions, setCustomerOptions] = useState([]);
+  const [importExcelFileList, setImportExcelFileList] = useState([]);
+  const [importExcelModalVisible, setImportExcelModalVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -174,6 +181,70 @@ const AddPurchaseOrder = () => {
     fetchStorehouseOptions();
     fetchCustomerOptions();
   }, []);
+
+  const showImportExcelModal = () => {
+    setImportExcelModalVisible(true);
+  };
+
+  const handleImportExcelChange = (info) => {
+    let fileList = [...info.fileList];
+
+    // 只保留最新上传的一个文件
+    fileList = fileList.slice(-1);
+
+    setImportExcelFileList(fileList);
+  };
+
+  const handleImportExcelCancel = () => {
+    setImportExcelModalVisible(false);
+    setImportExcelFileList([]);
+  };
+
+  const handleImportExcelOk = async () => {
+    if (importExcelFileList.length === 0) {
+      message.error('请上传文件');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', importExcelFileList[0].originFileObj);
+
+    try {
+      const response = await uploadImportFutruesExcel(formData);
+      if (response.code !== 200) {
+        message.error('上传失败:' + response.message);
+        return;
+      }
+
+      response.data.forEach((item, index) => {
+        // 获取sku 是否存在
+        const issku =
+          skuOptions[item.product_uuid] === undefined ? false : true;
+        if (!issku) {
+          handleProductChange(item.product_uuid);
+        }
+      });
+
+      setDetails(response.data);
+
+      message.success('导入成功');
+      setImportExcelModalVisible(false);
+      //navigate('/purchase/order');
+    } catch (error) {
+      message.error('导入失败');
+    }
+  };
+
+  const downloadTemplate = () => {
+    // 模板下载链接，可以是一个存放模板的静态文件链接
+    const url = '/public/采购订单明细-期货-模板.xlsx';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '采购订单明细-期货-模板.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchCustomerOptions = async () => {
     try {
@@ -264,6 +335,8 @@ const AddPurchaseOrder = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.deposit_amount = parseFloat(values.deposit_amount);
+      values.deposit_ratio = parseFloat(values.deposit_ratio);
       values.details = details.map((d) => ({
         ...d,
         quantity: parseFloat(d.quantity),
@@ -282,7 +355,7 @@ const AddPurchaseOrder = () => {
       }));
 
       if (fileList.length > 0) {
-        const res = await uploadFile("purchase_order", fileList);
+        const res = await uploadFile('purchase_order', fileList);
         if (res.code !== 200) {
           message.error(res.message);
           return;
@@ -305,7 +378,6 @@ const AddPurchaseOrder = () => {
   const handleCancel = () => {
     navigate('/purchase/order');
   };
-
 
   const handleFileChange = ({ fileList }) => {
     setFileList(fileList);
@@ -399,7 +471,9 @@ const AddPurchaseOrder = () => {
   };
 
   const handleRemove = (file) => {
-    setFileList((prevFileList) => prevFileList.filter((item) => item.uid !== file.uid));
+    setFileList((prevFileList) =>
+      prevFileList.filter((item) => item.uid !== file.uid),
+    );
   };
 
   const columns = [
@@ -521,122 +595,130 @@ const AddPurchaseOrder = () => {
 
   return (
     <PageContainer>
-    <Form form={form} component={false} labelCol={{ span: 2 }}>
-      <Form.Item
-        name="title"
-        label="标题"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入标题' }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="customer_uuid"
-        label="客户名称"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请选择客户' }]}
-      >
-        <Select placeholder="请选择客户">
-          {customerOptions.map((customer) => (
-            <Option key={customer.uuid} value={customer.uuid}>
-              {customer.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item
-        name="supplier_uuid"
-        label="供应商"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请选择供应商' }]}
-      >
-        <Select placeholder="请选择供应商">
-          {supplierOptions.map((supplier) => (
-            <Option key={supplier.uuid} value={supplier.uuid}>
-              {supplier.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item wrapperCol={{ span: 6 }} name="date" label="采购日期">
-        <Input type="date" />
-      </Form.Item>
-      <Form.Item
-        name="pi_agreement_no"
-        label="PI合同号"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: 'PI合同号' }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="order_currency"
-        label="订单币种"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入订单币种' }]}
-      >
-        <Select>
-          {settlementCurrencyOptions.map((currency) => (
-            <Option key={currency.uuid} value={currency.uuid}>
-              {currency.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item
-        name="settlement_currency"
-        label="结算币种"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入结算币种' }]}
-      >
-        <Select>
-          {settlementCurrencyOptions.map((currency) => (
-            <Option key={currency.uuid} value={currency.uuid}>
-              {currency.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-      <Form.Item
-        name="departure"
-        label="起运地"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入起运地' }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="destination"
-        label="目的地"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入目的地' }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        name="estimated_shipping_date"
-        label="预计装船日期"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入预计装船日期' }]}
-      >
-        <Input type="date" />
-      </Form.Item>
-      <Form.Item
-        name="estimated_warehouse"
-        label="预计入库仓库"
-        wrapperCol={{ span: 6 }}
-        rules={[{ required: true, message: '请输入预计入库仓库' }]}
-      >
-        <Select>
-          {storehouseOptions.map((storehouse) => (
-            <Option key={storehouse.uuid} value={storehouse.uuid}>
-              {storehouse.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
+      <Form form={form} component={false} labelCol={{ span: 2 }}>
+        <Form.Item
+          name="title"
+          label="标题"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入标题' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="customer_uuid"
+          label="客户名称"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请选择客户' }]}
+        >
+          <Select placeholder="请选择客户">
+            {customerOptions.map((customer) => (
+              <Option key={customer.uuid} value={customer.uuid}>
+                {customer.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item
+          name="supplier_uuid"
+          label="供应商"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请选择供应商' }]}
+        >
+          <Select placeholder="请选择供应商">
+            {supplierOptions.map((supplier) => (
+              <Option key={supplier.uuid} value={supplier.uuid}>
+                {supplier.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item wrapperCol={{ span: 6 }} name="date" label="采购日期">
+          <Input type="date" />
+        </Form.Item>
+        <Form.Item
+          name="pi_agreement_no"
+          label="PI合同号"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: 'PI合同号' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="order_currency"
+          label="订单币种"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入订单币种' }]}
+        >
+          <Select>
+            {settlementCurrencyOptions.map((currency) => (
+              <Option key={currency.uuid} value={currency.uuid}>
+                {currency.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item
+          name="settlement_currency"
+          label="结算币种"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入结算币种' }]}
+        >
+          <Select>
+            {settlementCurrencyOptions.map((currency) => (
+              <Option key={currency.uuid} value={currency.uuid}>
+                {currency.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item
+          name="departure"
+          label="起运地"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入起运地' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="deposit_amount"
+          label="定金金额"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入定金金额' }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item
+          name="deposit_ratio"
+          label="定金比例"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入定金比例' }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item
+          name="estimated_shipping_date"
+          label="预计装船日期"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入预计装船日期' }]}
+        >
+          <Input type="date" />
+        </Form.Item>
+        <Form.Item
+          name="estimated_warehouse"
+          label="预计入库仓库"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入预计入库仓库' }]}
+        >
+          <Select>
+            {storehouseOptions.map((storehouse) => (
+              <Option key={storehouse.uuid} value={storehouse.uuid}>
+                {storehouse.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
 
-      <Form.Item name="attachment" label="附件">
+        <Form.Item name="attachment" label="附件">
           <Upload
             multiple
             fileList={fileList}
@@ -644,7 +726,6 @@ const AddPurchaseOrder = () => {
             itemRender={(originNode, file) => (
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {originNode}
-              
               </div>
             )}
           >
@@ -652,247 +733,287 @@ const AddPurchaseOrder = () => {
           </Upload>
         </Form.Item>
 
-      <Form.Item
-        name="details"
-        label="采购单明细"
-        labelCol={{ span: 0 }}
-        rules={[{ required: false, message: '请填写采购单明细' }]}
-      >
-        <Button
-          onClick={handleAddDetail}
-          type="primary"
-          style={{ marginBottom: 16 }}
-          icon={<PlusOutlined />}
+        <Form.Item
+          name="details"
+          label="采购单明细"
+          labelCol={{ span: 0 }}
+          rules={[{ required: false, message: '请填写采购单明细' }]}
         >
-          添加明细
-        </Button>
-        <Table
-          components={{
-            body: {
-              row: EditableRow,
-              cell: EditableCell,
-            },
-          }}
-          bordered
-          dataSource={details}
-          columns={columns}
-          rowClassName="editable-row"
-          pagination={false}
-          scroll={{ x: 'max-content' }}
-        />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" onClick={handleOk}>
-          保存
-        </Button>
-        <Button style={{ marginLeft: 8 }} onClick={handleCancel}>
-          取消
-        </Button>
-      </Form.Item>
-      <Modal
-        title="编辑明细"
-        visible={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-      >
-        <Form 
-        layout="horizontal"
-        labelCol={{ span: 6 }}
-        wrapperCol={{ span: 18 }}
-        >
-          <Form.Item label="产品名称">
-            <Select
-              value={editingDetail?.product_uuid}
-              onChange={(value) => handleDetailChange('product_uuid', value)}
-            >
-              {productOptions.map((product) => (
-                <Option key={product.uuid} value={product.uuid}>
-                  {product.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item label="SKU/规格">
-            <Select
-              value={editingDetail?.sku_uuid}
-              onChange={(value) => handleDetailChange('sku_uuid', value)}
-            >
-              {(skuOptions[editingDetail?.product_uuid] || []).map((sku) => (
-                <Option key={sku.uuid} value={sku.uuid}>
-                  {renderSkuSelect(sku)}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          <Button
+            onClick={handleAddDetail}
+            type="primary"
+            style={{ marginBottom: 16 }}
+            icon={<PlusOutlined />}
+          >
+            添加明细
+          </Button>
 
-          <Form.Item label="产品数量">
-            <Input
-              type="number"
-              value={editingDetail?.quantity}
-              onChange={(e) => handleDetailChange('quantity', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="产品价格">
-            <Input
-              type="number"
-              value={editingDetail?.price}
-              onChange={(e) => handleDetailChange('price', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="产品总金额">
-            <Input
-              type="number"
-              value={editingDetail?.total_amount}
-              onChange={(e) =>
-                handleDetailChange('total_amount', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="PI箱数">
-            <Input
-              type="number"
-              value={editingDetail?.pi_box_num}
-              onChange={(e) => handleDetailChange('pi_box_num', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="PI数量">
-            <Input
-              type="number"
-              value={editingDetail?.pi_quantity}
-              onChange={(e) =>
-                handleDetailChange('pi_quantity', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="PI单价">
-            <Input
-              type="number"
-              value={editingDetail?.pi_unit_price}
-              onChange={(e) =>
-                handleDetailChange('pi_unit_price', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="PI总金额">
-            <Input
-              type="number"
-              value={editingDetail?.pi_total_amount}
-              onChange={(e) =>
-                handleDetailChange('pi_total_amount', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="柜号">
-            <Input
-              value={editingDetail?.cabinet_no}
-              onChange={(e) => handleDetailChange('cabinet_no', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="提单号">
-            <Input
-              value={editingDetail?.bill_of_lading_no}
-              onChange={(e) =>
-                handleDetailChange('bill_of_lading_no', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="船名">
-            <Input
-              value={editingDetail?.ship_name}
-              onChange={(e) => handleDetailChange('ship_name', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="航次">
-            <Input
-              value={editingDetail?.voyage}
-              onChange={(e) => handleDetailChange('voyage', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="CI发票号">
-            <Input
-              value={editingDetail?.ci_invoice_no}
-              onChange={(e) =>
-                handleDetailChange('ci_invoice_no', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="CI箱数">
-            <Input
-              type="number"
-              value={editingDetail?.ci_box_num}
-              onChange={(e) => handleDetailChange('ci_box_num', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="CI数量">
-            <Input
-              type="number"
-              value={editingDetail?.ci_quantity}
-              onChange={(e) =>
-                handleDetailChange('ci_quantity', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="CI单价">
-            <Input
-              type="number"
-              value={editingDetail?.ci_unit_price}
-              onChange={(e) =>
-                handleDetailChange('ci_unit_price', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="CI总金额">
-            <Input
-              type="number"
-              value={editingDetail?.ci_total_amount}
-              onChange={(e) =>
-                handleDetailChange('ci_total_amount', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="生产日期">
-            <Input
-              value={editingDetail?.production_date}
-              onChange={(e) =>
-                handleDetailChange('production_date', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="预计到港日期">
-            <Input
-              value={editingDetail?.estimated_arrival_date}
-              type = "date"
-              onChange={(e) =>
-                handleDetailChange('estimated_arrival_date', e.target.value)
-              }
-            />
-          </Form.Item>
-          <Form.Item label="关税">
-            <Input
-              type="number"
-              value={editingDetail?.tariff}
-              onChange={(e) => handleDetailChange('tariff', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="增值税">
-            <Input
-              type="number"
-              value={editingDetail?.vat}
-              onChange={(e) => handleDetailChange('vat', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item label="缴费日期">
-            <Input
-              value={editingDetail?.payment_date}
-              type = "date"
-              onChange={(e) =>
-                handleDetailChange('payment_date', e.target.value)
-              }
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Form>
+          <Button
+            onClick={showImportExcelModal}
+            style={{ marginLeft: '20px', color: 'green' }}
+          >
+            从Excel文件导入
+          </Button>
+
+          <Table
+            components={{
+              body: {
+                row: EditableRow,
+                cell: EditableCell,
+              },
+            }}
+            bordered
+            dataSource={details}
+            columns={columns}
+            rowClassName="editable-row"
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" onClick={handleOk}>
+            保存
+          </Button>
+          <Button style={{ marginLeft: 8 }} onClick={handleCancel}>
+            取消
+          </Button>
+        </Form.Item>
+        <Modal
+          title="编辑明细"
+          visible={isModalVisible}
+          onOk={handleModalOk}
+          onCancel={handleModalCancel}
+        >
+          <Form
+            layout="horizontal"
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+          >
+            <Form.Item label="产品名称">
+              <Select
+                value={editingDetail?.product_uuid}
+                onChange={(value) => handleDetailChange('product_uuid', value)}
+              >
+                {productOptions.map((product) => (
+                  <Option key={product.uuid} value={product.uuid}>
+                    {product.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="SKU/规格">
+              <Select
+                value={editingDetail?.sku_uuid}
+                onChange={(value) => handleDetailChange('sku_uuid', value)}
+              >
+                {(skuOptions[editingDetail?.product_uuid] || []).map((sku) => (
+                  <Option key={sku.uuid} value={sku.uuid}>
+                    {renderSkuSelect(sku)}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item label="产品数量">
+              <Input
+                type="number"
+                value={editingDetail?.quantity}
+                onChange={(e) => handleDetailChange('quantity', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="产品价格">
+              <Input
+                type="number"
+                value={editingDetail?.price}
+                onChange={(e) => handleDetailChange('price', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="产品总金额">
+              <Input
+                type="number"
+                value={editingDetail?.total_amount}
+                onChange={(e) =>
+                  handleDetailChange('total_amount', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="PI箱数">
+              <Input
+                type="number"
+                value={editingDetail?.pi_box_num}
+                onChange={(e) =>
+                  handleDetailChange('pi_box_num', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="PI数量">
+              <Input
+                type="number"
+                value={editingDetail?.pi_quantity}
+                onChange={(e) =>
+                  handleDetailChange('pi_quantity', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="PI单价">
+              <Input
+                type="number"
+                value={editingDetail?.pi_unit_price}
+                onChange={(e) =>
+                  handleDetailChange('pi_unit_price', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="PI总金额">
+              <Input
+                type="number"
+                value={editingDetail?.pi_total_amount}
+                onChange={(e) =>
+                  handleDetailChange('pi_total_amount', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="柜号">
+              <Input
+                value={editingDetail?.cabinet_no}
+                onChange={(e) =>
+                  handleDetailChange('cabinet_no', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="提单号">
+              <Input
+                value={editingDetail?.bill_of_lading_no}
+                onChange={(e) =>
+                  handleDetailChange('bill_of_lading_no', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="船名">
+              <Input
+                value={editingDetail?.ship_name}
+                onChange={(e) =>
+                  handleDetailChange('ship_name', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="航次">
+              <Input
+                value={editingDetail?.voyage}
+                onChange={(e) => handleDetailChange('voyage', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="CI发票号">
+              <Input
+                value={editingDetail?.ci_invoice_no}
+                onChange={(e) =>
+                  handleDetailChange('ci_invoice_no', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="CI箱数">
+              <Input
+                type="number"
+                value={editingDetail?.ci_box_num}
+                onChange={(e) =>
+                  handleDetailChange('ci_box_num', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="CI数量">
+              <Input
+                type="number"
+                value={editingDetail?.ci_quantity}
+                onChange={(e) =>
+                  handleDetailChange('ci_quantity', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="CI单价">
+              <Input
+                type="number"
+                value={editingDetail?.ci_unit_price}
+                onChange={(e) =>
+                  handleDetailChange('ci_unit_price', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="CI总金额">
+              <Input
+                type="number"
+                value={editingDetail?.ci_total_amount}
+                onChange={(e) =>
+                  handleDetailChange('ci_total_amount', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="生产日期">
+              <Input
+                value={editingDetail?.production_date}
+                onChange={(e) =>
+                  handleDetailChange('production_date', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="预计到港日期">
+              <Input
+                value={editingDetail?.estimated_arrival_date}
+                type="date"
+                onChange={(e) =>
+                  handleDetailChange('estimated_arrival_date', e.target.value)
+                }
+              />
+            </Form.Item>
+            <Form.Item label="关税">
+              <Input
+                type="number"
+                value={editingDetail?.tariff}
+                onChange={(e) => handleDetailChange('tariff', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="增值税">
+              <Input
+                type="number"
+                value={editingDetail?.vat}
+                onChange={(e) => handleDetailChange('vat', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="缴费日期">
+              <Input
+                value={editingDetail?.payment_date}
+                type="date"
+                onChange={(e) =>
+                  handleDetailChange('payment_date', e.target.value)
+                }
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        <Modal
+          width={200}
+          title="导入Excel文件"
+          visible={importExcelModalVisible}
+          onOk={handleImportExcelOk}
+          onCancel={handleImportExcelCancel}
+        >
+          <Upload
+            accept=".xlsx"
+            fileList={importExcelFileList}
+            beforeUpload={() => false} // 阻止默认的上传行为，改为手动上传
+            onChange={handleImportExcelChange}
+          >
+            <Button icon={<UploadOutlined />}>选择文件</Button>
+          </Upload>
+          <Button
+            icon={<DownloadOutlined />}
+            style={{ marginTop: 16 }}
+            onClick={downloadTemplate}
+          >
+            下载模板
+          </Button>
+        </Modal>
+      </Form>
     </PageContainer>
   );
 };

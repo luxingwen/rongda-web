@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Input, Select, Button, message } from 'antd';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useRef, useState, useEffect } from 'react';
+import { getProductOptions, getProductSkuOptions } from '@/services/product';
+import { getAllPurchaseOrdersOptions, getPurchaseOrderProductList, getPurchaseOrdersInfo } from '@/services/purchase_order';
 import { getStorehouseOptions } from '@/services/storehouse';
-import { getProductOptions, getProductSkuOptions, addProduct } from '@/services/product';
-import { addInbound, updateInbound, getInbound } from '@/services/storehouseInbound';
+import { addInbound } from '@/services/storehouseInbound';
 import { PlusOutlined } from '@ant-design/icons';
+import { Button, Form, Input, message, Select, Modal, Table, Space } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { render } from 'react-dom';
 
 const { Option } = Select;
 
@@ -12,14 +14,46 @@ const StorehouseInboundForm = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [storehouseOptions, setStorehouseOptions] = useState([]);
-  const [productOptions, setProductOptions] = useState([]);
-  const [skuOptions, setSkuOptions] = useState({});
+  const [purchaseOrderOptions, setPurchaseOrderOptions] = useState([]);
+  const [currentPurchaseOrder, setCurrentPurchaseOrder] = useState(null);
+  const [purchaseOrderProductList, setPurchaseOrderProductList] = useState([]);
+  const [detailData, setDetailData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productForm] = Form.useForm();
+  const [currentProduct, setCurrentProduct] = useState(null);
+
 
   useEffect(() => {
     fetchStorehouseOptions();
-    fetchProductOptions();
-   
+    fetchPurchaseOrderOptions();
   }, []);
+
+  const fetchPurchaseOrderOptions = async () => {
+    try {
+      const response = await getAllPurchaseOrdersOptions();
+      if (response.code === 200) {
+        setPurchaseOrderOptions(response.data);
+      } else {
+        message.error('获取采购单选项失败');
+      }
+    } catch (error) {
+      message.error('获取采购单选项失败');
+    }
+  };
+
+  const fetchPurchaseOrderProductList = async (uuid) => {
+    try {
+      const response = await getPurchaseOrderProductList({ uuid });
+      if (response.code === 200) {
+        setPurchaseOrderProductList(response.data);
+      } else {
+        message.error('获取采购单商品列表失败');
+      }
+    } catch (error) {
+      message.error('获取采购单商品列表失败');
+    }
+  }
 
   const fetchStorehouseOptions = async () => {
     try {
@@ -34,62 +68,162 @@ const StorehouseInboundForm = () => {
     }
   };
 
-  const fetchProductOptions = async () => {
+
+  const fetchPurchaseOrderInfo = async (uuid) => {
     try {
-      const response = await getProductOptions();
+      const response = await getPurchaseOrdersInfo({ uuid });
       if (response.code === 200) {
-        setProductOptions(response.data);
+        const currentOrder = response.data;
+        setCurrentPurchaseOrder(response.data);
+        
+        if(currentOrder.order_type === "1") {
+          form.setFieldsValue({ storehouse_uuid: currentOrder.estimated_warehouse });
+        } else {
+          form.setFieldsValue({ storehouse_uuid: currentOrder.actual_warehouse });
+        }
+        fetchPurchaseOrderProductList(currentOrder.order_no);
+
+        productForm.setFieldsValue({
+          customer_name: currentOrder.customer_info?.name,
+        });
+
       } else {
-        message.error('获取产品选项失败');
+        message.error('获取订单详情失败');
       }
     } catch (error) {
-      message.error('获取产品选项失败');
+      message.error('获取订单详情失败');
     }
   };
 
+  const handlePuchaseOrderChange = (value) => {
+    const currentOrder = purchaseOrderOptions.find((order) => order.order_no === value);
 
-
-  const handleProductChange = async (value, fieldKey) => {
-    try {
-      const response = await getProductSkuOptions({ uuid: value });
-      if (response.code === 200) {
-        setSkuOptions((prevSkuOptions) => ({
-          ...prevSkuOptions,
-          [fieldKey]: response.data,
-        }));
-      } else {
-        message.error('获取SKU选项失败');
-      }
-    } catch (error) {
-      message.error('获取SKU选项失败');
+    if(currentOrder) {
+      fetchPurchaseOrderInfo(value);
     }
+  }
+
+  const handleAddDetail = () => {
+    setModalVisible(true);
+  };
+
+
+  const handleSelectCurrentProduct = async (value) => {
+    const currentProduct = purchaseOrderProductList.find((product) => product.product_uuid === value);
+    console.log("currentProduct" , currentProduct);
+    setCurrentProduct(currentProduct);
+    productForm.setFieldsValue({
+      sku_uuid: currentProduct.sku_uuid,
+      sku_code: currentProduct.sku?.code,
+      sku_spec: currentProduct.sku?.specification,
+      country: currentProduct.sku?.country,
+      factory_no: currentProduct.sku?.factory_no,
+      quantity: currentProduct.quantity,
+      box_num: currentProduct.box_num,
+      cabinet_no: currentProduct.cabinet_no,
+    });
   };
 
   const handleFinish = async (values) => {
     try {
       values.status = parseInt(values.status);
-      values.detail = values.detail.map((item) => ({
+      values.detail = detailData.map((item) => ({
         ...item,
         quantity: parseInt(item.quantity),
+        box_num: parseInt(item.box_num),
       }));
-    
+
       const res = await addInbound(values);
-        if (res.code === 200) {
-            message.success('添加成功');
-            navigate('/storehouse/inventory/in');
-        } else {
-            message.error('操作失败');
-        }
+      if (res.code === 200) {
+        message.success('添加成功');
+        navigate('/storehouse/inventory/in');
+      } else {
+        message.error('操作失败');
+      }
     } catch (error) {
       message.error('操作失败');
     }
   };
 
+  const handleProductSubmit = () => {
+    productForm.validateFields().then((values) => {
+      setDetailData([...detailData, values]);
+      setModalVisible(false);
+      productForm.resetFields();
+    }).catch((info) => {
+      message.error('验证失败');
+    });
+  };
 
+  const renderProductName = (uuid) => {
+    const product = purchaseOrderProductList.find((product) => product.product_uuid === uuid);
+    return product?.product?.name;
+  }
+
+  const detailColumns = [
+    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: renderProductName },
+    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code' },
+    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec' },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity' },
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num' },
+    { title: '客户名称', dataIndex: 'customer_name', key: 'customer_name' },
+    { title: '国家', dataIndex: 'country', key: 'country' },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no' },
+    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
+    { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
+    { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
+    {
+      title: '操作', key: 'action', render: (_, record) => (
+        <Space>
+          <Button type="link" onClick={() => handleEditDetail(record)}>编辑</Button>
+          <Button type="link" onClick={() => handleDeleteDetail(record.key)}>删除</Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const handleEditDetail = (record) => {
+    setSelectedProduct(record);
+    setModalVisible(true);
+    productForm.setFieldsValue(record);
+  };
+
+  const handleDeleteDetail = (key) => {
+    setDetailData(detailData.filter(item => item.key !== key));
+  };
 
   return (
     <Form form={form} layout="vertical" onFinish={handleFinish}>
-      <Form.Item name="storehouse_uuid" label="仓库" rules={[{ required: true, message: '请选择仓库' }]}>
+      <Form.Item
+        name="purchase_order_no"
+        label="采购订单"
+        rules={[{ required: true, message: '请选择采购订单' }]}
+      >
+        <Select
+          showSearch
+          allowClear
+          mode="combobox"
+          onChange={handlePuchaseOrderChange}
+          filterOption={(input, option) => {
+            const children = option.children;
+            const childrenString = Array.isArray(children) ? children.join('') : children.toString();
+            return childrenString.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+          }}
+          placeholder="请选择采购订单"
+        >
+          {purchaseOrderOptions.map((order) => (
+            <Option key={order.order_no} value={order.order_no}>
+              {order.title} - {order.order_no}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
+
+      <Form.Item
+        name="storehouse_uuid"
+        label="仓库"
+        rules={[{ required: true, message: '请选择仓库' }]}
+      >
         <Select placeholder="请选择仓库">
           {storehouseOptions.map((storehouse) => (
             <Option key={storehouse.uuid} value={storehouse.uuid}>
@@ -98,11 +232,20 @@ const StorehouseInboundForm = () => {
           ))}
         </Select>
       </Form.Item>
-      <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入标题' }]}>
+      <Form.Item
+        name="title"
+        label="标题"
+        rules={[{ required: true, message: '请输入标题' }]}
+      >
         <Input />
       </Form.Item>
-      <Form.Item name="inbound_type" label="入库类型" rules={[{ required: true, message: '请选择入库类型' }]}>
-        <Select placeholder="请选择入库类型">
+      <Form.Item
+        name="inbound_type"
+        label="入库类型"
+        initialValue="1"
+        rules={[{ required: true, message: '请选择入库类型' }]}
+      >
+        <Select placeholder="请选择入库类型" disabled>
           <Option value="1">采购入库</Option>
           <Option value="2">退货入库</Option>
           <Option value="3">手工入库</Option>
@@ -111,70 +254,130 @@ const StorehouseInboundForm = () => {
       <Form.Item name="inbound_date" label="入库日期">
         <Input type="date" />
       </Form.Item>
-      <Form.Item name="detail" label="入库明细" rules={[{ required: true, message: '请填写入库明细' }]}>
-        <Form.List name="detail">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, fieldKey, ...restField }) => (
-                <div key={key} style={{ display: 'flex', marginBottom: 8 }}>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'product_uuid']}
-                    fieldKey={[fieldKey, 'product_uuid']}
-                    rules={[{ required: true, message: '请选择商品' }]}
-                  >
-                    <Select
-                      placeholder="请选择商品"
-                      style={{ width: 150 }}
-                      onChange={(value) => handleProductChange(value, fieldKey)}
-                    >
-                      {productOptions.map((product) => (
-                        <Option key={product.uuid} value={product.uuid}>
-                          {product.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'sku_uuid']}
-                    fieldKey={[fieldKey, 'sku_uuid']}
-                    rules={[{ required: true, message: '请选择SKU' }]}
-                  >
-                    <Select placeholder="请选择SKU" style={{ width: 150, marginLeft: 8 }}>
-                      {(skuOptions[fieldKey] || []).map((sku) => (
-                        <Option key={sku.uuid} value={sku.uuid}>
-                          {sku.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'quantity']}
-                    fieldKey={[fieldKey, 'quantity']}
-                    rules={[{ required: true, message: '请输入入库数量' }]}
-                  >
-                    <Input placeholder="入库数量" type="number" style={{ width: 150, marginLeft: 8 }} />
-                  </Form.Item>
-                  <Button type="link" onClick={() => remove(name)} style={{ marginLeft: 8 }}>
-                    删除
-                  </Button>
-                </div>
-              ))}
-              <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                添加入库明细
-              </Button>
-            </>
-          )}
-        </Form.List>
+      <Form.Item
+        name="detail"
+        label="入库明细"
+        rules={[{ required: false, message: '请填写入库明细' }]}
+      >
+        <Button type="dashed" onClick={handleAddDetail} style={{ width: '100%', marginBottom: 16 }}>
+          <PlusOutlined /> 添加入库明细
+        </Button>
+        <Table
+          columns={detailColumns}
+          dataSource={detailData}
+          pagination={false}
+          rowKey="key"
+        />
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
           保存
         </Button>
-        <Button onClick={() => navigate('/storehouse-inbound')}>取消</Button>
+        <Button onClick={() => navigate('/storehouse-inventory-in')}>取消</Button>
       </Form.Item>
+      <Modal
+        title="添加入库明细"
+        visible={modalVisible}
+        onOk={handleProductSubmit}
+        onCancel={() => setModalVisible(false)}
+      >
+        <Form form={productForm} layout="vertical">
+          <Form.Item
+            name="product_uuid"
+            label="商品名称"
+            rules={[{ required: true, message: '请选择商品名称' }]}
+          >
+            <Select
+            onChange={handleSelectCurrentProduct}
+            placeholder="请选择商品名称">
+              {purchaseOrderProductList.map((product) => (
+                <Option key={product.product_uuid} value={product.product_uuid}>
+                  {product.product?.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="sku_uuid"
+            label="SKU UUID"
+            hidden
+            rules={[{ required: false, message: '请输入SKU代码' }]}
+          >
+           
+          </Form.Item>
+
+          <Form.Item
+            name="sku_code"
+            label="SKU代码"
+            rules={[{ required: false, message: '请输入SKU代码' }]}
+          >
+            <Input disabled/>
+          </Form.Item>
+          <Form.Item
+            name="sku_spec"
+            label="规格"
+            rules={[{ required: false, message: '请输入规格' }]}
+          >
+            <Input disabled/>
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label="商品数量"
+            rules={[{ required: true, message: '请输入商品数量' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="box_num"
+            label="商品箱数"
+            rules={[{ required: true, message: '请输入商品箱数' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="customer_name"
+            label="客户名称"
+            rules={[{ required: false, message: '请输入客户名称' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="country"
+            label="国家"
+            rules={[{ required: false, message: '请输入国家' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="factory_no"
+            label="厂号"
+            rules={[{ required: false, message: '请输入厂号' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="cabinet_no"
+            label="柜号"
+            rules={[{ required: false, message: '请输入柜号' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="invoice_no"
+            label="发票号"
+            rules={[{ required: false, message: '请输入发票号' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            name="contract_no"
+            label="合同号"
+            rules={[{ required: false, message: '请输入合同号' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Form>
   );
 };

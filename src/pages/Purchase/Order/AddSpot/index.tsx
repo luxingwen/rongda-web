@@ -1,11 +1,11 @@
 import { getCustomerOptions } from '@/services/customer';
 import { uploadFile } from '@/services/file';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
-import { addPurchaseOrderSpot } from '@/services/purchase_order';
+import { addPurchaseOrderSpot,uploadImportSpotExcel } from '@/services/purchase_order';
 import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { getSupplierOptions } from '@/services/supplier';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined,DownloadOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import {
   Button,
@@ -162,6 +162,8 @@ const AddPurchaseOrder = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [customerOptions, setCustomerOptions] = useState([]);
+  const [importExcelFileList, setImportExcelFileList] = useState([]);
+  const [importExcelModalVisible, setImportExcelModalVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -184,6 +186,74 @@ const AddPurchaseOrder = () => {
       message.error('获取客户选项失败');
     }
   };
+
+
+  const showImportExcelModal = () => {
+    setImportExcelModalVisible(true);
+  };
+
+  const handleImportExcelChange = (info) => {
+    let fileList = [...info.fileList];
+
+    // 只保留最新上传的一个文件
+    fileList = fileList.slice(-1);
+
+    setImportExcelFileList(fileList);
+  };
+
+
+  const handleImportExcelCancel = () => {
+    setImportExcelModalVisible(false);
+    setImportExcelFileList([]);
+  };
+
+
+  const handleImportExcelOk = async () => {
+    if (importExcelFileList.length === 0) {
+      message.error('请上传文件');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', importExcelFileList[0].originFileObj);
+
+    try {
+      const response = await uploadImportSpotExcel( formData);
+      if (response.code !== 200) {
+        message.error('上传失败:' + response.message);
+        return;
+      }
+
+      response.data.forEach((item, index) => {
+        // 获取sku 是否存在
+        const issku = skuOptions[item.product_uuid] === undefined ? false : true;
+        if (!issku) {
+          handleProductChange(item.product_uuid);
+        }
+      });
+
+      setDetails(response.data);
+
+    
+      message.success('导入成功');
+      setImportExcelModalVisible(false);
+      //navigate('/purchase/order');
+    } catch (error) {
+      message.error('导入失败');
+    }
+  };
+
+  const downloadTemplate = () => {
+    // 模板下载链接，可以是一个存放模板的静态文件链接
+    const url = '/public/采购订单明细-现货-模板.xlsx';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '采购订单明细-现货-模板.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const fetchStorehouseOptions = async () => {
     try {
@@ -261,6 +331,8 @@ const AddPurchaseOrder = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.deposit_amount = parseFloat(values.deposit_amount);
+      values.deposit_ratio = parseFloat(values.deposit_ratio);
       values.details = details.map((d) => ({
         ...d,
         quantity: parseFloat(d.quantity),
@@ -317,6 +389,7 @@ const AddPurchaseOrder = () => {
       quantity: 0,
       price: 0,
       total_amount: 0,
+      box_num: 0,
       pi_box_num: 0,
       pi_quantity: 0,
       pi_unit_price: 0,
@@ -418,6 +491,10 @@ const AddPurchaseOrder = () => {
       editable: true,
     },
     {
+      title: '箱数',
+      dataIndex: 'box_num',
+    },
+    {
       title: '产品价格',
       dataIndex: 'price',
       editable: true,
@@ -427,22 +504,6 @@ const AddPurchaseOrder = () => {
       dataIndex: 'total_amount',
     },
     {
-      title: 'PI箱数',
-      dataIndex: 'pi_box_num',
-    },
-    {
-      title: 'PI数量',
-      dataIndex: 'pi_quantity',
-    },
-    {
-      title: 'PI单价',
-      dataIndex: 'pi_unit_price',
-    },
-    {
-      title: 'PI总金额',
-      dataIndex: 'pi_total_amount',
-    },
-    {
       title: '柜号',
       dataIndex: 'cabinet_no',
     },
@@ -450,6 +511,10 @@ const AddPurchaseOrder = () => {
     {
       title: '生产日期',
       dataIndex: 'production_date',
+    },
+    {
+      title: '备注',
+      dataIndex: 'desc',
     },
     {
       title: '操作',
@@ -543,6 +608,23 @@ const AddPurchaseOrder = () => {
         </Form.Item>
 
         <Form.Item
+          name="deposit_amount"
+          label="定金金额"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入定金金额' }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+        <Form.Item
+          name="deposit_ratio"
+          label="定金比例"
+          wrapperCol={{ span: 6 }}
+          rules={[{ required: true, message: '请输入定金比例' }]}
+        >
+          <Input type="number" />
+        </Form.Item>
+
+        <Form.Item
           name="actual_warehouse"
           label="入库仓库"
           wrapperCol={{ span: 6 }}
@@ -585,6 +667,12 @@ const AddPurchaseOrder = () => {
             icon={<PlusOutlined />}
           >
             添加明细
+          </Button>
+          <Button
+            onClick={showImportExcelModal}
+            style={{ marginLeft: '20px', color: 'green' }}
+          >
+            从Excel文件导入
           </Button>
           <Table
             components={{
@@ -652,6 +740,15 @@ const AddPurchaseOrder = () => {
                 onChange={(e) => handleDetailChange('quantity', e.target.value)}
               />
             </Form.Item>
+            <Form.Item label="箱数">
+              <Input
+                type="number"
+                value={editingDetail?.box_num}
+                onChange={(e) =>
+                  handleDetailChange('box_num', e.target.value)
+                }
+              />
+            </Form.Item>
             <Form.Item label="产品价格">
               <Input
                 type="number"
@@ -668,42 +765,7 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
-            <Form.Item label="PI箱数">
-              <Input
-                type="number"
-                value={editingDetail?.pi_box_num}
-                onChange={(e) =>
-                  handleDetailChange('pi_box_num', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI数量">
-              <Input
-                type="number"
-                value={editingDetail?.pi_quantity}
-                onChange={(e) =>
-                  handleDetailChange('pi_quantity', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI单价">
-              <Input
-                type="number"
-                value={editingDetail?.pi_unit_price}
-                onChange={(e) =>
-                  handleDetailChange('pi_unit_price', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI总金额">
-              <Input
-                type="number"
-                value={editingDetail?.pi_total_amount}
-                onChange={(e) =>
-                  handleDetailChange('pi_total_amount', e.target.value)
-                }
-              />
-            </Form.Item>
+           
             <Form.Item label="柜号">
               <Input
                 value={editingDetail?.cabinet_no}
@@ -721,8 +783,30 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
+            <Form.Item label="描述">
+              <Input
+                value={editingDetail?.desc}
+                onChange={(e) =>
+                  handleDetailChange('desc', e.target.value)
+                }
+              />
+            </Form.Item>
           </Form>
         </Modal>
+        
+      <Modal width={200} title="导入Excel文件" visible={importExcelModalVisible} onOk={handleImportExcelOk} onCancel={handleImportExcelCancel}>
+        <Upload
+          accept=".xlsx"
+          fileList={importExcelFileList}
+          beforeUpload={() => false} // 阻止默认的上传行为，改为手动上传
+          onChange={handleImportExcelChange}
+        >
+          <Button icon={<UploadOutlined />}>选择文件</Button>
+        </Upload>
+        <Button icon={<DownloadOutlined />} style={{ marginTop: 16 }} onClick={downloadTemplate}>
+          下载模板
+        </Button>
+      </Modal>
       </Form>
     </PageContainer>
   );

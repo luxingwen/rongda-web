@@ -79,8 +79,22 @@ import {
         render: (text, record) => record.sku?.code,
       },
       {
+        title: '国家',
+        dataIndex: 'sku_country',
+        render: (text, record) => record.sku?.country,
+      },
+      {
+        title: '厂号',
+        dataIndex: 'sku_factory_no',
+        render: (text, record) => record.sku?.factory_no,
+      },
+      {
         title: '产品数量',
         dataIndex: 'quantity',
+      },
+      {
+        title: '箱数',
+        dataIndex: 'box_num',
       },
       {
         title: '产品价格',
@@ -90,25 +104,14 @@ import {
         title: '产品总金额',
         dataIndex: 'total_amount',
       },
-      {
-        title: 'PI箱数',
-        dataIndex: 'pi_box_num',
-      },
-      {
-        title: 'PI数量',
-        dataIndex: 'pi_quantity',
-      },
-      {
-        title: 'PI单价',
-        dataIndex: 'pi_unit_price',
-      },
-      {
-        title: 'PI总金额',
-        dataIndex: 'pi_total_amount',
-      },
+    
       {
         title: '柜号',
         dataIndex: 'cabinet_no',
+      },
+      {
+        title: '描述',
+        dataIndex: 'desc',
       },
       {
         title: '生产日期',
@@ -145,6 +148,12 @@ import {
             <ProDescriptions.Item label="结算币种">
               {orderInfo?.settlement_currency_info?.name}
             </ProDescriptions.Item>
+            <ProDescriptions.Item label="定金金额">
+            {orderInfo?.deposit_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="定金比例">
+            {orderInfo?.deposit_ratio}
+          </ProDescriptions.Item>
             <ProDescriptions.Item label="入库仓库">
               {orderInfo?.actual_warehouse_info?.name}
             </ProDescriptions.Item>

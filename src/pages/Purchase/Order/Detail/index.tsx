@@ -79,6 +79,16 @@ const PurchaseOrderDetail = () => {
       render: (text, record) => record.sku?.code,
     },
     {
+      title: '国家',
+      dataIndex: 'sku_country',
+      render: (text, record) => record.sku?.country,
+    },
+    {
+      title: '厂号',
+      dataIndex: 'sku_factory_no',
+      render: (text, record) => record.sku?.factory_no,
+    },
+    {
       title: '产品数量',
       dataIndex: 'quantity',
     },
@@ -191,6 +201,12 @@ const PurchaseOrderDetail = () => {
           </ProDescriptions.Item>
           <ProDescriptions.Item label="结算币种">
             {orderInfo?.settlement_currency_info?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="定金金额">
+            {orderInfo?.deposit_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="定金比例">
+            {orderInfo?.deposit_ratio}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="起运地">
             {orderInfo?.departure}
