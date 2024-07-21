@@ -3,6 +3,7 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getSettlementCurrencies, addSettlementCurrency, updateSettlementCurrency, deleteSettlementCurrency } from '@/services/settlement_currency';
+import { PageContainer } from '@ant-design/pro-components';
 
 const SettlementCurrencyManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -115,7 +116,7 @@ const SettlementCurrencyManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -178,7 +179,7 @@ const SettlementCurrencyManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   getPurchaseBills,
   deletePurchaseBill,
 } from '@/services/purchase_bill';
+import { PageContainer } from '@ant-design/pro-components';
 
 const PurchaseBillManagement = () => {
 
@@ -103,7 +104,7 @@ const PurchaseBillManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -123,7 +124,7 @@ const PurchaseBillManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

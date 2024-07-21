@@ -142,7 +142,7 @@ const ProductManagement = () => {
   };
 
   const columns = [
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
     {
       title: '供应商',
       dataIndex: 'supplier',

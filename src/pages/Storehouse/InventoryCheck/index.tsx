@@ -9,6 +9,7 @@ import {
   deleteInventoryCheck,
 } from '@/services/storehouse_inventory_check';
 import { getStorehouseOptions } from '@/services/storehouse';
+import { PageContainer } from '@ant-design/pro-components';
 
 const StorehouseInventoryCheckManagement = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
@@ -55,7 +56,7 @@ const StorehouseInventoryCheckManagement = () => {
   );
 
   const columns = [
-    { title: '盘点单号', dataIndex: 'check_order_no', key: 'check_order_no' },
+    { title: '盘点单号', dataIndex: 'check_order_no', key: 'check_order_no', width: 300,  },
     { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
     { title: '盘点日期', dataIndex: 'check_date', key: 'check_date', hideInSearch: true },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
@@ -100,7 +101,7 @@ const StorehouseInventoryCheckManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -120,7 +121,7 @@ const StorehouseInventoryCheckManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

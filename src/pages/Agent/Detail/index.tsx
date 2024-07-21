@@ -35,7 +35,7 @@ const AgentDetail = () => {
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="代理商详情">
-        <ProDescriptions column={2}>
+        <ProDescriptions column={1}>
           <ProDescriptions.Item label="UUID">{agentInfo?.uuid}</ProDescriptions.Item>
           <ProDescriptions.Item label="名称">{agentInfo?.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="地址">{agentInfo?.address}</ProDescriptions.Item>

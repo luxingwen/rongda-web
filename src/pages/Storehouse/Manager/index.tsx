@@ -6,6 +6,7 @@ import { getStorehouses, addStorehouse, updateStorehouse, deleteStorehouse } fro
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { render } from 'react-dom';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -83,7 +84,7 @@ const StorehouseManagement = () => {
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
     { title: '联系人', dataIndex: 'contact_person', key: 'contact_person', hideInSearch: true },
@@ -149,7 +150,7 @@ const StorehouseManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -246,7 +247,7 @@ const StorehouseManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

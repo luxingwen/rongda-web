@@ -5,6 +5,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getBills, deleteBill } from '@/services/bill';
 import { useNavigate } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
 
 const BillManagement = () => {
   const navigate = useNavigate();
@@ -39,8 +40,7 @@ const BillManagement = () => {
   );
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid',  width: 300, },
     { title: '发票公司', dataIndex: 'invoice_company', key: 'invoice_company' },
     { title: '申请人', dataIndex: 'applicant', key: 'applicant' },
     { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
@@ -99,7 +99,7 @@ const BillManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -119,7 +119,7 @@ const BillManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

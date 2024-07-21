@@ -9,6 +9,7 @@ import {
   deleteSalesSettlement,
 } from '@/services/sales_settlement';
 import { getSalesOrderOptions } from '@/services/sales_order';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -136,7 +137,7 @@ const SalesSettlementManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -189,7 +190,7 @@ const SalesSettlementManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

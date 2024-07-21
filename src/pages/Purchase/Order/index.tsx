@@ -44,7 +44,7 @@ const PurchaseOrderManagement = () => {
   };
 
   const columns = [
-    { title: '采购单号', dataIndex: 'order_no', key: 'order_no' },
+    { title: '采购单号', dataIndex: 'order_no', key: 'order_no',  width: 300, },
     { title: '标题', dataIndex: 'title', key: 'title' },
     {title:'订单类型', dataIndex:'order_type', key:'order_type', hideInSearch:true, render: (_, record) => (
       <Tag color={record.order_type === "1" ? 'green' : 'blue'}>

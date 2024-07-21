@@ -8,6 +8,7 @@ import {
   getSalesOutOfStocks,
   deleteSalesOutOfStock,
 } from '@/services/sales_out_of_stock';
+import { PageContainer } from '@ant-design/pro-components';
 
 const SalesOutOfStockManagement = () => {
 
@@ -91,7 +92,7 @@ const SalesOutOfStockManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -111,7 +112,7 @@ const SalesOutOfStockManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

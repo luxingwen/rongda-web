@@ -10,6 +10,7 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Popconfirm, message } from 'antd';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageContainer } from '@ant-design/pro-components';
 
 const AgreementManagement = () => {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ const AgreementManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="uuid"
@@ -131,7 +132,7 @@ const AgreementManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

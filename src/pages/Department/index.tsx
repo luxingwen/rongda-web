@@ -3,6 +3,7 @@ import { Button, Modal, Form, Input, message, Popconfirm, Switch } from 'antd';
 import ProTable from '@ant-design/pro-table';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getDepartments, addDepartment, updateDepartment, deleteDepartment } from '@/services/department';
+import { PageContainer } from '@ant-design/pro-components';
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
@@ -154,7 +155,7 @@ const DepartmentManagement = () => {
   ];
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         dataSource={departments}
@@ -220,7 +221,7 @@ const DepartmentManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

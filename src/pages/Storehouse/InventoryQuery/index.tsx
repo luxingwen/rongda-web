@@ -11,6 +11,7 @@ import {
   getStorehouseOptions,
 } from '@/services/storehouse_product';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -165,7 +166,7 @@ const StorehouseProductManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -220,7 +221,7 @@ const StorehouseProductManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

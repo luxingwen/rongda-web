@@ -103,7 +103,7 @@ const SupplierManagement = () => {
   };
 
   const columns = [
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300 },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
     {

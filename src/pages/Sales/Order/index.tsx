@@ -5,6 +5,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getSalesOrders, deleteSalesOrder } from '@/services/sales_order';
 import { useNavigate } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
 
 const SalesOrderManagement = () => {
   const [actionRef] = useState(useRef());
@@ -91,7 +92,7 @@ const SalesOrderManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -111,7 +112,7 @@ const SalesOrderManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

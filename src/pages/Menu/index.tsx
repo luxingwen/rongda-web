@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, message, Popconfirm, Switch, Select, Dropdown, Menu, Pagination, Row, Col, Card  } from 'antd';
+import { Button, Modal, Form, Input, message, Popconfirm, Switch, Select, Dropdown, Menu, Pagination, Row, Col, Card } from 'antd';
 import ProTable from '@ant-design/pro-table';
 import { PlusOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
 import * as icons from '@ant-design/icons';
 import { getMenus, addMenu, updateMenu, deleteMenu } from '@/services/menu';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
-const Icon = (props: {icon:string}) => {
+const Icon = (props: { icon: string }) => {
   const { icon } = props;
-  const antIcon: {[key:string]:any} = icons;
+  const antIcon: { [key: string]: any } = icons;
 
   if (!antIcon) {
     console.warn(`Icon ${icon} is not recognized`);
@@ -17,64 +18,6 @@ const Icon = (props: {icon:string}) => {
   }
 
   return React.createElement(antIcon[icon]);
-};
-
-const IconSelector = ({ onSelect }) => {
-  const iconKeys = Object.keys(icons).filter(key => {
-    const IconComponent = icons[key];
-    return typeof IconComponent !== 'function';
-  });
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const pageSize = 54;
-  const totalIcons = iconKeys.length;
-  const totalPages = Math.ceil(totalIcons / pageSize);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleIconSelect = (key) => {
-    onSelect(key);
-    setDropdownVisible(false);
-  };
-
-  const menu = (
-    <div style={{ padding: 10 }}>
-      <Card title="选择图标" style={{ width: 500 }}>
-      <Row gutter={[16, 16]}>
-        {iconKeys.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(key => (
-          <Col span={4} key={key}>
-            <div onClick={() => handleIconSelect(key)} style={{ cursor: 'pointer', textAlign: 'center' }}>
-              <Icon icon={key} style={{ fontSize: 24 }} />
-
-            </div>
-          </Col>
-        ))}
-      </Row>
-      <Pagination
-        current={currentPage}
-        pageSize={pageSize}
-        total={totalIcons}
-        onChange={handlePageChange}
-        style={{ marginTop: 16, textAlign: 'center' }}
-      />
-      </Card>
-    </div>
-  );
-
-  return (
-    <Dropdown 
-    overlay={menu} 
-    trigger={['click']}  
-    visible={dropdownVisible}
-    onVisibleChange={(visible) => setDropdownVisible(visible)}>
-      <Button>
-        选择图标 <DownOutlined />
-      </Button>
-    </Dropdown>
-  );
 };
 
 const MenuManagement = () => {
@@ -175,9 +118,8 @@ const MenuManagement = () => {
     setIsModalVisible(false);
   };
 
-  const handleIconSelect = (key) => {
-    setSelectedIcon(key);
-    form.setFieldsValue({ icon: key });
+  const handleIconChange = (e) => {
+    setSelectedIcon(e.target.value);
   };
 
   const columns = [
@@ -208,11 +150,11 @@ const MenuManagement = () => {
       key: 'type',
       render: (type) => {
         switch (type) {
-          case 0:
-            return '目录';
           case 1:
-            return '菜单';
+            return '目录';
           case 2:
+            return '菜单';
+          case 3:
             return '按钮';
           default:
             return '';
@@ -223,9 +165,6 @@ const MenuManagement = () => {
       title: '图标',
       dataIndex: 'icon',
       key: 'icon',
-      render: (icon) => {
-        return <Icon icon={icon} style={{ fontSize: '16px' }} />;
-      },
     },
     {
       title: '操作',
@@ -254,7 +193,7 @@ const MenuManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         dataSource={menus}
@@ -305,26 +244,20 @@ const MenuManagement = () => {
             rules={[{ required: true, message: '请选择类型' }]}
           >
             <Select>
-              <Option value={0}>目录</Option>
-              <Option value={1}>菜单</Option>
-              <Option value={2}>按钮</Option>
+              <Option value={1}>目录</Option>
+              <Option value={2}>菜单</Option>
+              <Option value={3}>按钮</Option>
             </Select>
           </Form.Item>
           <Form.Item name="icon" label="图标">
-            <IconSelector onSelect={handleIconSelect} />
-            {selectedIcon && (
-              <div style={{ marginTop: 8 }}>
-                <Icon icon={selectedIcon} style={{ marginRight: 8 }} />
-                <span>{selectedIcon}</span>
-              </div>
-            )}
+            <Input value={selectedIcon} onChange={handleIconChange} />
           </Form.Item>
           <Form.Item name="parent_uuid" label="父菜单名称">
             <Input disabled value={getParentName(parentUUID)} />
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

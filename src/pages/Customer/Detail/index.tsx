@@ -31,7 +31,7 @@ const CustomerDetail = () => {
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="客户详情">
-        <ProDescriptions column={2}>
+        <ProDescriptions column={1}>
           <ProDescriptions.Item label="UUID">{customerInfo?.uuid}</ProDescriptions.Item>
           <ProDescriptions.Item label="名称">{customerInfo?.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="地址">{customerInfo?.address}</ProDescriptions.Item>

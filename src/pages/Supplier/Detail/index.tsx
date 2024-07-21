@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import ProDescriptions from '@ant-design/pro-descriptions';
 import { getSupplierInfo } from '@/services/supplier';
-import { message, Spin, Card, Divider, Tag } from 'antd';
+import { message, Spin, Card, Divider, Tag, Row, Col } from 'antd';
 
 const SupplierDetail = () => {
   const { uuid } = useParams();
@@ -32,20 +31,37 @@ const SupplierDetail = () => {
     <Tag color={status ? 'green' : 'red'}>{status ? '启用' : '未启用'}</Tag>
   );
 
+  const renderInfoItem = (label, value) => (
+    <Row style={{ marginBottom: '16px' }}>
+      <Col span={2} style={{ fontWeight: 'bold' }}>
+        {label}:
+      </Col>
+      <Col span={22}>{value}</Col>
+    </Row>
+  );
+
   return (
     <Spin spinning={loading}>
-      <Card bordered={false} title="供应商详情">
-        <ProDescriptions column={2}>
-          <ProDescriptions.Item label="UUID">{supplierInfo?.uuid}</ProDescriptions.Item>
-          <ProDescriptions.Item label="名称">{supplierInfo?.name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="地址">{supplierInfo?.address}</ProDescriptions.Item>
-          <ProDescriptions.Item label="国家厂号">{supplierInfo?.country_no}</ProDescriptions.Item>
-          <ProDescriptions.Item label="联系方式">{supplierInfo?.contact_info}</ProDescriptions.Item>
-          <ProDescriptions.Item label="结算币种">{supplierInfo?.settlement_currency_info?.name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="定金比率">{supplierInfo?.deposit_rate}</ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">{renderStatus(supplierInfo?.status)}</ProDescriptions.Item>
-        </ProDescriptions>
-        <Divider />
+      <Card bordered={false} title="供应商详情" style={{ margin: '20px', padding: '20px' }}>
+        {supplierInfo ? (
+          <>
+            {renderInfoItem('UUID', supplierInfo?.uuid)}
+            {renderInfoItem('名称', supplierInfo?.name)}
+            {renderInfoItem('地址', supplierInfo?.address)}
+            {renderInfoItem('国家厂号', supplierInfo?.country_no)}
+            {renderInfoItem('联系方式', supplierInfo?.contact_info)}
+            {renderInfoItem('结算币种', supplierInfo?.settlement_currency_info?.name)}
+            {renderInfoItem('定金比率', supplierInfo?.deposit_rate)}
+            {renderInfoItem('状态', renderStatus(supplierInfo?.status))}
+            <Divider />
+          </>
+        ) : (
+          <Row justify="center">
+            <Col>
+              <p>没有找到供应商信息</p>
+            </Col>
+          </Row>
+        )}
       </Card>
     </Spin>
   );

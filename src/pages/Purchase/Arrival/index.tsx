@@ -9,6 +9,7 @@ import {
   getPurchaseArrivals,
   deletePurchaseArrival,
 } from '@/services/purchase_arrival';
+import { PageContainer } from '@ant-design/pro-components';
 
 const PurchaseArrivalManagement = () => {
   const actionRef = useRef();
@@ -91,7 +92,7 @@ const PurchaseArrivalManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -111,7 +112,7 @@ const PurchaseArrivalManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

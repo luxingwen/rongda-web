@@ -7,6 +7,7 @@ import { getInbounds, deleteInbound } from '@/services/storehouseInbound';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { EyeOutlined } from '@ant-design/icons';
 import { render } from 'react-dom';
+import {PageContainer} from '@ant-design/pro-components';
 
 const StorehouseInboundManagement = () => {
   const navigate = useNavigate();
@@ -153,7 +154,7 @@ const StorehouseInboundManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -173,7 +174,7 @@ const StorehouseInboundManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 

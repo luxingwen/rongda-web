@@ -7,7 +7,7 @@ export default [
     name: '首页',
     path: '/home',
     component: './Home',
-
+    icon: 'home',
   },
   {
     name: '登录',
@@ -15,34 +15,20 @@ export default [
     component: './User/Login',
     hideInMenu: true,
     layout: false,
-  },
-  {
-    name: '权限演示',
-    path: '/access',
-    component: './Access',
-    hideInMenu: true,
-  },
-  {
-    name: ' CRUD 示例',
-    path: '/table',
-    component: './Table',
-    hideInMenu: true,
+    icon: 'login',
   },
   {
     name: '个人中心',
     path: '/user/profile',
     component: './User/PersonalCenter',
     hideInMenu: true,
+    icon: 'user',
   },
-  {
-    name: '个人中心',
-    path: '/user/setting',
-    component: './User/Setting',
-    hideInMenu: true,
-  },
+
   {
     name: '资料管理',
     path: '/resource',
+    icon: 'solution',
     routes: [
       {
         name: '客户管理',
@@ -92,13 +78,12 @@ export default [
         path: '/resource/product-category',
         component: './ProductCategory',
       },
-
     ],
   },
-
   {
     name: '员工管理',
     path: '/staff',
+    icon: 'user',
     routes: [
       {
         name: '部门管理',
@@ -108,18 +93,19 @@ export default [
       {
         name: '用户管理',
         path: '/staff/user',
-        component: './User/Maneger',
+        component: './User/Manager',
       },
       {
         name: '权限管理',
         path: '/staff/permission',
-        component: './User/Maneger',
+        component: './User/Manager',
       },
     ],
   },
   {
     name: '仓库管理',
     path: '/storehouse',
+    icon: 'container',
     routes: [
       {
         name: '仓库信息管理',
@@ -135,6 +121,7 @@ export default [
       {
         name: '库存管理',
         path: '/storehouse/inventory',
+        icon: 'bar-chart',
         routes: [
           {
             name: '库存查询',
@@ -181,7 +168,6 @@ export default [
             component: './Storehouse/InventoryOut/Detail',
             hideInMenu: true,
           },
-         
           {
             name: '库存盘点',
             path: '/storehouse/inventory/check',
@@ -198,7 +184,7 @@ export default [
             path: '/storehouse/inventory/check-detail/:uuid',
             component: './Storehouse/InventoryCheck/Detail',
             hideInMenu: true,
-          }
+          },
         ],
       },
     ],
@@ -206,8 +192,8 @@ export default [
   {
     name: '采购管理',
     path: '/purchase',
+    icon: 'shopping',
     routes: [
-
       {
         name: '合同管理',
         path: '/purchase/agreement',
@@ -231,7 +217,6 @@ export default [
         component: './Purchase/Agreement/Edit',
         hideInMenu: true,
       },
-     
       {
         name: '采购订单',
         path: '/purchase/order',
@@ -249,12 +234,6 @@ export default [
         component: './Purchase/Order/AddSpot',
         hideInMenu: true,
       },
-      // {
-      //   name: '编辑采购订单',
-      //   path: '/purchase/order/edit/:uuid',
-      //   component: './Purchase/Order/Add',
-      //   hideInMenu: true,
-      // },
       {
         name: '采购订单详情',
         path: '/purchase/order/detail/:uuid',
@@ -307,7 +286,6 @@ export default [
         component: './Purchase/PurchaseBill/Add',
         hideInMenu: true,
       },
-
       {
         name: '结算详情',
         path: '/purchase/settlement/detail/:uuid',
@@ -319,8 +297,8 @@ export default [
   {
     name: '销售管理',
     path: '/sales',
+    icon: 'shop',
     routes: [
-
       {
         name: '合同管理',
         path: '/sales/agreement',
@@ -400,23 +378,18 @@ export default [
         component: './Bill/Detail',
         hideInMenu: true,
       },
-
-
     ],
   },
-
-
   {
     name: '系统管理',
     path: '/system',
+    icon: 'setting',
     routes: [
-
       {
         name: '菜单管理',
         path: '/system/menu',
         component: './Menu',
       },
-     
       {
         name: '结算币种',
         path: '/system/currency',
@@ -431,6 +404,16 @@ export default [
         name: '登录日志',
         path: '/system/loginlog',
         component: './Sys/LoginLog',
+      },
+      {
+        name: '操作日志',
+        path: '/system/oplog',
+        component: './Sys/OpLog',
+      },
+      {
+        name: 'API管理',
+        path: '/system/api',
+        component: './Sys/Api',
       },
     ],
   },

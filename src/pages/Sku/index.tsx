@@ -108,7 +108,7 @@ const SkuManagement = () => {
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
     {
       title: '产品',
       dataIndex: 'product_uuid',

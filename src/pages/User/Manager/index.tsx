@@ -14,6 +14,7 @@ import {
   Progress,
 } from 'antd';
 import { useRef, useState } from 'react';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -163,7 +164,7 @@ const UserManagement = () => {
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid' },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
     { title: '邮箱', dataIndex: 'email', key: 'email' },
     { title: '用户名', dataIndex: 'username', key: 'username' },
     { title: '手机号', dataIndex: 'phone', key: 'phone' },
@@ -207,7 +208,7 @@ const UserManagement = () => {
   ];
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -298,7 +299,7 @@ const UserManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -3,6 +3,7 @@ import ProTable from '@ant-design/pro-table';
 import { Button, Modal, Form, Input, Select, message, Tag, Popconfirm, Upload } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import { getAgreements, addAgreement, updateAgreement, deleteAgreement } from '@/services/agreement';
+import { PageContainer } from '@ant-design/pro-components';
 
 const { Option } = Select;
 
@@ -129,7 +130,7 @@ const AgreementManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -181,7 +182,7 @@ const AgreementManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

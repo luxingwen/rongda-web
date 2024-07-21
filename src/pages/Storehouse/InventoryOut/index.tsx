@@ -10,6 +10,7 @@ import {
 import { getStorehouseOptions } from '@/services/storehouse';
 import { EyeOutlined } from '@ant-design/icons';
 import { render } from 'react-dom';
+import { PageContainer } from '@ant-design/pro-components';
 
 const StorehouseOutboundManagement = () => {
   const navigate = useNavigate();
@@ -153,7 +154,7 @@ const StorehouseOutboundManagement = () => {
   };
 
   return (
-    <div>
+    <PageContainer>
       <ProTable
         columns={columns}
         rowKey="id"
@@ -173,7 +174,7 @@ const StorehouseOutboundManagement = () => {
           </Button>,
         ]}
       />
-    </div>
+    </PageContainer>
   );
 };
 
