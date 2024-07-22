@@ -111,6 +111,17 @@ const StorehouseInboundManagement = () => {
     { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
     { title: '标题', dataIndex: 'title', key: 'title' },
     { title: '入库类型', dataIndex: 'inbound_type', key: 'inbound_type', render: renderInboundType, hideInSearch: true },
+    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
+    { title: '合同号', dataIndex: 'title', key: 'title' },
+    { title: '发票号', dataIndex: 'title', key: 'title' },
+    { title: '商品名称', dataIndex: 'product_name', key: 'product_name', render: (_, record) => record.product?.name },
+    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code', render: (_, record) => record.sku?.code },
+    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec', render: (_, record) => record.sku?.specification },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity'},
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num'},
+    { title: '客户名称', dataIndex: 'customer', key: 'customer', render: (_, record) => record.customer_info?.name },
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku?.country },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku?.factory_no },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },
     { title: '入库日期', dataIndex: 'inbound_date', key: 'inbound_date', hideInSearch: true },
     { title: '入库人', dataIndex: 'inbound_by', key: 'inbound_by', hideInSearch: true, render:(_, record) => record.inbound_by_user?.nickname },
@@ -121,7 +132,7 @@ const StorehouseInboundManagement = () => {
       render: (_, record) => (
         <span>
            <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
-          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInbound(record.inbound_order_no)} okText="是" cancelText="否">
+          <Popconfirm title="确定删除吗?" onConfirm={() => handleDeleteInbound(record.uuid)} okText="是" cancelText="否">
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </span>

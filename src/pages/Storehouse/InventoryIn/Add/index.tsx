@@ -1,12 +1,23 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { getProductOptions, getProductSkuOptions } from '@/services/product';
-import { getAllPurchaseOrdersOptions, getPurchaseOrderProductList, getPurchaseOrdersInfo } from '@/services/purchase_order';
+import {
+  getAllPurchaseOrdersOptions,
+  getPurchaseOrderProductList,
+  getPurchaseOrdersInfo,
+} from '@/services/purchase_order';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { addInbound } from '@/services/storehouseInbound';
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, message, Select, Modal, Table, Space } from 'antd';
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Table,
+} from 'antd';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { render } from 'react-dom';
 
 const { Option } = Select;
 
@@ -22,7 +33,7 @@ const StorehouseInboundForm = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productForm] = Form.useForm();
   const [currentProduct, setCurrentProduct] = useState(null);
-
+  const [isEdit, setIsEdit] = useState(false);
 
   useEffect(() => {
     fetchStorehouseOptions();
@@ -53,7 +64,7 @@ const StorehouseInboundForm = () => {
     } catch (error) {
       message.error('获取采购单商品列表失败');
     }
-  }
+  };
 
   const fetchStorehouseOptions = async () => {
     try {
@@ -68,25 +79,27 @@ const StorehouseInboundForm = () => {
     }
   };
 
-
   const fetchPurchaseOrderInfo = async (uuid) => {
     try {
       const response = await getPurchaseOrdersInfo({ uuid });
       if (response.code === 200) {
         const currentOrder = response.data;
         setCurrentPurchaseOrder(response.data);
-        
-        if(currentOrder.order_type === "1") {
-          form.setFieldsValue({ storehouse_uuid: currentOrder.estimated_warehouse });
+
+        if (currentOrder.order_type === '1') {
+          form.setFieldsValue({
+            storehouse_uuid: currentOrder.estimated_warehouse,
+          });
         } else {
-          form.setFieldsValue({ storehouse_uuid: currentOrder.actual_warehouse });
+          form.setFieldsValue({
+            storehouse_uuid: currentOrder.actual_warehouse,
+          });
         }
         fetchPurchaseOrderProductList(currentOrder.order_no);
 
         productForm.setFieldsValue({
           customer_name: currentOrder.customer_info?.name,
         });
-
       } else {
         message.error('获取订单详情失败');
       }
@@ -96,21 +109,25 @@ const StorehouseInboundForm = () => {
   };
 
   const handlePuchaseOrderChange = (value) => {
-    const currentOrder = purchaseOrderOptions.find((order) => order.order_no === value);
+    const currentOrder = purchaseOrderOptions.find(
+      (order) => order.order_no === value,
+    );
 
-    if(currentOrder) {
+    if (currentOrder) {
       fetchPurchaseOrderInfo(value);
     }
-  }
+  };
 
   const handleAddDetail = () => {
     setModalVisible(true);
+    setIsEdit(false);
   };
 
-
   const handleSelectCurrentProduct = async (value) => {
-    const currentProduct = purchaseOrderProductList.find((product) => product.product_uuid === value);
-    console.log("currentProduct" , currentProduct);
+    const currentProduct = purchaseOrderProductList.find(
+      (product) => product.product_uuid === value,
+    );
+    console.log('currentProduct', currentProduct);
     setCurrentProduct(currentProduct);
     productForm.setFieldsValue({
       sku_uuid: currentProduct.sku_uuid,
@@ -127,6 +144,7 @@ const StorehouseInboundForm = () => {
   const handleFinish = async (values) => {
     try {
       values.status = parseInt(values.status);
+      values.customer_uuid = currentPurchaseOrder.customer_uuid;
       values.detail = detailData.map((item) => ({
         ...item,
         quantity: parseInt(item.quantity),
@@ -147,7 +165,48 @@ const StorehouseInboundForm = () => {
 
   const handleProductSubmit = () => {
     productForm.validateFields().then((values) => {
-      setDetailData([...detailData, values]);
+      
+      // 获取原始数据
+      const originData = purchaseOrderProductList.find(
+        (item) => item.product_uuid === values.product_uuid,
+      );
+
+      // 判断数量是否超过采购数量
+      if(originData && originData.quantity < parseInt(values.quantity)) {
+        message.error('入库数量不能大于采购数量' + originData.quantity);
+        return;
+      }
+
+      // 判断箱数是否超过采购箱数
+      if(originData && originData.box_num < parseInt(values.box_num)) {
+        message.error('入库箱数不能大于采购箱数' + originData.box_num);
+        return;
+      }
+
+
+      
+      if (isEdit) {
+
+        const updatedDetailData = detailData.map(item => 
+          item.product_uuid === values.product_uuid ? { ...item, ...values } : item
+        );
+        setDetailData(updatedDetailData);
+      } else {
+        // 如果已经存在相同的商品，则不添加
+        const isExist = detailData.some(
+          (item) => item.product_uuid === values.product_uuid,
+        );
+
+        if (!isExist) {
+          values.key = detailData.length + 1;
+        } else {
+          message.error('商品已存在');
+          return;
+        }
+
+        setDetailData([...detailData, values]);
+      }
+  
       setModalVisible(false);
       productForm.resetFields();
     }).catch((info) => {
@@ -156,12 +215,19 @@ const StorehouseInboundForm = () => {
   };
 
   const renderProductName = (uuid) => {
-    const product = purchaseOrderProductList.find((product) => product.product_uuid === uuid);
+    const product = purchaseOrderProductList.find(
+      (product) => product.product_uuid === uuid,
+    );
     return product?.product?.name;
-  }
+  };
 
   const detailColumns = [
-    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: renderProductName },
+    {
+      title: '商品名称',
+      dataIndex: 'product_uuid',
+      key: 'product_uuid',
+      render: renderProductName,
+    },
     { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code' },
     { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec' },
     { title: '商品数量', dataIndex: 'quantity', key: 'quantity' },
@@ -173,10 +239,16 @@ const StorehouseInboundForm = () => {
     { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
     { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
     {
-      title: '操作', key: 'action', render: (_, record) => (
+      title: '操作',
+      key: 'action',
+      render: (_, record) => (
         <Space>
-          <Button type="link" onClick={() => handleEditDetail(record)}>编辑</Button>
-          <Button type="link" onClick={() => handleDeleteDetail(record.key)}>删除</Button>
+          <Button type="link" onClick={() => handleEditDetail(record)}>
+            编辑
+          </Button>
+          <Button type="link" onClick={() => handleDeleteDetail(record.key)}>
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -185,11 +257,12 @@ const StorehouseInboundForm = () => {
   const handleEditDetail = (record) => {
     setSelectedProduct(record);
     setModalVisible(true);
+    setIsEdit(true);
     productForm.setFieldsValue(record);
   };
 
   const handleDeleteDetail = (key) => {
-    setDetailData(detailData.filter(item => item.key !== key));
+    setDetailData(detailData.filter((item) => item.key !== key));
   };
 
   return (
@@ -206,8 +279,12 @@ const StorehouseInboundForm = () => {
           onChange={handlePuchaseOrderChange}
           filterOption={(input, option) => {
             const children = option.children;
-            const childrenString = Array.isArray(children) ? children.join('') : children.toString();
-            return childrenString.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+            const childrenString = Array.isArray(children)
+              ? children.join('')
+              : children.toString();
+            return (
+              childrenString.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            );
           }}
           placeholder="请选择采购订单"
         >
@@ -259,7 +336,11 @@ const StorehouseInboundForm = () => {
         label="入库明细"
         rules={[{ required: false, message: '请填写入库明细' }]}
       >
-        <Button type="dashed" onClick={handleAddDetail} style={{ width: '100%', marginBottom: 16 }}>
+        <Button
+          type="dashed"
+          onClick={handleAddDetail}
+          style={{ width: '100%', marginBottom: 16 }}
+        >
           <PlusOutlined /> 添加入库明细
         </Button>
         <Table
@@ -273,7 +354,9 @@ const StorehouseInboundForm = () => {
         <Button type="primary" htmlType="submit" style={{ marginRight: 8 }}>
           保存
         </Button>
-        <Button onClick={() => navigate('/storehouse-inventory-in')}>取消</Button>
+        <Button onClick={() => navigate('/storehouse-inventory-in')}>
+          取消
+        </Button>
       </Form.Item>
       <Modal
         title="添加入库明细"
@@ -288,8 +371,9 @@ const StorehouseInboundForm = () => {
             rules={[{ required: true, message: '请选择商品名称' }]}
           >
             <Select
-            onChange={handleSelectCurrentProduct}
-            placeholder="请选择商品名称">
+              onChange={handleSelectCurrentProduct}
+              placeholder="请选择商品名称"
+            >
               {purchaseOrderProductList.map((product) => (
                 <Option key={product.product_uuid} value={product.product_uuid}>
                   {product.product?.name}
@@ -302,23 +386,21 @@ const StorehouseInboundForm = () => {
             label="SKU UUID"
             hidden
             rules={[{ required: false, message: '请输入SKU代码' }]}
-          >
-           
-          </Form.Item>
+          ></Form.Item>
 
           <Form.Item
             name="sku_code"
             label="SKU代码"
             rules={[{ required: false, message: '请输入SKU代码' }]}
           >
-            <Input disabled/>
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="sku_spec"
             label="规格"
             rules={[{ required: false, message: '请输入规格' }]}
           >
-            <Input disabled/>
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="quantity"
