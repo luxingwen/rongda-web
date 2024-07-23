@@ -12,6 +12,7 @@ import {
 } from '@/services/storehouse_product';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
 import { PageContainer } from '@ant-design/pro-components';
+import { getCustomerOptions } from '@/services/customer';
 
 const { Option } = Select;
 
@@ -21,6 +22,8 @@ const StorehouseProductManagement = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [skuOptions, setSkuOptions] = useState([]);
+  const [customerOptions, setCustomerOptions] = useState([]);
+  
   const [form] = Form.useForm();
   const actionRef = useRef();
   const navigate = useNavigate();
@@ -43,6 +46,21 @@ const StorehouseProductManagement = () => {
     }
   };
 
+
+  const fetchCustomerOptions = async () => {
+    try {
+      const response = await getCustomerOptions();
+      if (response.code === 200) {
+        setCustomerOptions(response.data);
+      } else {
+        message.error('获取客户选项失败');
+      }
+    } catch (error) {
+      message.error('获取客户选项失败');
+    }
+  };
+
+
   const fetchProductOptions = async () => {
     try {
       const response = await getProductOptions();
@@ -57,9 +75,7 @@ const StorehouseProductManagement = () => {
   };
 
   const handleAddProduct = () => {
-    setEditingProduct(null);
-    form.resetFields();
-    setIsModalVisible(true);
+    navigate('/storehouse/inventory/inbound-add');
   };
 
   const handleEditProduct = (record) => {
@@ -119,12 +135,105 @@ const StorehouseProductManagement = () => {
     }
   };
 
+  const renderStorehouseSearch = () => {
+    return (
+      <Select
+        allowClear
+        showSearch
+        placeholder="选择仓库"
+        optionFilterProp="children"
+        filterOption={(input, option) =>
+          option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        }
+      >
+        {storehouseOptions.map((item) => (
+          <Option value={item.uuid} key={item.uuid}>
+            {item.name}
+          </Option>
+        ))}
+      </Select>
+    );
+  }
+
+  const renderPurchaseOrderProductTypeSearch = () => {
+    return (
+      <Select
+        allowClear
+        showSearch
+        placeholder="选择入库类型"
+        optionFilterProp="children"
+        filterOption={(input, option) =>
+          option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        }
+      >
+        <Option value="1" key="1">
+          期货
+        </Option>
+        <Option value="2" key="2">
+          现货
+        </Option>
+      </Select>
+    );
+  }
+
+  const renderCustomerSearch = () => {
+    return (
+      <Select
+        allowClear
+        showSearch
+        placeholder="选择客户"
+        optionFilterProp="children"
+        filterOption={(input, option) =>
+          option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        }
+      >
+        {customerOptions.map((item) => (
+          <Option value={item.uuid} key={item.uuid}>
+            {item.name}
+          </Option>
+        ))}
+      </Select>
+    );
+  }
+
+
+  const renderProductSearch = () => {
+    return (
+      <Select
+        allowClear
+        showSearch
+        placeholder="选择商品"
+        optionFilterProp="children"
+        filterOption={(input, option) =>
+          option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        }
+      >
+        {productOptions.map((item) => (
+          <Option value={item.uuid} key={item.uuid}>
+            {item.name}
+          </Option>
+        ))}
+      </Select>
+    );
+  }
+
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name },
-    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: (_, record) => record.product.name },
-    { title: 'SKU', dataIndex: 'sku_uuid', key: 'sku_uuid', hideInSearch: true, render: (_, record) => record.sku.name },
-    { title: '库存数量', dataIndex: 'quantity', key: 'quantity', hideInSearch: true },
+    { title: '仓库', dataIndex: 'storehouse_uuid', key: 'storehouse_uuid', render: (_, record) => record.storehouse.name, renderFormItem: renderStorehouseSearch },
+    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no', hideInSearch: true },
+    { title: '合同号', dataIndex: 'title', key: 'title', hideInSearch: true },
+    { title: '发票号', dataIndex: 'title', key: 'title', hideInSearch: true },
+    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: (_, record) => record.product?.name, renderFormItem: renderProductSearch },
+    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code', render: (_, record) => record.sku?.code, hideInSearch: true },
+    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec', render: (_, record) => record.sku?.specification, hideInSearch: true },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity', hideInSearch: true },
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num', hideInSearch: true },
+    { title: '客户名称', dataIndex: 'customer_uuid', key: 'customer_uuid', render: (_, record) => record.customer_info?.name, renderFormItem: renderCustomerSearch },
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku?.country , hideInSearch: true },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku?.factory_no , hideInSearch: true },
+    { title: '入库日期', dataIndex: 'in_date', key: 'in_date', hideInSearch: true },
+    { title: '库存天数', dataIndex: 'stock_days', key: 'stock_days', hideInSearch: true },
     {
       title: '操作',
       key: 'action',

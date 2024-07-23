@@ -5,6 +5,8 @@ import { Button, Form, Input, message, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PlusOutlined } from '@ant-design/icons';
+import {getSalesOrderOptions} from '@/services/sales_order';
+import {getSalesOrderProductlList}  from '@/services/sales_order';
 
 const { Option } = Select;
 
@@ -15,11 +17,27 @@ const StorehouseOutboundForm = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [skuOptions, setSkuOptions] = useState({});
+  const [salesOrderOptions, setSalesOrderOptions] = useState([]);
+  const [salesOrderDetail, setSalesOrderDetail] = useState([]);
 
   useEffect(() => {
     fetchStorehouseOptions();
     fetchProductOptions();
+    fetchSalesOrderOptions();
   }, []);
+
+  const fetchSalesOrderOptions = async () => {
+    try {
+      const response = await getSalesOrderOptions();
+      if (response.code === 200) {
+        setSalesOrderOptions(response.data);
+      } else {
+        message.error('获取销售订单选项失败');
+      }
+    } catch (error) {
+      message.error('获取销售订单选项失败');
+    }
+  };
 
   const fetchStorehouseOptions = async () => {
     try {
@@ -31,6 +49,19 @@ const StorehouseOutboundForm = () => {
       }
     } catch (error) {
       message.error('获取仓库选项失败');
+    }
+  };
+
+  const handleSalesOrderChange = async (value) => {
+    try {
+      const response = await getSalesOrderProductlList({ order_no: value });
+      if (response.code === 200) {
+        setSalesOrderDetail(response.data);
+      } else {
+        message.error('获取销售订单明细失败');
+      }
+    } catch (error) {
+      message.error('获取销售订单明细失败');
     }
   };
 
@@ -85,6 +116,34 @@ const StorehouseOutboundForm = () => {
 
   return (
     <Form form={form} layout="vertical" onFinish={handleFinish}>
+      <Form.Item
+        name="purchase_order_no"
+        label="销售订单"
+        rules={[{ required: true, message: '请选择销售订单' }]}
+      >
+        <Select
+          showSearch
+          allowClear
+          mode="combobox"
+          onChange={handleSalesOrderChange}
+          filterOption={(input, option) => {
+            const children = option.children;
+            const childrenString = Array.isArray(children)
+              ? children.join('')
+              : children.toString();
+            return (
+              childrenString.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            );
+          }}
+          placeholder="请选择采购订单"
+        >
+          {salesOrderOptions.map((order) => (
+            <Option key={order.order_no} value={order.order_no}>
+              {order.title} - {order.order_no}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
       <Form.Item
         name="storehouse_uuid"
         label="仓库"

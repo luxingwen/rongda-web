@@ -40,13 +40,19 @@ const SalesOrderManagement = () => {
     </Tag>
   );
 
+  const renderType = (type) => (
+    <Tag color={type === '1' ? 'blue' : 'green'}>
+      {type === '1' ? '期货订单' : '现货订单'}
+    </Tag>
+  );
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: '订单号', dataIndex: 'order_no', key: 'order_no' },
-    { title: '订单类型', dataIndex: 'order_type', key: 'order_type' },
+    { title: '订单类型', dataIndex: 'order_type', key: 'order_type', render: renderType},
     { title: '订单日期', dataIndex: 'order_date', key: 'order_date', hideInSearch: true },
     { title: '客户', dataIndex: 'customer_uuid', key: 'customer_uuid', hideInSearch: true, render: (_, record) => record.customer?.name },
-    { title: '定金', dataIndex: 'deposit', key: 'deposit', hideInSearch: true },
+    { title: '定金', dataIndex: 'deposit_amount', key: 'deposit_amount', hideInSearch: true },
     { title: '订单金额', dataIndex: 'order_amount', key: 'order_amount', hideInSearch: true },
     { title: '税费', dataIndex: 'tax_amount', key: 'tax_amount', hideInSearch: true },
     { title: '销售人', dataIndex: 'salesman', key: 'salesman', hideInSearch: true },

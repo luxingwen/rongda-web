@@ -145,6 +145,7 @@ const StorehouseInboundForm = () => {
     try {
       values.status = parseInt(values.status);
       values.customer_uuid = currentPurchaseOrder.customer_uuid;
+      values.purchase_order_product_type = currentPurchaseOrder.order_type;
       values.detail = detailData.map((item) => ({
         ...item,
         quantity: parseInt(item.quantity),
@@ -316,6 +317,8 @@ const StorehouseInboundForm = () => {
       >
         <Input />
       </Form.Item>
+
+
       <Form.Item
         name="inbound_type"
         label="入库类型"
@@ -328,7 +331,7 @@ const StorehouseInboundForm = () => {
           <Option value="3">手工入库</Option>
         </Select>
       </Form.Item>
-      <Form.Item name="inbound_date" label="入库日期">
+      <Form.Item name="in_date" label="入库日期">
         <Input type="date" />
       </Form.Item>
       <Form.Item

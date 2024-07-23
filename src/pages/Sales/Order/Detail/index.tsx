@@ -45,12 +45,23 @@ const SalesOrderDetail = () => {
 
   const columns = [
     { title: '商品', dataIndex: ['product', 'name'], key: 'product_uuid', render: (_, record) => record.product_info?.name },
-    { title: 'SKU', dataIndex: ['sku', 'name'], key: 'sku_uuid', render: (_, record) => record.sku_info?.name },
+    { title: 'SKU', dataIndex: ['sku', 'code'], key: 'sku_uuid', render: (_, record) => record.sku_info?.code },
+    { title: '规格', dataIndex: ['sku', 'specification'], key: 'sku_uuid', render: (_, record) => record.sku_info?.specification },
+   
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku_info?.country  },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku_info?.factory_no },
+    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
+    { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
+    { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
+    { title: '单价', dataIndex: 'product_price', key: 'product_price' },
     { title: '数量', dataIndex: 'product_quantity', key: 'product_quantity' },
-    { title: '金额', dataIndex: 'product_amount', key: 'product_amount' },
+    { title: '箱数', dataIndex: 'box_num', key: 'box_num' },
+    { title: '总价', dataIndex: 'product_amount', key: 'product_amount' },
+  
   ];
 
   const totalQuantity = productList.reduce((acc, item) => acc + item.product_quantity, 0);
+  const totalBoxNum = productList.reduce((acc, item) => acc + item.box_num, 0);
   const totalAmount = productList.reduce((acc, item) => acc + item.product_amount, 0);
 
   return (
@@ -77,9 +88,10 @@ const SalesOrderDetail = () => {
             pagination={false}
             summary={() => (
               <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={2}>总计</Table.Summary.Cell>
-                <Table.Summary.Cell index={2}>{totalQuantity}</Table.Summary.Cell>
-                <Table.Summary.Cell index={3}>{totalAmount}</Table.Summary.Cell>
+                <Table.Summary.Cell index={0} colSpan={9}>总计</Table.Summary.Cell>
+                <Table.Summary.Cell index={7}>{totalQuantity}</Table.Summary.Cell>
+                <Table.Summary.Cell index={8}>{totalBoxNum}</Table.Summary.Cell>
+                <Table.Summary.Cell index={9}>{totalAmount}</Table.Summary.Cell>
               </Table.Summary.Row>
             )}
           />
