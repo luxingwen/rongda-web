@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { getSalesOrderDetail, getSalesOrderProductlList } from '@/services/sales_order';
+import { getSalesOrderDetail, getSalesOrderProductList } from '@/services/sales_order';
 import { message, Spin, Card, Divider, Row, Col, Table } from 'antd';
 
 const SalesOrderDetail = () => {
@@ -32,7 +32,7 @@ const SalesOrderDetail = () => {
 
   const fetchProductList = async (uuid) => {
     try {
-      const response = await getSalesOrderProductlList({ uuid });
+      const response = await getSalesOrderProductList({ uuid });
       if (response.code === 200) {
         setProductList(response.data);
       } else {

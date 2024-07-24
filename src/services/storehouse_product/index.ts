@@ -49,3 +49,11 @@ export async function getStorehouseProductOpLogs(params) {
     data: params,
   });
 }
+
+// 根据销售订单获取库存商品列表
+export async function getStorehouseProductBySalesOrder(params) {
+  return request('/api/v1/storehouse_product/sales_order/list_item', {
+    method: 'POST',
+    data: params,
+  });
+}

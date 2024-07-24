@@ -47,7 +47,7 @@ export async function getSalesOrderDetail(data) {
   });
 }
 
-export async function getSalesOrderProductlList(data) {
+export async function getSalesOrderProductList(data) {
   return request('/api/v1/sales_order/product_item/list', {
     method: 'POST',
     data,
