@@ -86,3 +86,19 @@ export async function uploadImportSpotExcel(data) {
     },
   });
 }
+
+// 更新订单状态
+export async function updatePurchaseOrderStatus(data) {
+  return request('/api/v1/purchase_order/update_status', {
+    method: 'POST',
+    data,
+  });
+}
+
+// 根据订单状态获取订单列表
+export async function getPurchaseOrdersByStatus(data) {
+  return request('/api/v1/purchase_order/status_list', {
+    method: 'POST',
+    data,
+  });
+}

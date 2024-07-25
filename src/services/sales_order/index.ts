@@ -53,3 +53,11 @@ export async function getSalesOrderProductList(data) {
     data,
   });
 }
+
+// 更新订单状态
+export async function updateSalesOrderStatus(data) {
+  return request('/api/v1/sales_order/update_status', {
+    method: 'POST',
+    data,
+  });
+}

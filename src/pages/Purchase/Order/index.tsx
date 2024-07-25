@@ -2,12 +2,13 @@
 import React, { useState, useRef } from 'react';
 import ProTable from '@ant-design/pro-table';
 import {PageContainer} from '@ant-design/pro-components';
-import { Button, Popconfirm, Tag, message } from 'antd';
+import { Button, Popconfirm, Tag, message, Select, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { getPurchaseOrders, deletePurchaseOrder } from '@/services/purchase_order';
+import { getPurchaseOrders, deletePurchaseOrder,updatePurchaseOrderStatus } from '@/services/purchase_order';
 import { EyeOutlined } from '@ant-design/icons';
 import { render } from 'react-dom';
+const { Option } = Select;
 
 const PurchaseOrderManagement = () => {
   const navigate = useNavigate();
@@ -23,11 +24,59 @@ const PurchaseOrderManagement = () => {
     }
   };
 
-  const renderStatus = (status) => (
-    <Tag color={status === 1 ? 'blue' : status === 2 ? 'green' : status === 3 ? 'red' : 'gray'}>
-      {status === 1 ? '待处理' : status === 2 ? '已处理' : status === 3 ? '已取消' : '已完成'}
-    </Tag>
-  );
+
+  const handleChangeStatus = async (value, order_no) => {
+    console.log(value, order_no);
+    Modal.confirm({
+      title: '确认更改状态',
+      content: `你确定要将订单 ${order_no} 的状态更改为 "${value}" 吗？`,
+      onOk: async () => {
+        const response = await updatePurchaseOrderStatus({ order_no, status: value });
+        if (response.code !== 200) {
+          message.error('更改失败');
+          return;
+        }
+        message.success('更改成功');
+        actionRef.current?.reload();
+      },
+      onCancel() {
+        console.log('取消');
+      },
+    });
+  }
+
+  const statusColors = {
+    '待处理': 'blue',
+    '处理中': 'orange',
+    '已处理': 'green',
+    '已审核': 'purple',
+    '已取消': 'red',
+    '已完成': 'gold',
+    '已入库': 'teal',
+  };
+
+  const renderStatus = (status, record) => {
+
+    if(status === '已完成' || status === '已入库') {
+      return (<Tag color={statusColors[status]}>{status}</Tag>);
+    }
+
+    return (
+      <Select
+        value={status}
+        onChange={(value) => handleChangeStatus(value, record.order_no)}
+      >
+           {Object.keys(statusColors).map((status) => (
+            <Option key={status} value={status} style={{ color: statusColors[status] }}>
+              {status}
+            </Option>
+          ))}
+      </Select>);
+
+    };
+
+
+  
 
   const handleViewDetail = (record) => {
     if(record.order_type === "1") {

@@ -241,9 +241,11 @@ const StorehouseOutboundForm = () => {
 
       values.sales_order_product_type = currentSalesOrder.order_type;
       values.customer_uuid = currentSalesOrder.customer_uuid;
+      values.sales_order_no = salesOrderUuid;
 
       values.detail = detailData.map((item) => ({
         ...item,
+        storehouse_product_uuid: item.uuid,
         quantity: parseInt(item.quantity, 10),
       }));
 

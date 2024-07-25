@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ProTable from '@ant-design/pro-table';
-import { Button, message, Tag, Popconfirm } from 'antd';
+import { Button, message, Tag, Popconfirm, Select, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getSalesOrders, deleteSalesOrder } from '@/services/sales_order';
+import { getSalesOrders, deleteSalesOrder,updateSalesOrderStatus } from '@/services/sales_order';
 import { useNavigate } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import { render } from 'react-dom';
+
+const { Option } = Select;
 
 const SalesOrderManagement = () => {
   const [actionRef] = useState(useRef());
@@ -34,11 +37,60 @@ const SalesOrderManagement = () => {
     }
   };
 
-  const renderStatus = (status) => (
-    <Tag color={status === '待支付' ? 'blue' : status === '已支付' ? 'green' : status === '已发货' ? 'orange' : status === '已完成' ? 'cyan' : 'red'}>
-      {status}
-    </Tag>
-  );
+
+  
+  const handleChangeStatus = async (value, order_no) => {
+    console.log(value, order_no);
+    Modal.confirm({
+      title: '确认更改状态',
+      content: `你确定要将订单 ${order_no} 的状态更改为 "${value}" 吗？`,
+      onOk: async () => {
+        const response = await updateSalesOrderStatus({ order_no, status: value });
+        if (response.code !== 200) {
+          message.error('更改失败');
+          return;
+        }
+        message.success('更改成功');
+        actionRef.current?.reload();
+      },
+      onCancel() {
+        console.log('取消');
+      },
+    });
+  }
+
+  const statusColors = {
+    '待处理': 'blue',
+    '处理中': 'orange',
+    '待支付': 'green',
+    '已支付': 'purple',
+    '待发货': 'red',
+    '已发货': 'gold',
+    '已完成': 'teal',
+    '已取消': 'cyan',
+  };
+
+  const renderStatus = (status, record) => {
+
+    if(status === '已完成' || status === '已发货' || status === '已取消') {
+      return (<Tag color={statusColors[status]}>{status}</Tag>);
+    }
+
+    return (
+      <Select
+        value={status}
+        onChange={(value) => handleChangeStatus(value, record.order_no)}
+      >
+           {Object.keys(statusColors).map((status) => (
+            <Option key={status} value={status} style={{ color: statusColors[status] }}>
+              {status}
+            </Option>
+          ))}
+      </Select>);
+
+    };
+
+
 
   const renderType = (type) => (
     <Tag color={type === '1' ? 'blue' : 'green'}>
@@ -51,11 +103,11 @@ const SalesOrderManagement = () => {
     { title: '订单号', dataIndex: 'order_no', key: 'order_no' },
     { title: '订单类型', dataIndex: 'order_type', key: 'order_type', render: renderType},
     { title: '订单日期', dataIndex: 'order_date', key: 'order_date', hideInSearch: true },
-    { title: '客户', dataIndex: 'customer_uuid', key: 'customer_uuid', hideInSearch: true, render: (_, record) => record.customer?.name },
+    { title: '客户', dataIndex: 'customer_uuid', key: 'customer_uuid', hideInSearch: true, render: (_, record) => record.customer_info?.name },
     { title: '定金', dataIndex: 'deposit_amount', key: 'deposit_amount', hideInSearch: true },
     { title: '订单金额', dataIndex: 'order_amount', key: 'order_amount', hideInSearch: true },
     { title: '税费', dataIndex: 'tax_amount', key: 'tax_amount', hideInSearch: true },
-    { title: '销售人', dataIndex: 'salesman', key: 'salesman', hideInSearch: true },
+    { title: '销售人', dataIndex: 'salesman', key: 'salesman', hideInSearch: true, render: (_, record) => record.salesman_info?.name },
     { title: '状态', dataIndex: 'order_status', key: 'order_status', render: renderStatus, hideInSearch: true },
     {
       title: '操作',

@@ -4,6 +4,7 @@ import {
   getAllPurchaseOrdersOptions,
   getPurchaseOrderProductList,
   getPurchaseOrdersInfo,
+  getPurchaseOrdersByStatus,
 } from '@/services/purchase_order';
 import {
   addSalesOrder,
@@ -55,7 +56,7 @@ const SalesOrderForm = () => {
 
   const fetchPurchaseOrderOptions = async () => {
     try {
-      const response = await getAllPurchaseOrdersOptions();
+      const response = await getPurchaseOrdersByStatus({ status_list: ['已完成', '已入库'] });
       if (response.code === 200) {
         setPurchaseOrderOptions(response.data);
       } else {
