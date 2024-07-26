@@ -339,6 +339,7 @@ const StorehouseOutboundForm = () => {
           rowClassName="editable-row"
           pagination={false}
           rowKey="key"
+          scroll={{ x: 'max-content' }}
         />
       </Form.Item>
       <Form.Item>

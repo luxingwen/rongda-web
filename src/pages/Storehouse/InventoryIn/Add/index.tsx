@@ -488,6 +488,7 @@ const StorehouseInboundForm = () => {
           dataSource={detailData}
           pagination={false}
           rowClassName="editable-row"
+          scroll={{ x: 'max-content' }}
           rowKey="key"
         />
       </Form.Item>

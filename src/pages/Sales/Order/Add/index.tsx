@@ -23,6 +23,7 @@ import {
   Table,
 } from 'antd';
 import { useEffect, useState } from 'react';
+import { render } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const { Option } = Select;
@@ -44,6 +45,7 @@ const SalesOrderForm = () => {
   const [detailData, setDetailData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
 
   useEffect(() => {
     fetchProductOptions();
@@ -101,6 +103,7 @@ const SalesOrderForm = () => {
     if (currentOrder) {
       form.setFieldsValue({ customer_uuid: currentOrder.customer_uuid });
       fetchPurchaseOrderInfo(value);
+     
     }
   };
 
@@ -138,6 +141,9 @@ const SalesOrderForm = () => {
       const response = await getPurchaseOrderProductList({ uuid });
       if (response.code === 200) {
         setPurchaseOrderProductList(response.data);
+        const productList = response.data.map((item) => ({ ...item, key: item.purchase_order_product_no }));
+        setDetailData( productList );
+        productForm.resetFields();
       } else {
         message.error('获取采购单商品列表失败');
       }
@@ -229,7 +235,7 @@ const SalesOrderForm = () => {
 
   const handleSelectCurrentProduct = async (value) => {
     const currentProduct = purchaseOrderProductList.find(
-      (product) => product.product_uuid === value,
+      (product) => product.purchase_order_product_no === value,
     );
     console.log('currentProduct', currentProduct);
     setCurrentProduct(currentProduct);
@@ -251,18 +257,18 @@ const SalesOrderForm = () => {
       .then((values) => {
         // 获取原始数据
         const originData = purchaseOrderProductList.find(
-          (item) => item.product_uuid === values.product_uuid,
+          (item) => item.purchase_order_product_no === values.purchase_order_product_no,
         );
 
         // 判断数量是否超过采购数量
         if (originData && originData.quantity < parseInt(values.quantity)) {
-          message.error('销售数量不能大于采购数量' + originData.quantity);
+          message.error('数量不能大于采购数量' + originData.quantity);
           return;
         }
 
         // 判断箱数是否超过采购箱数
         if (originData && originData.box_num < parseInt(values.box_num)) {
-          message.error('销售箱数不能大于采购箱数' + originData.box_num);
+          message.error('箱数不能大于采购箱数' + originData.box_num);
           return;
         }
 
@@ -276,7 +282,7 @@ const SalesOrderForm = () => {
         } else {
           // 如果已经存在相同的商品，则不添加
           const isExist = detailData.some(
-            (item) => item.product_uuid === values.product_uuid,
+            (item) => item.purchase_order_product_no === values.purchase_order_product_no,
           );
 
           if (!isExist) {
@@ -286,7 +292,16 @@ const SalesOrderForm = () => {
             return;
           }
 
-          setDetailData([...detailData, values]);
+          let citem = purchaseOrderProductList.find( (product) => product.purchase_order_product_no === values.purchase_order_product_no);
+
+          console.log("citem", citem);
+
+          citem.quantity = parseInt(values.quantity);
+          citem.box_num = parseInt(values.box_num);
+          citem.price = parseFloat(values.price);
+          citem.amount = parseFloat(values.amount);
+
+          setDetailData([...detailData, citem]);
         }
 
         setModalVisible(false);
@@ -308,6 +323,93 @@ const SalesOrderForm = () => {
     setDetailData(detailData.filter((item) => item.key !== key));
   };
 
+
+  const handleSave = (row) => {
+
+    const newData = [...detailData];
+    const index = newData.findIndex((item) => row.key === item.key);
+    if (index > -1) {
+      const item = newData[index];
+
+      const citem = purchaseOrderProductList.find( (product) => product.purchase_order_product_no === item.purchase_order_product_no);
+      const quantity = parseInt(row.quantity);
+      const box_num = parseInt(row.box_num);
+      if (citem.quantity < quantity) {
+        console.log("citem.quantity", quantity);
+        row.quantity = citem.quantity;
+      }
+
+      if (citem.box_num < box_num) {
+        row.box_num = citem.box_num;
+      }
+
+      newData.splice(index, 1, { ...item, ...row });
+      setDetailData(newData);
+    } else {
+      newData.push(row);
+      setDetailData(newData);
+    }
+  };
+
+  const EditableCell = ({
+    title,
+    editable,
+    children,
+    dataIndex,
+    record,
+    handleSave,
+    ...restProps
+  }) => {
+
+    const handleBlur = (e) => {
+      const value = e.target.value;
+     
+      const updatedRecord = { ...record, [dataIndex]: value };
+      const citem = purchaseOrderProductList.find(
+        (product) => product.purchase_order_product_no === record.purchase_order_product_no
+      );
+      const quantity = parseInt(updatedRecord.quantity);
+      const box_num = parseInt(updatedRecord.box_num);
+  
+      if (citem.quantity < quantity) {
+        message.error('不能大于采购数量' + citem.quantity);
+        e.target.focus();
+      }
+  
+      if (citem.box_num < box_num) {
+        message.error('不能大于采购箱数' + citem.box_num);
+        e.target.focus();
+
+      }
+
+  
+      handleSave(updatedRecord);
+    };
+
+
+    const isNumber = ['quantity', 'box_num', 'price', 'amount'].includes(dataIndex);
+
+    return (
+      <td {...restProps}>
+        {editable ? (
+          <Form.Item
+            name={[record.key, dataIndex]} // Ensure unique name for each field
+            style={{ margin: 0 }}
+            initialValue={record[dataIndex]} // Set initial value
+            rules={[{ required: true, message: `${title} 是必填项` }]}
+          >
+            <Input
+              onBlur={handleBlur}
+              type={isNumber ? 'number' : 'text'}
+            />
+          </Form.Item>
+        ) : (
+          children
+        )}
+      </td>
+    );
+  };
+
   const detailColumns = [
     {
       title: '商品名称',
@@ -315,17 +417,17 @@ const SalesOrderForm = () => {
       key: 'product_uuid',
       render: renderProductName,
     },
-    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code' },
-    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec' },
-    { title: '商品数量', dataIndex: 'quantity', key: 'quantity' },
-    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num' },
-    { title: '单价', dataIndex: 'price', key: 'price' },
-    { title: '总价', dataIndex: 'amount', key: 'amount' },
-    { title: '国家', dataIndex: 'country', key: 'country' },
-    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no' },
+    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code', render: (_, record) => record.sku?.code  },
+    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec', render: (_, record) => record.sku?.specification },
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku?.country },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku?.factory_no },
     { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
     { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
     { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity',editable: true,  },
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num' , editable: true, },
+    { title: '单价', dataIndex: 'price', key: 'price', editable: true,  },
+    { title: '总价', dataIndex: 'amount', key: 'amount', editable: true,  },
     {
       title: '操作',
       key: 'action',
@@ -341,6 +443,23 @@ const SalesOrderForm = () => {
       ),
     },
   ];
+
+  const mergedColumns = detailColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
+        handleSave,
+      }),
+    };
+  });
 
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -450,9 +569,16 @@ const SalesOrderForm = () => {
           <PlusOutlined /> 添加商品明细
         </Button>
         <Table
-          columns={detailColumns}
+         components={{
+          body: {
+            cell: EditableCell,
+          },
+        }}
+          bordered
+          columns={mergedColumns}
           dataSource={detailData}
           pagination={false}
+          rowClassName="editable-row"
           rowKey="key"
         />
       </Form.Item>
@@ -477,7 +603,7 @@ const SalesOrderForm = () => {
       >
         <Form form={productForm} layout="vertical">
           <Form.Item
-            name="product_uuid"
+            name="purchase_order_product_no"
             label="商品名称"
             rules={[{ required: true, message: '请选择商品名称' }]}
           >
@@ -486,7 +612,7 @@ const SalesOrderForm = () => {
               placeholder="请选择商品名称"
             >
               {purchaseOrderProductList.map((product) => (
-                <Option key={product.product_uuid} value={product.product_uuid}>
+                <Option key={product.purchase_order_product_no} value={product.purchase_order_product_no}>
                   {product.product?.name}
                 </Option>
               ))}
