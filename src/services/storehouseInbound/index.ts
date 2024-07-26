@@ -42,6 +42,13 @@ export async function getInboundDetail(data) {
   });
 }
 
+export async function getInboundDetailInfo(data) {
+  return request('/api/v1/storehouse_inbound/detail_info', {
+    method: 'POST',
+    data,
+  });
+}
+
 export async function getProductOptions() {
   return request('/api/v1/product/all', {
     method: 'GET',

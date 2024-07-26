@@ -146,6 +146,12 @@ export default [
             hideInMenu: true,
           },
           {
+            name: '入库详情信息',
+            path: '/storehouse/inventory/inbound-detail-info/:uuid',
+            component: './Storehouse/InventoryIn/DetailInfo',
+            hideInMenu: true,
+          },
+          {
             name: '添加入库',
             path: '/storehouse/inventory/inbound-add',
             component: './Storehouse/InventoryIn/Add',

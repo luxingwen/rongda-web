@@ -83,7 +83,7 @@ const StorehouseInboundManagement = () => {
 
 
   const handleViewDetail = (record) => {
-    navigate(`/storehouse/inventory/inbound-detail/${record.inbound_order_no}`);
+    navigate(`/storehouse/inventory/inbound-detail-info/${record.uuid}`);
   };
 
 
