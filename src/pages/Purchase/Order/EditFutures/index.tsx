@@ -3,7 +3,10 @@ import { uploadFile } from '@/services/file';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
 import {
   addPurchaseOrderFutures,
+  getPurchaseOrderProductList,
+  getPurchaseOrdersInfo,
   uploadImportFutruesExcel,
+  updatePurchaseOrderFutrues,
 } from '@/services/purchase_order';
 import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
 import { getStorehouseOptions } from '@/services/storehouse';
@@ -23,14 +26,19 @@ import {
   Modal,
   Popconfirm,
   Select,
-  Table,
   Upload,
   DatePicker,
 } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { deleteFile } from '@/services/file';
 import moment from 'moment';
+import dayjs from 'dayjs';
 
+const { Option } = Select;
+const EditableContext = React.createContext(null);
+
+const dateFormat = 'YYYY-MM-DD';
 
 interface TableFormOrderItem {
   key: string;
@@ -64,13 +72,13 @@ interface TableFormOrderItem {
   payment_date?: string;
 }
 
-const { Option } = Select;
-const EditableContext = React.createContext(null);
-
-
-
 const AddPurchaseOrder = () => {
+  const { uuid } = useParams();
   const [form] = Form.useForm();
+  const [orderInfo, setOrderInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [productList, setProductList] = useState([]);
+
   const [productOptions, setProductOptions] = useState([]);
   const [supplierOptions, setSupplierOptions] = useState([]);
   const [skuOptions, setSkuOptions] = useState({});
@@ -87,10 +95,13 @@ const AddPurchaseOrder = () => {
   const [importExcelFileList, setImportExcelFileList] = useState([]);
   const [importExcelModalVisible, setImportExcelModalVisible] = useState(false);
   const navigate = useNavigate();
-  
+
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
 
   const [showEditingRowProduct, setShowEditingRowProduct] = useState<boolean>(false);
+  const [fileParams, setFileParams] = useState([]);
+
+   
 
   useEffect(() => {
     fetchProductOptions();
@@ -98,18 +109,18 @@ const AddPurchaseOrder = () => {
     fetchSettlementCurrencyOptions();
     fetchStorehouseOptions();
     fetchCustomerOptions();
-  }, []);
+    fetchOrderDetail(uuid);
+    fetchProductList(uuid);
+  }, [uuid]);
 
   const showEditProductRow = (record: TableFormOrderItem) => {
     setShowEditingRowProduct(true);
-
     handleProductChange(record.product_uuid);
     setEditingDetail({...record});
   };
 
   const handleEditProductRowCancel = () => {
     setShowEditingRowProduct(false);
-
   };
 
   const handleEditProductRowChange = (value: string) => {
@@ -161,6 +172,64 @@ const AddPurchaseOrder = () => {
     setShowEditingRowProduct(false);
   };
   
+
+  const fetchOrderDetail = async (uuid) => {
+    try {
+      const response = await getPurchaseOrdersInfo({ uuid });
+      if (response.code === 200) {
+        response.data.attachments = [];
+        // 如果有附件，处理附件的展示
+
+        if (response.data.attachment) {
+            let attachment = JSON.parse(response.data.attachment);
+            setFileParams(attachment);
+        }
+
+        setOrderInfo(response.data);
+        form.setFieldsValue({
+          title: response.data.title,
+          customer_uuid: response.data.customer_uuid,
+          supplier_uuid: response.data.supplier_uuid,
+          date: response.data.date,
+          pi_agreement_no: response.data.pi_agreement_no,
+          order_currency: response.data.order_currency,
+          settlement_currency: response.data.settlement_currency,
+          departure: response.data.departure,
+          deposit_amount: response.data.deposit_amount,
+          deposit_ratio: response.data.deposit_ratio,
+          estimated_shipping_date: response.data.estimated_shipping_date,
+          estimated_warehouse: response.data.estimated_warehouse,
+        });
+      } else {
+        message.error('获取订单详情失败');
+      }
+    } catch (error) {
+      message.error('获取订单详情失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProductList = async (uuid) => {
+    try {
+      const response = await getPurchaseOrderProductList({ uuid });
+      if (response.code === 200) {
+        setProductList(response.data);
+        const detailList = response.data.map((item, index) => ({
+          ...item,
+          key: index,
+        }));
+        setDetails(detailList);
+        form.setFieldsValue({
+          details: detailList,
+        });
+      } else {
+        message.error('获取商品列表失败');
+      }
+    } catch (error) {
+      message.error('获取商品列表失败');
+    }
+  };
 
   const showImportExcelModal = () => {
     setImportExcelModalVisible(true);
@@ -315,6 +384,7 @@ const AddPurchaseOrder = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.order_no = uuid;
       values.deposit_amount = parseFloat(values.deposit_amount);
       values.deposit_ratio = parseFloat(values.deposit_ratio);
       values.details = details.map((d) => ({
@@ -339,8 +409,6 @@ const AddPurchaseOrder = () => {
         vat: parseFloat(d.vat),
       }));
 
-      console.log("details:", values.details);
-
       if (fileList.length > 0) {
         const res = await uploadFile('purchase_order', fileList);
         if (res.code !== 200) {
@@ -348,16 +416,23 @@ const AddPurchaseOrder = () => {
           return;
         }
         values.attachment = res.data;
+       
       }
 
-      const res = await addPurchaseOrderFutures(values);
+      if (fileParams.length > 0) {
+        values.attachment = values.attachment || [];
+        values.attachment.push(...fileParams);
+      }
+
+      const res = await updatePurchaseOrderFutrues(values);
       if (res.code !== 200) {
         message.error(res.message);
         return;
       }
-      message.success('添加成功');
+      message.success('更新成功');
       navigate('/purchase/order');
     } catch (error) {
+      console.log('error', error);
       message.error('操作失败');
     }
   };
@@ -412,20 +487,15 @@ const AddPurchaseOrder = () => {
   };
 
   const handleModalOk = () => {
-    const prodcut = productOptions.find(
-      (item) => item.uuid === editingDetail.product_uuid,
-    );
-
-    const sku = skuOptions[editingDetail.product_uuid].find(
-      (item) => item.uuid === editingDetail.sku_uuid,
-    );
-    const newDetail = {
-      ...editingDetail,
-      product: prodcut,
-      sku: sku,
-      key: Date.now(),
-    };
-    setDetails([...details, newDetail]);
+    if (editingDetail.key === details.length) {
+      setDetails([...details, editingDetail]);
+    } else {
+      setDetails(
+        details.map((item) =>
+          item.key === editingDetail.key ? editingDetail : item,
+        ),
+      );
+    }
     setIsModalVisible(false);
     setEditingDetail(null);
   };
@@ -466,6 +536,25 @@ const AddPurchaseOrder = () => {
     setFileList((prevFileList) =>
       prevFileList.filter((item) => item.uid !== file.uid),
     );
+  };
+
+  const handleRemoveFileParams = async (index) => {
+    const newFileParams = [...fileParams];
+    const file = newFileParams[index];
+    if (file.url) {
+      try {
+        const res = await deleteFile({ filename: file.url });
+        if (res.code === 200) {
+            message.success('删除成功');
+        }else {
+            message.error('删除失败');
+        }
+      } catch (error) {
+        message.error('删除失败');
+      }
+    }
+    newFileParams.splice(index, 1);
+    setFileParams(newFileParams);
   };
 
   const columns: ProColumnType<TableFormOrderItem>[] = [
@@ -583,10 +672,10 @@ const AddPurchaseOrder = () => {
       key: 'ci_total_amount',
     },
     {
-      title: 'CI尾款金额',
-      dataIndex: 'ci_residual_amount',
-      key: 'ci_residual_amount',
-    },
+        title: 'CI尾款金额',
+        dataIndex: 'ci_residual_amount',
+        key: 'ci_residual_amount',
+      },
     {
       title: '生产日期',
       dataIndex: 'production_date',
@@ -596,45 +685,35 @@ const AddPurchaseOrder = () => {
       title: '预计到港日期',
       dataIndex: 'estimated_arrival_date',
       key: 'estimated_arrival_date',
-      valueType: 'date',
+     
       render: (text) => text || '-',
       renderFormItem: (item, { defaultRender, record }) => {
         return (
-          <DatePicker
-            format="YYYY-MM-DD"
-            defaultValue={record.estimated_arrival_date ? moment(record.estimated_arrival_date) : undefined}
-            onChange={(date, dateString) => {
-              record.estimated_arrival_date = dateString;
-              const index = details.findIndex((item) => item.key === record.key);
-              if(index!==-1) {
-                details[index] = record;
-                setDetails([...details]);
-              }
-            }}
-          />
-        );
+           <Input type='date' />
+          );
       },
+     
     },
     {
-      title: 'RMB定金金额',
-      dataIndex: 'rmb_deposit_amount',
-      key: 'rmb_deposit_amount',
-    },
-    {
-      title: 'RMB尾款金额',
-      dataIndex: 'rmb_residual_amount',
-      key: 'rmb_residual_amount',
-    },
-    {
-      title: '定金汇率',
-      dataIndex: 'deposit_exchange_rate',
-      key: 'deposit_exchange_rate',
-    },
-    {
-      title: '尾款汇率',
-      dataIndex: 'residual_exchange_rate',
-      key: 'residual_exchange_rate',
-    },
+        title: 'RMB定金金额',
+        dataIndex: 'rmb_deposit_amount',
+        key: 'rmb_deposit_amount',
+      },
+      {
+        title: 'RMB尾款金额',
+        dataIndex: 'rmb_residual_amount',
+        key: 'rmb_residual_amount',
+      },
+      {
+        title: '定金汇率',
+        dataIndex: 'deposit_exchange_rate',
+        key: 'deposit_exchange_rate',
+      },
+      {
+        title: '尾款汇率',
+        dataIndex: 'residual_exchange_rate',
+        key: 'residual_exchange_rate',
+      },
     {
       title: '关税',
       dataIndex: 'tariff',
@@ -652,23 +731,9 @@ const AddPurchaseOrder = () => {
       render: (text) => text || '-',
       renderFormItem: (item, { defaultRender, record }) => {
         return (
-          <DatePicker
-            format="YYYY-MM-DD"
-            defaultValue={record.payment_date ? moment(record.payment_date) : undefined}
-            onChange={(date, dateString) => {
-              record.payment_date = dateString;
-              const index = details.findIndex((item) => item.key === record.key);
-              if(index!==-1) {
-                details[index] = record;
-                setDetails([...details]);
-              }
-             
-            }}
-          />
-        );
+           <Input type='date' />
+          );
       },
-      valueType: 'date',
-      
     },
     {
       title: '操作',
@@ -827,6 +892,21 @@ const AddPurchaseOrder = () => {
           >
             <Button icon={<UploadOutlined />}>上传附件</Button>
           </Upload>
+          {fileParams.length > 0 && (
+            <div>
+              {fileParams.map((file, index) => (
+                <div key={index} className="file-item">
+                  <span>{file.name}</span>
+                  <Button
+                    type="link"
+                    onClick={() => handleRemoveFileParams(index)}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Form.Item>
 
         <Form.Item
@@ -887,7 +967,7 @@ const AddPurchaseOrder = () => {
         </Form.Item>
         <Modal
           title="编辑明细"
-          visible={isModalVisible}
+          open={isModalVisible}
           onOk={handleModalOk}
           onCancel={handleModalCancel}
         >
@@ -1100,7 +1180,7 @@ const AddPurchaseOrder = () => {
         <Modal
           width={200}
           title="导入Excel文件"
-          visible={importExcelModalVisible}
+          open={importExcelModalVisible}
           onOk={handleImportExcelOk}
           onCancel={handleImportExcelCancel}
         >
@@ -1120,6 +1200,7 @@ const AddPurchaseOrder = () => {
             下载模板
           </Button>
         </Modal>
+
         <Modal
           title="选择产品"
           open={showEditingRowProduct}

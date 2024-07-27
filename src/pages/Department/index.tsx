@@ -42,23 +42,19 @@ const DepartmentManagement = () => {
       }
     });
     const result = Object.values(map).filter(department => !department.parent_uuid);
-    console.log('result:', result);
     return result;
   };
 
   const getParentName = (uuid) => {
-    console.log('uuid:', uuid);
     if (!uuid) return '';
 
     const parent = srcDepartments.find((item) => item.uuid === uuid);
-    console.log('parent:', parent);
     return parent ? parent.name : '';
   };
 
   const handleAddDepartment = (parentUUID0 = null) => {
     setEditingDepartment(null);
 
-    console.log('parentUUID:', parentUUID0);
 
     setParentUUID(parentUUID0);
     form.resetFields();

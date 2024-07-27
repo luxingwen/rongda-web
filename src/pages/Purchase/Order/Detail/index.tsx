@@ -153,12 +153,37 @@ const PurchaseOrderDetail = () => {
       dataIndex: 'ci_total_amount',
     },
     {
+      title: 'CI尾款金额',
+      dataIndex: 'ci_residual_amount',
+      key: 'ci_residual_amount',
+    },
+    {
       title: '生产日期',
       dataIndex: 'production_date',
     },
     {
       title: '预计到港日期',
       dataIndex: 'estimated_arrival_date',
+    },
+    {
+      title: 'RMB定金金额',
+      dataIndex: 'rmb_deposit_amount',
+      key: 'rmb_deposit_amount',
+    },
+    {
+      title: 'RMB尾款金额',
+      dataIndex: 'rmb_residual_amount',
+      key: 'rmb_residual_amount',
+    },
+    {
+      title: '定金汇率',
+      dataIndex: 'deposit_exchange_rate',
+      key: 'deposit_exchange_rate',
+    },
+    {
+      title: '尾款汇率',
+      dataIndex: 'residual_exchange_rate',
+      key: 'residual_exchange_rate',
     },
     {
       title: '关税',

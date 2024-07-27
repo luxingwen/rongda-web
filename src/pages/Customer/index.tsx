@@ -93,7 +93,6 @@ const CustomerManagement = () => {
   );
 
   const handleViewDetail = (record) => {
-    console.log(record);
     history.push(`/resource/customer/detail/${record.uuid}`);
   };
 

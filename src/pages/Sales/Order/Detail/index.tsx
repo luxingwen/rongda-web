@@ -44,12 +44,12 @@ const SalesOrderDetail = () => {
   };
 
   const columns = [
-    { title: '商品', dataIndex: ['product', 'name'], key: 'product_uuid', render: (_, record) => record.product_info?.name },
-    { title: 'SKU', dataIndex: ['sku', 'code'], key: 'sku_uuid', render: (_, record) => record.sku_info?.code },
-    { title: '规格', dataIndex: ['sku', 'specification'], key: 'sku_uuid', render: (_, record) => record.sku_info?.specification },
+    { title: '商品', dataIndex: ['product', 'name'], key: 'product_uuid', render: (_, record) => record.product?.name },
+    { title: 'SKU', dataIndex: ['sku', 'code'], key: 'sku_uuid', render: (_, record) => record.sku?.code },
+    { title: '规格', dataIndex: ['sku', 'specification'], key: 'sku_uuid', render: (_, record) => record.sku?.specification },
    
-    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku_info?.country  },
-    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku_info?.factory_no },
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku?.country  },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku?.factory_no },
     { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
     { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
     { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },

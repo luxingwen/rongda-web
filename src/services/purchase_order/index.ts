@@ -29,6 +29,21 @@ export async function updatePurchaseOrder(data) {
   });
 }
 
+
+export async function updatePurchaseOrderFutrues(data) {
+  return request('/api/v1/purchase_order/update_futures', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function updatePurchaseOrderSpot(data) {
+  return request('/api/v1/purchase_order/update_spot', {
+    method: 'POST',
+    data,
+  });
+}
+
 export async function deletePurchaseOrder(data) {
   return request('/api/v1/purchase_order/delete', {
     method: 'POST',
@@ -102,3 +117,5 @@ export async function getPurchaseOrdersByStatus(data) {
     data,
   });
 }
+
+// 

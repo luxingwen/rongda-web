@@ -1,9 +1,11 @@
 import { getCustomerOptions } from '@/services/customer';
-import { uploadFile } from '@/services/file';
+import { deleteFile, uploadFile } from '@/services/file';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
 import {
-  addPurchaseOrderFutures,
-  uploadImportFutruesExcel,
+  getPurchaseOrderProductList,
+  getPurchaseOrdersInfo,
+  updatePurchaseOrderSpot,
+  uploadImportSpotExcel,
 } from '@/services/purchase_order';
 import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
 import { getStorehouseOptions } from '@/services/storehouse';
@@ -23,14 +25,10 @@ import {
   Modal,
   Popconfirm,
   Select,
-  Table,
   Upload,
-  DatePicker,
 } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
-
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface TableFormOrderItem {
   key: string;
@@ -67,9 +65,8 @@ interface TableFormOrderItem {
 const { Option } = Select;
 const EditableContext = React.createContext(null);
 
-
-
 const AddPurchaseOrder = () => {
+  const { uuid } = useParams();
   const [form] = Form.useForm();
   const [productOptions, setProductOptions] = useState([]);
   const [supplierOptions, setSupplierOptions] = useState([]);
@@ -82,15 +79,17 @@ const AddPurchaseOrder = () => {
   );
   const [storehouseOptions, setStorehouseOptions] = useState([]);
   const [fileList, setFileList] = useState([]);
-
   const [customerOptions, setCustomerOptions] = useState([]);
   const [importExcelFileList, setImportExcelFileList] = useState([]);
   const [importExcelModalVisible, setImportExcelModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [orderInfo, setOrderInfo] = useState({});
+  const [fileParams, setFileParams] = useState([]);
+  const [productList, setProductList] = useState([]);
   const navigate = useNavigate();
-  
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
-
-  const [showEditingRowProduct, setShowEditingRowProduct] = useState<boolean>(false);
+  const [showEditingRowProduct, setShowEditingRowProduct] =
+    useState<boolean>(false);
 
   useEffect(() => {
     fetchProductOptions();
@@ -98,49 +97,48 @@ const AddPurchaseOrder = () => {
     fetchSettlementCurrencyOptions();
     fetchStorehouseOptions();
     fetchCustomerOptions();
-  }, []);
+    fetchOrderDetail(uuid);
+    fetchProductList(uuid);
+  }, [uuid]);
 
   const showEditProductRow = (record: TableFormOrderItem) => {
     setShowEditingRowProduct(true);
 
+    console.log('record', record);
+    console.log('details', details);
     handleProductChange(record.product_uuid);
-    setEditingDetail({...record});
+    setEditingDetail({ ...record });
   };
 
   const handleEditProductRowCancel = () => {
     setShowEditingRowProduct(false);
-
   };
 
-  const handleEditProductRowChange = (value: string) => {
-
-  };
+  const handleEditProductRowChange = (value: string) => {};
 
   const handleEditProductRowOk = () => {
-
-
     const sku = skuOptions[editingDetail.product_uuid]?.find(
-      (item) => item.uuid === editingDetail.sku_uuid
+      (item) => item.uuid === editingDetail.sku_uuid,
     );
-  
 
-    const product = productOptions.find( (item) => item.uuid === editingDetail.product_uuid);
-
+    const product = productOptions.find(
+      (item) => item.uuid === editingDetail.product_uuid,
+    );
 
     const index = details.findIndex((item) => item.key === editingDetail.key);
 
     if (index === -1) {
-        // Adding a new item
-        const newDetail = {
-          ...editingDetail,
-          product: product,
-          sku: sku,
-          key: `0${Date.now()}`,
-        };
-        setDetails((prevDetails) => [...prevDetails, newDetail]);
-        setShowEditingRowProduct(false);
-        return;
-      }
+      // Adding a new item
+      const newDetail = {
+        ...editingDetail,
+        product: product,
+        sku: sku,
+        key: `0${Date.now()}`,
+      };
+      setDetails((prevDetails) => [...prevDetails, newDetail]);
+      setShowEditingRowProduct(false);
+      return;
+    }
 
     let newDetail = details[index];
 
@@ -150,17 +148,85 @@ const AddPurchaseOrder = () => {
     newDetail.sku = sku;
     newDetail.key = Date.now();
 
-
-
     details[index] = newDetail;
-
- 
 
     setDetails([...details]);
 
     setShowEditingRowProduct(false);
   };
-  
+
+  const fetchOrderDetail = async (uuid) => {
+    try {
+      const response = await getPurchaseOrdersInfo({ uuid });
+      if (response.code === 200) {
+        response.data.attachments = [];
+        // 如果有附件，处理附件的展示
+
+        if (response.data.attachment) {
+          let attachment = JSON.parse(response.data.attachment);
+          setFileParams(attachment);
+        }
+
+        setOrderInfo(response.data);
+        form.setFieldsValue({
+          title: response.data.title,
+          customer_uuid: response.data.customer_uuid,
+          supplier_uuid: response.data.supplier_uuid,
+          date: response.data.date,
+          pi_agreement_no: response.data.pi_agreement_no,
+          order_currency: response.data.order_currency,
+          settlement_currency: response.data.settlement_currency,
+          departure: response.data.departure,
+          deposit_amount: response.data.deposit_amount,
+          deposit_ratio: response.data.deposit_ratio,
+          estimated_shipping_date: response.data.estimated_shipping_date,
+          estimated_warehouse: response.data.estimated_warehouse,
+          actual_warehouse: response.data.actual_warehouse,
+        });
+      } else {
+        message.error('获取订单详情失败');
+      }
+    } catch (error) {
+      message.error('获取订单详情失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProductList = async (uuid) => {
+    try {
+      const response = await getPurchaseOrderProductList({ uuid });
+      if (response.code === 200) {
+        setProductList(response.data);
+        const detailList = response.data.map((item, index) => ({
+          ...item,
+          key: index,
+        }));
+        console.log('detailList', detailList);
+        setDetails(detailList);
+        form.setFieldsValue({
+          details: detailList,
+        });
+      } else {
+        message.error('获取商品列表失败');
+      }
+    } catch (error) {
+      message.error('获取商品列表失败');
+    }
+  };
+
+  const fetchCustomerOptions = async () => {
+    try {
+      const response = await getCustomerOptions();
+      if (response.code === 200) {
+        setCustomerOptions(response.data);
+      } else {
+        message.error('获取客户选项失败');
+      }
+    } catch (error) {
+      message.error('获取客户选项失败');
+    }
+  };
 
   const showImportExcelModal = () => {
     setImportExcelModalVisible(true);
@@ -190,7 +256,7 @@ const AddPurchaseOrder = () => {
     formData.append('file', importExcelFileList[0].originFileObj);
 
     try {
-      const response = await uploadImportFutruesExcel(formData);
+      const response = await uploadImportSpotExcel(formData);
       if (response.code !== 200) {
         message.error('上传失败:' + response.message);
         return;
@@ -217,26 +283,13 @@ const AddPurchaseOrder = () => {
 
   const downloadTemplate = () => {
     // 模板下载链接，可以是一个存放模板的静态文件链接
-    const url = '/public/采购订单明细-期货-模板.xlsx';
+    const url = '/public/采购订单明细-现货-模板.xlsx';
     const link = document.createElement('a');
     link.href = url;
-    link.download = '采购订单明细-期货-模板.xlsx';
+    link.download = '采购订单明细-现货-模板.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const fetchCustomerOptions = async () => {
-    try {
-      const response = await getCustomerOptions();
-      if (response.code === 200) {
-        setCustomerOptions(response.data);
-      } else {
-        message.error('获取客户选项失败');
-      }
-    } catch (error) {
-      message.error('获取客户选项失败');
-    }
   };
 
   const fetchStorehouseOptions = async () => {
@@ -315,6 +368,7 @@ const AddPurchaseOrder = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.order_no = uuid;
       values.deposit_amount = parseFloat(values.deposit_amount);
       values.deposit_ratio = parseFloat(values.deposit_ratio);
       values.details = details.map((d) => ({
@@ -330,16 +384,10 @@ const AddPurchaseOrder = () => {
         ci_quantity: parseFloat(d.ci_quantity),
         ci_unit_price: parseFloat(d.ci_unit_price),
         ci_total_amount: parseFloat(d.ci_total_amount),
-        ci_residual_amount: parseFloat(d.ci_residual_amount),
-        deposit_exchange_rate: parseFloat(d.deposit_exchange_rate),
-        residual_exchange_rate: parseFloat(d.residual_exchange_rate),
-        rmb_deposit_amount: parseFloat(d.rmb_deposit_amount),
-        rmb_residual_amount: parseFloat(d.rmb_residual_amount),
         tariff: parseFloat(d.tariff),
         vat: parseFloat(d.vat),
+        box_num: parseInt(d.box_num),
       }));
-
-      console.log("details:", values.details);
 
       if (fileList.length > 0) {
         const res = await uploadFile('purchase_order', fileList);
@@ -350,7 +398,7 @@ const AddPurchaseOrder = () => {
         values.attachment = res.data;
       }
 
-      const res = await addPurchaseOrderFutures(values);
+      const res = await updatePurchaseOrderSpot(values);
       if (res.code !== 200) {
         message.error(res.message);
         return;
@@ -380,6 +428,7 @@ const AddPurchaseOrder = () => {
       quantity: 0,
       price: 0,
       total_amount: 0,
+      box_num: 0,
       pi_box_num: 0,
       pi_quantity: 0,
       pi_unit_price: 0,
@@ -412,20 +461,15 @@ const AddPurchaseOrder = () => {
   };
 
   const handleModalOk = () => {
-    const prodcut = productOptions.find(
-      (item) => item.uuid === editingDetail.product_uuid,
-    );
-
-    const sku = skuOptions[editingDetail.product_uuid].find(
-      (item) => item.uuid === editingDetail.sku_uuid,
-    );
-    const newDetail = {
-      ...editingDetail,
-      product: prodcut,
-      sku: sku,
-      key: Date.now(),
-    };
-    setDetails([...details, newDetail]);
+    if (editingDetail.key === details.length) {
+      setDetails([...details, editingDetail]);
+    } else {
+      setDetails(
+        details.map((item) =>
+          item.key === editingDetail.key ? editingDetail : item,
+        ),
+      );
+    }
     setIsModalVisible(false);
     setEditingDetail(null);
   };
@@ -468,11 +512,29 @@ const AddPurchaseOrder = () => {
     );
   };
 
+  const handleRemoveFileParams = async (index) => {
+    const newFileParams = [...fileParams];
+    const file = newFileParams[index];
+    if (file.url) {
+      try {
+        const res = await deleteFile({ filename: file.url });
+        if (res.code === 200) {
+          message.success('删除成功');
+        } else {
+          message.error('删除失败');
+        }
+      } catch (error) {
+        message.error('删除失败');
+      }
+    }
+    newFileParams.splice(index, 1);
+    setFileParams(newFileParams);
+  };
+
   const columns: ProColumnType<TableFormOrderItem>[] = [
     {
       title: '产品名称',
       dataIndex: 'product_uuid',
-      key: 'product_uuid',
       render: (text, record) =>
         productOptions.find((option) => option.uuid === text)?.name || text,
 
@@ -485,10 +547,7 @@ const AddPurchaseOrder = () => {
     {
       title: 'SKU',
       dataIndex: 'sku_code',
-      key: 'sku_code',
       render: (text, record) => record.sku?.code,
-
-      // 第一行不允许编辑
       editable: (text, record, index) => {
         return false;
       },
@@ -496,7 +555,6 @@ const AddPurchaseOrder = () => {
     {
       title: '规格',
       dataIndex: 'sku_spec',
-      key: 'sku_spec',
       render: (text, record) => record.sku?.specification,
       editable: (text, record, index) => {
         return false;
@@ -505,179 +563,43 @@ const AddPurchaseOrder = () => {
     {
       title: '产品数量',
       dataIndex: 'quantity',
-      key: 'quantity',
+    },
+    {
+      title: '箱数',
+      dataIndex: 'box_num',
     },
     {
       title: '产品价格',
       dataIndex: 'price',
-      key: 'price',
     },
     {
       title: '产品总金额',
       dataIndex: 'total_amount',
-      key: 'total_amount',
-    },
-    {
-      title: 'PI箱数',
-      dataIndex: 'pi_box_num',
-      key: 'pi_box_num',
-    },
-    {
-      title: 'PI数量',
-      dataIndex: 'pi_quantity',
-      key: 'pi_quantity',
-    },
-    {
-      title: 'PI单价',
-      dataIndex: 'pi_unit_price',
-      key: 'pi_unit_price',
-    },
-    {
-      title: 'PI总金额',
-      dataIndex: 'pi_total_amount',
-      key: 'pi_total_amount',
     },
     {
       title: '柜号',
       dataIndex: 'cabinet_no',
-      key: 'cabinet_no',
     },
-    {
-      title: '提单号',
-      dataIndex: 'bill_of_lading_no',
-      key: 'bill_of_lading_no',
-    },
-    {
-      title: '船名',
-      dataIndex: 'ship_name',
-      key: 'ship_name',
-    },
-    {
-      title: '航次',
-      dataIndex: 'voyage',
-      key: 'voyage',
-    },
-    {
-      title: 'CI发票号',
-      dataIndex: 'ci_invoice_no',
-      key: 'ci_invoice_no',
-    },
-    {
-      title: 'CI箱数',
-      dataIndex: 'ci_box_num',
-      key: 'ci_box_num',
-    },
-    {
-      title: 'CI数量',
-      dataIndex: 'ci_quantity',
-      key: 'ci_quantity',
-    },
-    {
-      title: 'CI单价',
-      dataIndex: 'ci_unit_price',
-      key: 'ci_unit_price',
-    },
-    {
-      title: 'CI总金额',
-      dataIndex: 'ci_total_amount',
-      key: 'ci_total_amount',
-    },
-    {
-      title: 'CI尾款金额',
-      dataIndex: 'ci_residual_amount',
-      key: 'ci_residual_amount',
-    },
+
     {
       title: '生产日期',
       dataIndex: 'production_date',
-      key: 'production_date',
     },
     {
-      title: '预计到港日期',
-      dataIndex: 'estimated_arrival_date',
-      key: 'estimated_arrival_date',
-      valueType: 'date',
-      render: (text) => text || '-',
-      renderFormItem: (item, { defaultRender, record }) => {
-        return (
-          <DatePicker
-            format="YYYY-MM-DD"
-            defaultValue={record.estimated_arrival_date ? moment(record.estimated_arrival_date) : undefined}
-            onChange={(date, dateString) => {
-              record.estimated_arrival_date = dateString;
-              const index = details.findIndex((item) => item.key === record.key);
-              if(index!==-1) {
-                details[index] = record;
-                setDetails([...details]);
-              }
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: 'RMB定金金额',
-      dataIndex: 'rmb_deposit_amount',
-      key: 'rmb_deposit_amount',
-    },
-    {
-      title: 'RMB尾款金额',
-      dataIndex: 'rmb_residual_amount',
-      key: 'rmb_residual_amount',
-    },
-    {
-      title: '定金汇率',
-      dataIndex: 'deposit_exchange_rate',
-      key: 'deposit_exchange_rate',
-    },
-    {
-      title: '尾款汇率',
-      dataIndex: 'residual_exchange_rate',
-      key: 'residual_exchange_rate',
-    },
-    {
-      title: '关税',
-      dataIndex: 'tariff',
-      key: 'tariff',
-    },
-    {
-      title: '增值税',
-      dataIndex: 'vat',
-      key: 'vat',
-    },
-    {
-      title: '缴费日期',
-      dataIndex: 'payment_date',
-      key: 'payment_date',
-      render: (text) => text || '-',
-      renderFormItem: (item, { defaultRender, record }) => {
-        return (
-          <DatePicker
-            format="YYYY-MM-DD"
-            defaultValue={record.payment_date ? moment(record.payment_date) : undefined}
-            onChange={(date, dateString) => {
-              record.payment_date = dateString;
-              const index = details.findIndex((item) => item.key === record.key);
-              if(index!==-1) {
-                details[index] = record;
-                setDetails([...details]);
-              }
-             
-            }}
-          />
-        );
-      },
-      valueType: 'date',
-      
+      title: '备注',
+      dataIndex: 'desc',
     },
     {
       title: '操作',
-      key: 'operation',
+      dataIndex: 'operation',
       valueType: 'option',
       render: (_, record: TableFormOrderItem, index, action) => [
         <a key="edit" onClick={() => action?.startEditable(record.key)}>
           编辑
         </a>,
+        <span key="divider" style={{ margin: '0 8px' }}>
+          |
+        </span>,
         <Popconfirm
           key="delete"
           title="确定删除?"
@@ -731,14 +653,7 @@ const AddPurchaseOrder = () => {
         <Form.Item wrapperCol={{ span: 6 }} name="date" label="采购日期">
           <Input type="date" />
         </Form.Item>
-        <Form.Item
-          name="pi_agreement_no"
-          label="PI合同号"
-          wrapperCol={{ span: 6 }}
-          rules={[{ required: true, message: 'PI合同号' }]}
-        >
-          <Input />
-        </Form.Item>
+
         <Form.Item
           name="order_currency"
           label="订单币种"
@@ -767,14 +682,7 @@ const AddPurchaseOrder = () => {
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
-          name="departure"
-          label="起运地"
-          wrapperCol={{ span: 6 }}
-          rules={[{ required: true, message: '请输入起运地' }]}
-        >
-          <Input />
-        </Form.Item>
+
         <Form.Item
           name="deposit_amount"
           label="定金金额"
@@ -791,19 +699,12 @@ const AddPurchaseOrder = () => {
         >
           <Input type="number" />
         </Form.Item>
+
         <Form.Item
-          name="estimated_shipping_date"
-          label="预计装船日期"
+          name="actual_warehouse"
+          label="入库仓库"
           wrapperCol={{ span: 6 }}
-          rules={[{ required: true, message: '请输入预计装船日期' }]}
-        >
-          <Input type="date" />
-        </Form.Item>
-        <Form.Item
-          name="estimated_warehouse"
-          label="预计入库仓库"
-          wrapperCol={{ span: 6 }}
-          rules={[{ required: true, message: '请输入预计入库仓库' }]}
+          rules={[{ required: true, message: '请输入入库仓库' }]}
         >
           <Select>
             {storehouseOptions.map((storehouse) => (
@@ -827,6 +728,21 @@ const AddPurchaseOrder = () => {
           >
             <Button icon={<UploadOutlined />}>上传附件</Button>
           </Upload>
+          {fileParams.length > 0 && (
+            <div>
+              {fileParams.map((file, index) => (
+                <div key={index} className="file-item">
+                  <span>{file.name}</span>
+                  <Button
+                    type="link"
+                    onClick={() => handleRemoveFileParams(index)}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Form.Item>
 
         <Form.Item
@@ -843,19 +759,19 @@ const AddPurchaseOrder = () => {
           >
             添加明细
           </Button>
-
           <Button
             onClick={showImportExcelModal}
             style={{ marginLeft: '20px', color: 'green' }}
           >
             从Excel文件导入
           </Button>
-
           <EditableProTable<TableFormOrderItem>
             recordCreatorProps={{
               record: () => {
                 return {
                   key: `0${Date.now()}`,
+                  product_uuid: '',
+                  sku_uuid: '',
                 };
               },
             }}
@@ -865,14 +781,14 @@ const AddPurchaseOrder = () => {
             pagination={false}
             onChange={setDetails}
             editable={{
-                type: 'multiple',
-                editableKeys,
-                onSave: async (rowKey, data, row) => {
-                  console.log(rowKey, data, row);
+              type: 'multiple',
+              editableKeys,
+              onSave: async (rowKey, data, row) => {
+                console.log(rowKey, data, row);
                 //   await waitTime(2000);
-                },
-                onChange: setEditableRowKeys,
-              }}
+              },
+              onChange: setEditableRowKeys,
+            }}
             scroll={{ x: 'max-content' }}
             rowKey="key"
           />
@@ -928,6 +844,13 @@ const AddPurchaseOrder = () => {
                 onChange={(e) => handleDetailChange('quantity', e.target.value)}
               />
             </Form.Item>
+            <Form.Item label="箱数">
+              <Input
+                type="number"
+                value={editingDetail?.box_num}
+                onChange={(e) => handleDetailChange('box_num', e.target.value)}
+              />
+            </Form.Item>
             <Form.Item label="产品价格">
               <Input
                 type="number"
@@ -944,42 +867,7 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
-            <Form.Item label="PI箱数">
-              <Input
-                type="number"
-                value={editingDetail?.pi_box_num}
-                onChange={(e) =>
-                  handleDetailChange('pi_box_num', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI数量">
-              <Input
-                type="number"
-                value={editingDetail?.pi_quantity}
-                onChange={(e) =>
-                  handleDetailChange('pi_quantity', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI单价">
-              <Input
-                type="number"
-                value={editingDetail?.pi_unit_price}
-                onChange={(e) =>
-                  handleDetailChange('pi_unit_price', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="PI总金额">
-              <Input
-                type="number"
-                value={editingDetail?.pi_total_amount}
-                onChange={(e) =>
-                  handleDetailChange('pi_total_amount', e.target.value)
-                }
-              />
-            </Form.Item>
+
             <Form.Item label="柜号">
               <Input
                 value={editingDetail?.cabinet_no}
@@ -988,72 +876,7 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
-            <Form.Item label="提单号">
-              <Input
-                value={editingDetail?.bill_of_lading_no}
-                onChange={(e) =>
-                  handleDetailChange('bill_of_lading_no', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="船名">
-              <Input
-                value={editingDetail?.ship_name}
-                onChange={(e) =>
-                  handleDetailChange('ship_name', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="航次">
-              <Input
-                value={editingDetail?.voyage}
-                onChange={(e) => handleDetailChange('voyage', e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label="CI发票号">
-              <Input
-                value={editingDetail?.ci_invoice_no}
-                onChange={(e) =>
-                  handleDetailChange('ci_invoice_no', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="CI箱数">
-              <Input
-                type="number"
-                value={editingDetail?.ci_box_num}
-                onChange={(e) =>
-                  handleDetailChange('ci_box_num', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="CI数量">
-              <Input
-                type="number"
-                value={editingDetail?.ci_quantity}
-                onChange={(e) =>
-                  handleDetailChange('ci_quantity', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="CI单价">
-              <Input
-                type="number"
-                value={editingDetail?.ci_unit_price}
-                onChange={(e) =>
-                  handleDetailChange('ci_unit_price', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="CI总金额">
-              <Input
-                type="number"
-                value={editingDetail?.ci_total_amount}
-                onChange={(e) =>
-                  handleDetailChange('ci_total_amount', e.target.value)
-                }
-              />
-            </Form.Item>
+
             <Form.Item label="生产日期">
               <Input
                 value={editingDetail?.production_date}
@@ -1062,36 +885,10 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
-            <Form.Item label="预计到港日期">
+            <Form.Item label="描述">
               <Input
-                value={editingDetail?.estimated_arrival_date}
-                type="date"
-                onChange={(e) =>
-                  handleDetailChange('estimated_arrival_date', e.target.value)
-                }
-              />
-            </Form.Item>
-            <Form.Item label="关税">
-              <Input
-                type="number"
-                value={editingDetail?.tariff}
-                onChange={(e) => handleDetailChange('tariff', e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label="增值税">
-              <Input
-                type="number"
-                value={editingDetail?.vat}
-                onChange={(e) => handleDetailChange('vat', e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label="缴费日期">
-              <Input
-                value={editingDetail?.payment_date}
-                type="date"
-                onChange={(e) =>
-                  handleDetailChange('payment_date', e.target.value)
-                }
+                value={editingDetail?.desc}
+                onChange={(e) => handleDetailChange('desc', e.target.value)}
               />
             </Form.Item>
           </Form>
@@ -1120,6 +917,7 @@ const AddPurchaseOrder = () => {
             下载模板
           </Button>
         </Modal>
+
         <Modal
           title="选择产品"
           open={showEditingRowProduct}

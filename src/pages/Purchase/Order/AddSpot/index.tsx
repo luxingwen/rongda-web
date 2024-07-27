@@ -1,12 +1,20 @@
 import { getCustomerOptions } from '@/services/customer';
 import { uploadFile } from '@/services/file';
 import { getProductOptions, getProductSkuOptions } from '@/services/product';
-import { addPurchaseOrderSpot,uploadImportSpotExcel } from '@/services/purchase_order';
+import {
+  addPurchaseOrderSpot,
+  uploadImportSpotExcel,
+} from '@/services/purchase_order';
 import { getSettlementCurrencyOptions } from '@/services/settlement_currency';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { getSupplierOptions } from '@/services/supplier';
-import { PlusOutlined, UploadOutlined,DownloadOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
+import {
+  DownloadOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
+import type { ProColumnType } from '@ant-design/pro-components';
+import { EditableProTable, PageContainer } from '@ant-design/pro-components';
 import {
   Button,
   Form,
@@ -15,145 +23,52 @@ import {
   Modal,
   Popconfirm,
   Select,
-  Table,
   Upload,
 } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 const EditableContext = React.createContext(null);
 
-const EditableRow = ({ index, ...props }) => {
-  const [form] = Form.useForm();
-  return (
-    <Form form={form} component={false}>
-      <EditableContext.Provider value={form}>
-        <tr {...props} />
-      </EditableContext.Provider>
-    </Form>
-  );
-};
-
-const EditableCell = ({
-  title,
-  editable,
-  children,
-  dataIndex,
-  record,
-  handleSave,
-  inputType,
-  productOptions,
-  skuOptions,
-  setSkuOptions,
-  ...restProps
-}) => {
-  const [editing, setEditing] = useState(false);
-  const inputRef = React.useRef(null);
-  const form = useContext(EditableContext);
-
-  useEffect(() => {
-    if (editing) {
-      inputRef.current.focus();
-    }
-  }, [editing]);
-
-  const toggleEdit = () => {
-    setEditing(!editing);
-    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-  };
-
-  const save = async () => {
-    try {
-      const values = await form.validateFields();
-      toggleEdit();
-      handleSave({ ...record, ...values });
-    } catch (errInfo) {
-      console.log('Save failed:', errInfo);
-    }
-  };
-
-  const handleProductChange = async (value) => {
-    try {
-      const response = await getProductSkuOptions({ uuid: value });
-      if (response.code === 200) {
-        setSkuOptions((prev) => ({
-          ...prev,
-          [dataIndex]: response.data,
-        }));
-        form.setFieldsValue({ sku_uuid: undefined });
-      } else {
-        message.error('获取SKU选项失败');
-      }
-    } catch (error) {
-      message.error('获取SKU选项失败');
-    }
-  };
-
-  let childNode = children;
-
-  if (editable) {
-    childNode = editing ? (
-      <Form.Item
-        style={{ margin: 0 }}
-        name={dataIndex}
-        rules={[{ required: true, message: `${title} is required.` }]}
-      >
-        {dataIndex === 'product_uuid' ? (
-          <Select
-            ref={inputRef}
-            onChange={(value) => {
-              handleProductChange(value);
-              form.setFieldsValue({ [dataIndex]: value });
-              handleSave({ ...record, [dataIndex]: value });
-            }}
-            onBlur={save}
-          >
-            {productOptions.map((product) => (
-              <Option key={product.uuid} value={product.uuid}>
-                {product.name}
-              </Option>
-            ))}
-          </Select>
-        ) : dataIndex === 'sku_uuid' ? (
-          <Select
-            ref={inputRef}
-            onChange={(value) => {
-              form.setFieldsValue({ [dataIndex]: value });
-              handleSave({ ...record, [dataIndex]: value });
-            }}
-            onBlur={save}
-          >
-            {(skuOptions[dataIndex] || []).map((sku) => (
-              <Option key={sku.uuid} value={sku.uuid}>
-                {sku.name}
-              </Option>
-            ))}
-          </Select>
-        ) : (
-          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-        )}
-      </Form.Item>
-    ) : (
-      <div
-        className="editable-cell-value-wrap"
-        style={{ paddingRight: 24 }}
-        onClick={toggleEdit}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  return <td {...restProps}>{childNode}</td>;
-};
+interface TableFormOrderItem {
+  key: string;
+  product_uuid?: string;
+  sku_uuid?: string;
+  sku_code?: string;
+  department?: string;
+  isNew?: boolean;
+  editable?: boolean;
+  sku_spec?: string;
+  quantity?: number;
+  price?: number;
+  total_amount?: number;
+  pi_box_num?: number;
+  pi_quantity?: number;
+  pi_unit_price?: number;
+  pi_total_amount?: number;
+  cabinet_no?: string;
+  bill_of_lading_no?: string;
+  ship_name?: string;
+  voyage?: string;
+  ci_invoice_no?: string;
+  ci_box_num?: number;
+  ci_quantity?: number;
+  ci_unit_price?: number;
+  ci_total_amount?: number;
+  production_date?: string;
+  estimated_arrival_date?: string;
+  tariff?: number;
+  vat?: number;
+  payment_date?: string;
+}
 
 const AddPurchaseOrder = () => {
   const [form] = Form.useForm();
   const [productOptions, setProductOptions] = useState([]);
   const [supplierOptions, setSupplierOptions] = useState([]);
   const [skuOptions, setSkuOptions] = useState({});
-  const [details, setDetails] = useState([]);
+  const [details, setDetails] = useState<readonly TableFormOrderItem[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingDetail, setEditingDetail] = useState(null);
   const [settlementCurrencyOptions, setSettlementCurrencyOptions] = useState(
@@ -164,6 +79,9 @@ const AddPurchaseOrder = () => {
   const [customerOptions, setCustomerOptions] = useState([]);
   const [importExcelFileList, setImportExcelFileList] = useState([]);
   const [importExcelModalVisible, setImportExcelModalVisible] = useState(false);
+  const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
+  const [showEditingRowProduct, setShowEditingRowProduct] =
+    useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -173,6 +91,60 @@ const AddPurchaseOrder = () => {
     fetchStorehouseOptions();
     fetchCustomerOptions();
   }, []);
+
+  const showEditProductRow = (record: TableFormOrderItem) => {
+    setShowEditingRowProduct(true);
+
+    console.log('record', record);
+    console.log('details', details);
+    handleProductChange(record.product_uuid);
+    setEditingDetail({ ...record });
+  };
+
+  const handleEditProductRowCancel = () => {
+    setShowEditingRowProduct(false);
+  };
+
+  const handleEditProductRowChange = (value: string) => {};
+
+  const handleEditProductRowOk = () => {
+    const sku = skuOptions[editingDetail.product_uuid]?.find(
+      (item) => item.uuid === editingDetail.sku_uuid,
+    );
+
+    const product = productOptions.find(
+      (item) => item.uuid === editingDetail.product_uuid,
+    );
+
+    const index = details.findIndex((item) => item.key === editingDetail.key);
+
+    if (index === -1) {
+      // Adding a new item
+      const newDetail = {
+        ...editingDetail,
+        product: product,
+        sku: sku,
+        key: `0${Date.now()}`,
+      };
+      setDetails((prevDetails) => [...prevDetails, newDetail]);
+      setShowEditingRowProduct(false);
+      return;
+    }
+
+    let newDetail = details[index];
+
+    newDetail.product_uuid = editingDetail.product_uuid;
+    newDetail.sku_uuid = editingDetail.sku_uuid;
+    newDetail.product = product;
+    newDetail.sku = sku;
+    newDetail.key = Date.now();
+
+    details[index] = newDetail;
+
+    setDetails([...details]);
+
+    setShowEditingRowProduct(false);
+  };
 
   const fetchCustomerOptions = async () => {
     try {
@@ -187,7 +159,6 @@ const AddPurchaseOrder = () => {
     }
   };
 
-
   const showImportExcelModal = () => {
     setImportExcelModalVisible(true);
   };
@@ -201,12 +172,10 @@ const AddPurchaseOrder = () => {
     setImportExcelFileList(fileList);
   };
 
-
   const handleImportExcelCancel = () => {
     setImportExcelModalVisible(false);
     setImportExcelFileList([]);
   };
-
 
   const handleImportExcelOk = async () => {
     if (importExcelFileList.length === 0) {
@@ -218,7 +187,7 @@ const AddPurchaseOrder = () => {
     formData.append('file', importExcelFileList[0].originFileObj);
 
     try {
-      const response = await uploadImportSpotExcel( formData);
+      const response = await uploadImportSpotExcel(formData);
       if (response.code !== 200) {
         message.error('上传失败:' + response.message);
         return;
@@ -226,7 +195,8 @@ const AddPurchaseOrder = () => {
 
       response.data.forEach((item, index) => {
         // 获取sku 是否存在
-        const issku = skuOptions[item.product_uuid] === undefined ? false : true;
+        const issku =
+          skuOptions[item.product_uuid] === undefined ? false : true;
         if (!issku) {
           handleProductChange(item.product_uuid);
         }
@@ -234,7 +204,6 @@ const AddPurchaseOrder = () => {
 
       setDetails(response.data);
 
-    
       message.success('导入成功');
       setImportExcelModalVisible(false);
       //navigate('/purchase/order');
@@ -253,7 +222,6 @@ const AddPurchaseOrder = () => {
     link.click();
     document.body.removeChild(link);
   };
-
 
   const fetchStorehouseOptions = async () => {
     try {
@@ -422,15 +390,22 @@ const AddPurchaseOrder = () => {
   };
 
   const handleModalOk = () => {
-    if (editingDetail.key === details.length) {
-      setDetails([...details, editingDetail]);
-    } else {
-      setDetails(
-        details.map((item) =>
-          item.key === editingDetail.key ? editingDetail : item,
-        ),
-      );
-    }
+    const prodcut = productOptions.find(
+      (item) => item.uuid === editingDetail.product_uuid,
+    );
+
+    const sku = skuOptions[editingDetail.product_uuid].find(
+      (item) => item.uuid === editingDetail.sku_uuid,
+    );
+    const newDetail = {
+      ...editingDetail,
+      product: prodcut,
+      sku: sku,
+      key: Date.now(),
+    };
+
+    setDetails([...details, newDetail]);
+
     setIsModalVisible(false);
     setEditingDetail(null);
   };
@@ -473,22 +448,38 @@ const AddPurchaseOrder = () => {
     );
   };
 
-  const columns = [
+  const columns: ProColumnType<TableFormOrderItem>[] = [
     {
       title: '产品名称',
       dataIndex: 'product_uuid',
       render: (text, record) =>
         productOptions.find((option) => option.uuid === text)?.name || text,
+
+      renderFormItem: (_, { isEditable, onSelect, record }) => (
+        <Button type="link" onClick={() => showEditProductRow(record)}>
+          选择产品
+        </Button>
+      ),
     },
     {
-      title: 'SKU/规格',
-      dataIndex: 'sku_uuid',
-      render: (text, record) => renderSkuTable(record),
+      title: 'SKU',
+      dataIndex: 'sku_code',
+      render: (text, record) => record.sku?.code,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    {
+      title: '规格',
+      dataIndex: 'sku_spec',
+      render: (text, record) => record.sku?.specification,
+      editable: (text, record, index) => {
+        return false;
+      },
     },
     {
       title: '产品数量',
       dataIndex: 'quantity',
-      editable: true,
     },
     {
       title: '箱数',
@@ -497,7 +488,6 @@ const AddPurchaseOrder = () => {
     {
       title: '产品价格',
       dataIndex: 'price',
-      editable: true,
     },
     {
       title: '产品总金额',
@@ -519,19 +509,22 @@ const AddPurchaseOrder = () => {
     {
       title: '操作',
       dataIndex: 'operation',
-      render: (_, record) => (
-        <>
-          <Button type="link" onClick={() => handleEditDetail(record)}>
-            编辑
-          </Button>
-          <Popconfirm
-            title="确定删除?"
-            onConfirm={() => handleDeleteDetail(record.key)}
-          >
-            <Button type="link">删除</Button>
-          </Popconfirm>
-        </>
-      ),
+      valueType: 'option',
+      render: (_, record: TableFormOrderItem, index, action) => [
+        <a key="edit" onClick={() => action?.startEditable(record.key)}>
+          编辑
+        </a>,
+        <span key="divider" style={{ margin: '0 8px' }}>
+          |
+        </span>,
+        <Popconfirm
+          key="delete"
+          title="确定删除?"
+          onConfirm={() => handleDeleteDetail(record.key)}
+        >
+          <a>删除</a>
+        </Popconfirm>,
+      ],
     },
   ];
 
@@ -674,19 +667,32 @@ const AddPurchaseOrder = () => {
           >
             从Excel文件导入
           </Button>
-          <Table
-            components={{
-              body: {
-                row: EditableRow,
-                cell: EditableCell,
+          <EditableProTable<TableFormOrderItem>
+            recordCreatorProps={{
+              record: () => {
+                return {
+                  key: `0${Date.now()}`,
+                  product_uuid: '',
+                  sku_uuid: '',
+                };
               },
             }}
-            bordered
-            dataSource={details}
+            value={details}
             columns={columns}
             rowClassName="editable-row"
             pagination={false}
+            onChange={setDetails}
+            editable={{
+              type: 'multiple',
+              editableKeys,
+              onSave: async (rowKey, data, row) => {
+                console.log(rowKey, data, row);
+                //   await waitTime(2000);
+              },
+              onChange: setEditableRowKeys,
+            }}
             scroll={{ x: 'max-content' }}
+            rowKey="key"
           />
         </Form.Item>
         <Form.Item>
@@ -699,7 +705,7 @@ const AddPurchaseOrder = () => {
         </Form.Item>
         <Modal
           title="编辑明细"
-          visible={isModalVisible}
+          open={isModalVisible}
           onOk={handleModalOk}
           onCancel={handleModalCancel}
         >
@@ -744,9 +750,7 @@ const AddPurchaseOrder = () => {
               <Input
                 type="number"
                 value={editingDetail?.box_num}
-                onChange={(e) =>
-                  handleDetailChange('box_num', e.target.value)
-                }
+                onChange={(e) => handleDetailChange('box_num', e.target.value)}
               />
             </Form.Item>
             <Form.Item label="产品价格">
@@ -765,7 +769,7 @@ const AddPurchaseOrder = () => {
                 }
               />
             </Form.Item>
-           
+
             <Form.Item label="柜号">
               <Input
                 value={editingDetail?.cabinet_no}
@@ -786,27 +790,73 @@ const AddPurchaseOrder = () => {
             <Form.Item label="描述">
               <Input
                 value={editingDetail?.desc}
-                onChange={(e) =>
-                  handleDetailChange('desc', e.target.value)
-                }
+                onChange={(e) => handleDetailChange('desc', e.target.value)}
               />
             </Form.Item>
           </Form>
         </Modal>
-        
-      <Modal width={200} title="导入Excel文件" visible={importExcelModalVisible} onOk={handleImportExcelOk} onCancel={handleImportExcelCancel}>
-        <Upload
-          accept=".xlsx"
-          fileList={importExcelFileList}
-          beforeUpload={() => false} // 阻止默认的上传行为，改为手动上传
-          onChange={handleImportExcelChange}
+
+        <Modal
+          width={200}
+          title="导入Excel文件"
+          visible={importExcelModalVisible}
+          onOk={handleImportExcelOk}
+          onCancel={handleImportExcelCancel}
         >
-          <Button icon={<UploadOutlined />}>选择文件</Button>
-        </Upload>
-        <Button icon={<DownloadOutlined />} style={{ marginTop: 16 }} onClick={downloadTemplate}>
-          下载模板
-        </Button>
-      </Modal>
+          <Upload
+            accept=".xlsx"
+            fileList={importExcelFileList}
+            beforeUpload={() => false} // 阻止默认的上传行为，改为手动上传
+            onChange={handleImportExcelChange}
+          >
+            <Button icon={<UploadOutlined />}>选择文件</Button>
+          </Upload>
+          <Button
+            icon={<DownloadOutlined />}
+            style={{ marginTop: 16 }}
+            onClick={downloadTemplate}
+          >
+            下载模板
+          </Button>
+        </Modal>
+        <Modal
+          title="选择产品"
+          open={showEditingRowProduct}
+          onOk={handleEditProductRowOk}
+          onCancel={handleEditProductRowCancel}
+        >
+          {' '}
+          <Form
+            layout="horizontal"
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+          >
+            <Form.Item label="产品名称">
+              <Select
+                value={editingDetail?.product_uuid}
+                onChange={(value) => handleDetailChange('product_uuid', value)}
+              >
+                {productOptions.map((product) => (
+                  <Option key={product.uuid} value={product.uuid}>
+                    {product.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="SKU/规格">
+              <Select
+                value={editingDetail?.sku_uuid}
+                onChange={(value) => handleDetailChange('sku_uuid', value)}
+              >
+                {(skuOptions[editingDetail?.product_uuid] || []).map((sku) => (
+                  <Option key={sku.uuid} value={sku.uuid}>
+                    {renderSkuSelect(sku)}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Form>
+        </Modal>
       </Form>
     </PageContainer>
   );

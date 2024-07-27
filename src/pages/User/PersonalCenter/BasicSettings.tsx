@@ -59,12 +59,10 @@ const BasicSettings = () => {
           message.error('上传失败 :' + res.message);
           return;
         }
-        console.log("res:", res);
         const updatedUser = {
           ...currentUser,
           avatar: res.data.avatar, // 确保 res.data.avatar 是包含完整路径或可访问 URL 的头像 URL
         };
-        console.log("updatedUser:", updatedUser);
         setInitialState((s) => ({ ...s, currentUser: updatedUser }));
         setAvatarKey(Date.now()); // 强制刷新头像
         message.success('头像上传成功');

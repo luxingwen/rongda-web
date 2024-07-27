@@ -155,7 +155,6 @@ const StorehouseInboundForm = () => {
       const quantity = parseInt(row.quantity);
       const box_num = parseInt(row.box_num);
       if (citem.quantity < quantity) {
-        console.log("citem.quantity", quantity);
         row.quantity = citem.quantity;
       }
 

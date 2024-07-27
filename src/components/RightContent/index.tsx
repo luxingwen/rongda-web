@@ -41,7 +41,6 @@ export default function RightContent({ isHome = false }) {
   const getAvatar = () => {
     if (currentUser?.avatar) {
       const res = currentUser.avatar.startsWith('http') ? currentUser.avatar : `/public${currentUser.avatar}`;
-      console.log(res);
       return res;
     }
     return '';

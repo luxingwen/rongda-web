@@ -235,6 +235,18 @@ export default [
         hideInMenu: true,
       },
       {
+        name: '编辑采购订单（期货）',
+        path: '/purchase/order/edit-futures/:uuid',
+        component: './Purchase/Order/EditFutures',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑采购订单（现货）',
+        path: '/purchase/order/edit-spot/:uuid',
+        component: './Purchase/Order/EditSpot',
+        hideInMenu: true,
+      },
+      {
         name: '创建采购订单（现货）',
         path: '/purchase/order/add-spot',
         component: './Purchase/Order/AddSpot',
