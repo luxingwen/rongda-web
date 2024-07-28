@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, message, Popconfirm, Switch } from 'antd';
-import ProTable from '@ant-design/pro-table';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getDepartments, addDepartment, updateDepartment, deleteDepartment } from '@/services/department';
+import {
+  addDepartment,
+  deleteDepartment,
+  getDepartments,
+  updateDepartment,
+} from '@/services/department';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import ProTable from '@ant-design/pro-table';
+import { Button, Form, Input, message, Modal, Popconfirm, Switch } from 'antd';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
@@ -13,6 +19,7 @@ const DepartmentManagement = () => {
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [parentUUID, setParentUUID] = useState(null);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDepartments();
@@ -34,14 +41,22 @@ const DepartmentManagement = () => {
   const formatDepartmentTree = (departments) => {
     const map = {};
     departments.forEach((department) => {
-      map[department.uuid] = { ...department, key: department.uuid, value: department.uuid, label: department.name, children: [] };
+      map[department.uuid] = {
+        ...department,
+        key: department.uuid,
+        value: department.uuid,
+        label: department.name,
+        children: [],
+      };
     });
     departments.forEach((department) => {
       if (department.parent_uuid && map[department.parent_uuid]) {
         map[department.parent_uuid].children.push(map[department.uuid]);
       }
     });
-    const result = Object.values(map).filter(department => !department.parent_uuid);
+    const result = Object.values(map).filter(
+      (department) => !department.parent_uuid,
+    );
     return result;
   };
 
@@ -54,7 +69,6 @@ const DepartmentManagement = () => {
 
   const handleAddDepartment = (parentUUID0 = null) => {
     setEditingDepartment(null);
-
 
     setParentUUID(parentUUID0);
     form.resetFields();
@@ -88,7 +102,6 @@ const DepartmentManagement = () => {
       values.status = values.status ? 1 : 0;
       values.parent_uuid = parentUUID;
       if (editingDepartment) {
-
         await updateDepartment({ ...editingDepartment, ...values });
         message.success('更新成功');
       } else {
@@ -126,16 +139,17 @@ const DepartmentManagement = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Switch checked={status} disabled />
-      ),
+      render: (status) => <Switch checked={status} disabled />,
     },
     {
       title: '操作',
       key: 'action',
       render: (_, record) => (
         <span>
-          <Button icon={<EditOutlined />} onClick={() => handleEditDepartment(record)} />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => handleEditDepartment(record)}
+          />
           <Popconfirm
             title="确定删除吗?"
             onConfirm={() => handleDeleteDepartment(record.uuid)}
@@ -144,7 +158,17 @@ const DepartmentManagement = () => {
           >
             <Button icon={<DeleteOutlined />} style={{ marginLeft: 8 }} />
           </Popconfirm>
-          <Button icon={<PlusOutlined />} style={{ marginLeft: 8 }} onClick={() => handleAddDepartment(record.uuid)} />
+          <Button
+            icon={<PlusOutlined />}
+            style={{ marginLeft: 8 }}
+            onClick={() => handleAddDepartment(record.uuid)}
+          />
+          <Button
+            type="link"
+            onClick={() => navigate(`/staff/department/${record.uuid}`)}
+          >
+            查看详情
+          </Button>
         </span>
       ),
     },
@@ -209,11 +233,11 @@ const DepartmentManagement = () => {
           >
             <Switch />
           </Form.Item>
-          <Form.Item
-            name="parent_uuid"
-            label="上级部门"
-          >
-            <Input value={parentUUID ? getParentName(parentUUID) : ''} readOnly />
+          <Form.Item name="parent_uuid" label="上级部门">
+            <Input
+              value={parentUUID ? getParentName(parentUUID) : ''}
+              readOnly
+            />
           </Form.Item>
         </Form>
       </Modal>

@@ -27,3 +27,38 @@ export async function deleteDepartment(data) {
     data,
   });
 }
+
+
+export async function getDepartmentDetails(data) {
+  return request('/api/v1/department/info', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function getDepartmentStaffList(data) {
+  return request('/api/v1/department/staff/list', {
+    method: 'POST',
+    data,
+  });
+}
+export async function addEmployee(data) {
+  return request('/api/v1/department/staff/create', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function deleteEmployee(data) {
+  return request('/api/v1/department/staff/delete', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function updateEmployee(data) {
+  return request('/api/v1/department/staff/update', {
+    method: 'POST',
+    data,
+  });
+}

@@ -1,179 +1,214 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Select, Button, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { addInventoryCheck, getProductOptions } from '@/services/storehouse_inventory_check';
 import { getStorehouseOptions } from '@/services/storehouse';
-import { getProductSkuOptions } from '@/services/product';
-import { PlusOutlined } from '@ant-design/icons';
+import { getStorehouseProducts } from '@/services/storehouse_product';
+import { addInventoryCheck } from '@/services/storehouse_inventory_check';
+import { PageContainer } from '@ant-design/pro-components';
+import { Button, Form, Input, message, Select, Popconfirm  } from 'antd';
+import { EditableProTable } from '@ant-design/pro-components';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
 const AddInventoryCheck = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
-  const [productOptions, setProductOptions] = useState([]);
-  const [skuOptions, setSkuOptions] = useState({});
+  const [details, setDetails] = useState([]);
   const [form] = Form.useForm();
+  const [editableKeys, setEditableRowKeys] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchStorehouseOptions();
-    fetchProductOptions();
   }, []);
 
   const fetchStorehouseOptions = async () => {
-    try {
-      const response = await getStorehouseOptions();
-      if (response.code === 200) {
-        setStorehouseOptions(response.data);
-      } else {
-        message.error('获取仓库选项失败');
-      }
-    } catch (error) {
+    const response = await getStorehouseOptions();
+    if (response.code === 200) {
+      setStorehouseOptions(response.data);
+    } else {
       message.error('获取仓库选项失败');
     }
   };
 
-  const fetchProductOptions = async () => {
-    try {
-      const response = await getProductOptions();
-      if (response.code === 200) {
-        setProductOptions(response.data);
-      } else {
-        message.error('获取产品选项失败');
-      }
-    } catch (error) {
-      message.error('获取产品选项失败');
-    }
-  };
-
-  const handleProductChange = async (value, index) => {
-    try {
-      const response = await getProductSkuOptions({ uuid: value });
-      if (response.code === 200) {
-        setSkuOptions((prev) => ({
-          ...prev,
-          [index]: response.data,
-        }));
-        const details = form.getFieldValue('detail') || [];
-        details[index] = {
-          ...details[index],
-          sku_uuid: undefined,
-        };
-        form.setFieldsValue({ detail: details });
-      } else {
-        message.error('获取SKU选项失败');
-      }
-    } catch (error) {
-      message.error('获取SKU选项失败');
+  const fetchStorehouseProducts = async (uuid) => {
+    const response = await getStorehouseProducts({ storehouse_uuid: uuid, pageSize: 100 });
+    if (response.code === 200) {
+      const list = response.data.data.map((item, index) => ({
+        ...item,
+        key: `key-${index}`,
+      }));
+      setDetails(list);
+    } else {
+      message.error('获取商品选项失败');
     }
   };
 
   const handleOk = async () => {
-    try {
-      const values = await form.validateFields();
-      values.status = parseInt(values.status);
-      values.detail = values.detail.map((item) => ({
-        ...item,
-        quantity: parseInt(item.quantity),
-      }));
-      const res = await addInventoryCheck(values);
+    const values = await form.validateFields();
+    values.status = parseInt(values.status);
+    values.detail = details.map(item => ({
+      storehouse_product_uuid: item.uuid,
+      product_uuid: item.product_uuid,
+      sku_uuid: item.sku_uuid,
+      quantity: parseInt(item.quantity),
+      box_num: parseInt(item.box_num),
+    }));
+    const res = await addInventoryCheck(values);
     if (res.code === 200) {
-        message.success('添加成功');
-        navigate('/storehouse/inventory/check');
+      message.success('添加成功');
+      navigate('/storehouse/inventory/check');
     } else {
-        message.error('操作失败');
-    }
-    } catch (error) {
       message.error('操作失败');
     }
   };
 
+
+  const handleDetailChange = (newData) => {
+    console.log("new data", newData);
+    setDetails(newData);
+  };
+
+
+  const columns = [
+    {
+      title: '客户名称',
+      dataIndex: 'customer_uuid',
+      key: 'customer_uuid',
+      render: (_, record) => record.customer_info?.name,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    {
+      title: '商品名称',
+      dataIndex: 'product_uuid',
+      key: 'product_uuid',
+      render: (_, record) => record.product?.name,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    {
+      title: 'SKU代码',
+      dataIndex: 'sku_code',
+      key: 'sku_code',
+      render: (_, record) => record.sku?.code,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    {
+      title: '规格',
+      dataIndex: 'sku_spec',
+      key: 'sku_spec',
+      render: (_, record) => record.sku?.specification,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no',
+      editable: (text, record, index) => {
+        return false;
+      },
+     },
+    {
+      title: '国家',
+      dataIndex: 'country',
+      key: 'country',
+      render: (_, record) => record.sku?.country,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    {
+      title: '厂号',
+      dataIndex: 'factory_no',
+      key: 'factory_no',
+      render: (_, record) => record.sku?.factory_no,
+      editable: (text, record, index) => {
+        return false;
+      },
+    },
+    { title: '入库日期', dataIndex: 'in_date', key: 'in_date',
+
+      editable: (text, record, index) => {
+        return false;
+      },
+
+     },
+    { title: '库存天数', dataIndex: 'stock_days', key: 'stock_days',
+
+      editable: (text, record, index) => {
+        return false;
+      },
+     },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity' },
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num' },
+    {
+      title: '操作',
+      key: 'operation',
+      valueType: 'option',
+      render: (_, record: TableFormOrderItem, index, action) => [
+        <a key="edit" onClick={() => action?.startEditable(record.key)}>
+          编辑
+        </a>,
+        <Popconfirm
+          key="delete"
+          title="确定删除?"
+          onConfirm={() => handleDeleteDetail(record.key)}
+        >
+          <a>删除</a>
+        </Popconfirm>,
+      ],
+    },
+  ];
+
   return (
-    <div>
+    <PageContainer>
       <Form form={form} layout="vertical">
-        <Form.Item name="storehouse_uuid" label="仓库" rules={[{ required: true, message: '请选择仓库' }]}>
-          <Select placeholder="请选择仓库">
-            {storehouseOptions.map((storehouse) => (
-              <Option key={storehouse.uuid} value={storehouse.uuid}>
-                {storehouse.name}
-              </Option>
+        <Form.Item
+          name="storehouse_uuid"
+          label="仓库"
+          rules={[{ required: true, message: '请选择仓库' }]}
+        >
+          <Select placeholder="请选择仓库" onChange={fetchStorehouseProducts}>
+            {storehouseOptions.map(storehouse => (
+              <Option key={storehouse.uuid} value={storehouse.uuid}>{storehouse.name}</Option>
             ))}
           </Select>
         </Form.Item>
-        <Form.Item name="check_date" label="盘点日期" rules={[{ required: true, message: '请选择盘点日期' }]}>
+        <Form.Item
+          name="check_date"
+          label="盘点日期"
+          rules={[{ required: true, message: '请选择盘点日期' }]}
+        >
           <Input type="date" />
         </Form.Item>
-        <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
+        <Form.Item
+          name="status"
+          label="状态"
+          rules={[{ required: true, message: '请选择状态' }]}
+        >
           <Select placeholder="请选择状态">
             <Option value="1">已盘点</Option>
             <Option value="2">未盘点</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="detail" label="盘点明细" rules={[{ required: true, message: '请填写盘点明细' }]}>
-          <Form.List name="detail">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, fieldKey, ...restField }, index) => (
-                  <div key={key} style={{ display: 'flex', marginBottom: 8 }}>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'product_uuid']}
-                      fieldKey={[fieldKey, 'product_uuid']}
-                      rules={[{ required: true, message: '请选择商品' }]}
-                    >
-                      <Select
-                        placeholder="请选择商品"
-                        style={{ width: 150 }}
-                        onChange={(value) => handleProductChange(value, index)}
-                      >
-                        {productOptions.map((product) => (
-                          <Option key={product.uuid} value={product.uuid}>
-                            {product.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'sku_uuid']}
-                      fieldKey={[fieldKey, 'sku_uuid']}
-                      rules={[{ required: true, message: '请选择SKU' }]}
-                    >
-                      <Select placeholder="请选择SKU" style={{ width: 150, marginLeft: 8 }}>
-                        {(skuOptions[index] || []).map((sku) => (
-                          <Option key={sku.uuid} value={sku.uuid}>
-                            {sku.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'quantity']}
-                      fieldKey={[fieldKey, 'quantity']}
-                      rules={[{ required: true, message: '请输入盘点数量' }]}
-                    >
-                      <Input placeholder="盘点数量" type="number" style={{ width: 150, marginLeft: 8 }} />
-                    </Form.Item>
-                    <Button type="link" onClick={() => remove(name)} style={{ marginLeft: 8 }}>
-                      删除
-                    </Button>
-                  </div>
-                ))}
-                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  添加盘点明细
-                </Button>
-              </>
-            )}
-          </Form.List>
-        </Form.Item>
+        <EditableProTable
+          rowKey="key"
+          value={details}
+          onChange={handleDetailChange}
+          columns={columns}
+          editableKeys={editableKeys}
+          onEditableChange={setEditableRowKeys}
+          recordCreatorProps={false}
+        />
         <Form.Item>
           <Button type="primary" onClick={handleOk}>
             提交
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </PageContainer>
   );
 };
 

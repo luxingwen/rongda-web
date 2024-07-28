@@ -33,8 +33,6 @@ const AgreementForm = () => {
           let attachment = JSON.parse(response.data.attachment);
 
           setFileParams(attachment);
-
-     
         }
       } else {
         message.error('获取合同详情失败');

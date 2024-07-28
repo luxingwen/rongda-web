@@ -11,9 +11,9 @@ const Footer: React.FC = () => {
       copyright="Powered by Rongda Sc"
       links={[
         {
-          key: ' Rongda Sc',
-          title: ' Rongda Sc',
-          href: 'http://www.rongdasc.com/',
+          key: ' 滇ICP备2024035977号-1',
+          title: '滇ICP备2024035977号-1',
+          href: 'https://beian.miit.gov.cn/#/Integrated/index',
           blankTarget: true,
         }
       ]}

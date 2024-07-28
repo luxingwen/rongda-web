@@ -896,7 +896,13 @@ const AddPurchaseOrder = () => {
             <div>
               {fileParams.map((file, index) => (
                 <div key={index} className="file-item">
-                  <span>{file.name}</span>
+                   <a
+                      href={'/public/' + file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                    <span>{file.name}</span>
+                  </a>
                   <Button
                     type="link"
                     onClick={() => handleRemoveFileParams(index)}

@@ -61,3 +61,9 @@ export async function updateAvatar(data) {
     },
   })
 }
+
+export async function getUserOptions() {
+  return await request('/api/v1/user/all', {
+    method: 'POST',
+  })
+}

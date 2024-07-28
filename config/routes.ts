@@ -91,6 +91,12 @@ export default [
         component: './Department',
       },
       {
+        name: '部门管理详情',
+        path: '/staff/department/:uuid',
+        component: './Department/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '用户管理',
         path: '/staff/user',
         component: './User/Manager',

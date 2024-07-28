@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
 import { getStorehouse } from '@/services/storehouse';
 import { getStorehouseProducts } from '@/services/storehouse_product';
-import { message, Spin, Card, Divider, Tag } from 'antd';
+import { message, Spin, Card, Divider, Tag, Button, Popconfirm  } from 'antd';
+import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { deleteStorehouseProduct } from '@/services/storehouse_product';
 
 const StorehouseDetail = () => {
   const { uuid } = useParams();
   const [storehouseInfo, setStorehouseInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const actionRef = useRef();
 
   useEffect(() => {
     fetchStorehouseInfo(uuid);
@@ -38,10 +42,52 @@ const StorehouseDetail = () => {
     return type === 1 ? <Tag color="blue">自有仓库</Tag> : <Tag color="purple">第三方仓库</Tag>;
   };
 
+  const handleViewProduct = (id) => {
+    navigate(`/storehouse/inventory/storehouse-product-detail/${id}`);
+  };
+
+  const handleDeleteProduct = async (id) => {
+    try {
+      await deleteStorehouseProduct({ uuid: id });
+      message.success('删除成功');
+      
+    } catch (error) {
+      message.error('删除失败');
+    }
+  };
+
+
   const columns = [
-    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: (_, record) => record.product?.name },
-    { title: 'SKU', dataIndex: 'sku_uuid', key: 'sku_uuid', render: (_, record) => record.sku?.name },
-    { title: '库存数量', dataIndex: 'quantity', key: 'quantity' },
+    { title: '商品名称', dataIndex: 'product_uuid', key: 'product_uuid', render: (_, record) => record.product?.name,  },
+    { title: 'SKU代码', dataIndex: 'sku_code', key: 'sku_code', render: (_, record) => record.sku?.code, hideInSearch: true },
+    { title: '规格', dataIndex: 'sku_spec', key: 'sku_spec', render: (_, record) => record.sku?.specification, hideInSearch: true },
+    { title: '商品数量', dataIndex: 'quantity', key: 'quantity', hideInSearch: true },
+    { title: '商品箱数', dataIndex: 'box_num', key: 'box_num', hideInSearch: true },
+    { title: '客户名称', dataIndex: 'customer_uuid', key: 'customer_uuid', render: (_, record) => record.customer_info?.name,},
+    { title: '国家', dataIndex: 'country', key: 'country', render: (_, record) => record.sku?.country , hideInSearch: true },
+    { title: '厂号', dataIndex: 'factory_no', key: 'factory_no', render: (_, record) => record.sku?.factory_no , hideInSearch: true },
+    { title: '入库日期', dataIndex: 'in_date', key: 'in_date', hideInSearch: true },
+    { title: '库存天数', dataIndex: 'stock_days', key: 'stock_days', hideInSearch: true },
+    {
+      title: '操作',
+      key: 'action',
+      hideInSearch: true,
+      render: (_, record) => (
+        <span>
+           <Button icon={<EyeOutlined />} onClick={() => handleViewProduct(record.uuid)} style={{ marginRight: 8 }} />
+      
+
+          <Popconfirm
+            title="确定删除吗?"
+            onConfirm={() => handleDeleteProduct(record.uuid)}
+            okText="是"
+            cancelText="否"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -67,6 +113,7 @@ const StorehouseDetail = () => {
         <Card title="库存信息" bordered={false}>
           <ProTable
             columns={columns}
+            actionRef={actionRef}
             rowKey="id"
             request={async (params) => {
               const response = await getStorehouseProducts({ ...params, storehouse_uuid: uuid });
