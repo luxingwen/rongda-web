@@ -439,6 +439,17 @@ export default [
         path: '/system/api',
         component: './Sys/Api',
       },
+      {
+        name: '权限管理',
+        path: '/system/permission',
+        component: './Sys/Permission',
+      },
+      {
+        name: '权限管理(绑定菜单)',
+        hideInMenu: true,
+        path: '/system/permission/menu/:permissionId',
+        component: './Sys/Permission/BindMenu',
+      },
     ],
   },
   {

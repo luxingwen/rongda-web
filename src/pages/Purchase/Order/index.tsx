@@ -191,7 +191,7 @@ const PurchaseOrderManagement = () => {
     { title: '起运地', dataIndex: 'departure', key: 'departure', hideInSearch: true },
     { title: '目的地', dataIndex: 'destination', key: 'destination', hideInSearch: true },
     { title: '定金金额', dataIndex: 'deposit_amount', key: 'deposit_amount', hideInSearch: true },
-    { title: '定金比例', dataIndex: 'deposit_ratio', key: 'deposit_ratio', hideInSearch: true },
+    { title: '定金比例', dataIndex: 'deposit_ratio', key: 'deposit_ratio', hideInSearch: true, render: (_, record) => `${record.deposit_ratio}%` },
     { title: '预计装船日期', dataIndex: 'estimated_shipping_date', key: 'estimated_shipping_date', hideInSearch: true },
     { title: '采购人', dataIndex: 'purchaser', key: 'purchaser', hideInSearch: true, render: (_, record) => record.purchaser_info?.nickname },
     { title: '状态', dataIndex: 'status', key: 'status', render: renderStatus, hideInSearch: true },

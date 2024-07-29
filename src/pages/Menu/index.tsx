@@ -201,6 +201,7 @@ const MenuManagement = () => {
         rowKey="key"
         pagination={false}
         search={false}
+        scroll={{ x: 'max-content' }}
         expandable={{
           childrenColumnName: 'children',
         }}

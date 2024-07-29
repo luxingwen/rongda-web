@@ -222,6 +222,7 @@ const UserManagement = () => {
           labelWidth: 'auto',
         }}
         options={false}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <Button
             key="button"

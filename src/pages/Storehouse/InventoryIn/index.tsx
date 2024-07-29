@@ -302,6 +302,7 @@ const StorehouseInboundManagement = () => {
         search={{
           labelWidth: 'auto',
         }}
+        scroll={{ x: 'max-content' }}
         options={false}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} onClick={handleAddInbound} type="primary">

@@ -163,6 +163,7 @@ const SalesOrderManagement = () => {
         search={{
           labelWidth: 'auto',
         }}
+        scroll={{ x: 'max-content' }}
         options={false}
         toolBarRender={() => [
           <Button key="button" icon={<PlusOutlined />} onClick={handleAddOrder} type="primary">
