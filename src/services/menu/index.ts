@@ -27,3 +27,10 @@ export async function deleteMenu(data) {
     data,
   });
 }
+
+export async function getMenuInfo(data) {
+  return request(`/api/v1/menu/info`, {
+    method: 'POST',
+    data,
+  });
+}

@@ -5,6 +5,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-d
 import * as icons from '@ant-design/icons';
 import { getMenus, addMenu, updateMenu, deleteMenu } from '@/services/menu';
 import { PageContainer } from '@ant-design/pro-components';
+import { history } from '@umijs/max';
 
 const { Option } = Select;
 
@@ -122,6 +123,10 @@ const MenuManagement = () => {
     setSelectedIcon(e.target.value);
   };
 
+  const handleBindApi = (menuId) => {
+    history.push(`/system/menu/bindapi/${menuId}`);
+  };
+
   const columns = [
     {
       title: '名称',
@@ -181,6 +186,9 @@ const MenuManagement = () => {
             <Button icon={<DeleteOutlined />} style={{ marginLeft: 8 }} />
           </Popconfirm>
           <Button icon={<PlusOutlined />} style={{ marginLeft: 8 }} onClick={() => handleAddMenu(record.uuid)} />
+          <Button onClick={() => handleBindApi(record.uuid)}>
+            绑定API
+          </Button>
         </span>
       ),
     },

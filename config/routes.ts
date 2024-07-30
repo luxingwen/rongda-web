@@ -104,7 +104,13 @@ export default [
       {
         name: '权限管理',
         path: '/staff/permission',
-        component: './User/Manager',
+        component: './User/Permission',
+      },
+      {
+        name: '给用户授权',
+        path: '/staff/permission/:userId',
+        component: './User/Permission/BindPermission',
+        hideInMenu: true,
       },
     ],
   },
@@ -413,6 +419,12 @@ export default [
         name: '菜单管理',
         path: '/system/menu',
         component: './Menu',
+      },
+      {
+        name: '菜单管理（绑定api）',
+        path: '/system/menu/bindapi/:menuId',
+        component: './Menu/BindApi',
+        hideInMenu: true,
       },
       {
         name: '结算币种',

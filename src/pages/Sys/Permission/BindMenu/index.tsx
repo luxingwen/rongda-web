@@ -1,19 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Tree, message } from 'antd';
-import { history } from '@umijs/max';
+import { Button, Tree, message, Card, Row, Col } from 'antd';
 import { useParams } from 'react-router-dom';
+import { history } from '@umijs/max';
 import { getMenus } from '@/services/menu';
+import { getPermissionInfo } from '@/services/permission';
 import { addPermissionMenu, getPermissionMenuInfoByPermissionUuid } from '@/services/permission_menu';
+import { PageContainer } from "@ant-design/pro-components";
 
 const BindMenusPage = () => {
   const [menuTree, setMenuTree] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [permissionInfo, setPermissionInfo] = useState({});
   const { permissionId } = useParams(); // 从路由获取权限ID
 
   useEffect(() => {
+    fetchPermissionInfo(permissionId);
     fetchPermissionMenus(permissionId);
     fetchMenus();
   }, [permissionId]);
+
+  const fetchPermissionInfo = async (permissionId) => {
+    try {
+      const response = await getPermissionInfo({ uuid: permissionId });
+      if (response.code === 200) {
+        setPermissionInfo(response.data);
+      } else {
+        message.error('获取权限信息失败');
+      }
+    } catch (error) {
+      message.error('获取权限信息失败');
+    }
+  };
 
   const fetchMenus = async () => {
     try {
@@ -27,8 +44,8 @@ const BindMenusPage = () => {
   const fetchPermissionMenus = async (uuid) => {
     try {
       const response = await getPermissionMenuInfoByPermissionUuid({ uuid });
-      const menuuuids = response.data.map((menu) => menu.menu_uuid);
-      setSelectedKeys(menuuuids);
+      const menuUuids = response.data.map((menu) => menu.menu_uuid);
+      setSelectedKeys(menuUuids);
     } catch (error) {
       message.error('获取权限已绑定菜单失败');
     }
@@ -58,18 +75,24 @@ const BindMenusPage = () => {
   };
 
   return (
-    <div>
-      <h1>绑定菜单到权限</h1>
-      <Tree
-        checkable
-        checkedKeys={selectedKeys}
-        onCheck={(checkedKeys) => setSelectedKeys(checkedKeys)}
-        treeData={menuTree}
-      />
-      <Button type="primary" onClick={handleBindMenus} style={{ marginTop: 16 }}>
-        绑定菜单
-      </Button>
-    </div>
+    <PageContainer>
+      <Card title="权限信息" bordered={false} style={{ marginBottom: 24 }}>
+        <Row gutter={[16, 16]}>
+          <Col span={12}><strong>权限名称: </strong>{permissionInfo.name}</Col>
+        </Row>
+      </Card>
+      <Card title="绑定菜单" bordered={false}>
+        <Tree
+          checkable
+          checkedKeys={selectedKeys}
+          onCheck={(checkedKeys) => setSelectedKeys(checkedKeys)}
+          treeData={menuTree}
+        />
+        <Button type="primary" onClick={handleBindMenus} style={{ marginTop: 16 }}>
+          绑定菜单
+        </Button>
+      </Card>
+    </PageContainer>
   );
 };
 
