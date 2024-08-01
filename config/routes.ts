@@ -213,6 +213,11 @@ export default [
     icon: 'shopping',
     routes: [
       {
+        name: '委托管理',
+        path: '/purchase/entrust',
+        component: './EntrustOrder',
+      },
+      {
         name: '合同管理',
         path: '/purchase/agreement',
         component: './Purchase/Agreement',
