@@ -36,6 +36,12 @@ export default [
         component: './Customer',
       },
       {
+        name: '客户成员管理',
+        path: '/resource/customer/member/:teamId',
+        component: './Customer/Member',
+        hideInMenu: true,
+      },
+      {
         name: '客户详细',
         path: '/resource/customer/detail/:uuid',
         component: './Customer/Detail',
@@ -247,7 +253,7 @@ export default [
       },
       {
         name: '创建采购订单（期货）',
-        path: '/purchase/order/add-futures',
+        path: '/purchase/order/add-futures/:entrustOrderId',
         component: './Purchase/Order/AddFutures',
         hideInMenu: true,
       },

@@ -96,6 +96,10 @@ const CustomerManagement = () => {
     history.push(`/resource/customer/detail/${record.uuid}`);
   };
 
+  const handleMemberManagement = (record) => {
+    history.push(`/resource/customer/member/${record.uuid}`);
+   };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
@@ -127,6 +131,7 @@ const CustomerManagement = () => {
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
+          <Button onClick={()=> handleMemberManagement(record)} >成员管理</Button>
         </span>
       ),
     },

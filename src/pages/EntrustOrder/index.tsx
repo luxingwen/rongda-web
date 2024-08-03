@@ -67,7 +67,6 @@ const EntrustOrderManagement = () => {
   );
 
   const columns = [
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300 },
     { title: '订单ID', dataIndex: 'order_id', key: 'order_id' },
     { title: '用户UUID', dataIndex: 'user_uuid', key: 'user_uuid' },
     { title: '团队UUID', dataIndex: 'team_uuid', key: 'team_uuid' },
@@ -86,7 +85,7 @@ const EntrustOrderManagement = () => {
           <Button icon={<EditOutlined />} onClick={() => handleEditOrder(record)} style={{ marginRight: 8 }} />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteOrder(record.uuid)}
+            onConfirm={() => handleDeleteOrder(record.order_id)}
             okText="是"
             cancelText="否"
           >
