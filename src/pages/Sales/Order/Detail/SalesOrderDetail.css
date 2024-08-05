@@ -1,0 +1,20 @@
+.steps-container {
+    overflow: hidden;
+    padding: 8px 0;
+  }
+  
+  .steps-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 16px; /* 每行之间的间距 */
+  }
+  
+  .ant-steps-item {
+    flex: 0 0 16%; /* 固定每个步骤的宽度 */
+    max-width: 16%; /* 固定每个步骤的宽度 */
+    min-width: 150px; /* 设置最小宽度以避免过小 */
+    box-sizing: border-box;
+    text-align: center;
+  }
+  

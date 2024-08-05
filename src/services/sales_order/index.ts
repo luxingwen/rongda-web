@@ -61,3 +61,14 @@ export async function updateSalesOrderStatus(data) {
     data,
   });
 }
+
+// 创建合同
+export async function createSalesagreement(data) {
+  return request('/api/v1/sales_order/create_agreement', {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}

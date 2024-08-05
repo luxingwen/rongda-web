@@ -28,8 +28,9 @@ import {
   DatePicker,
 } from 'antd';
 import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
+import {getEntrustOrderInfo} from '@/services/entrust_order';
 
 
 interface TableFormOrderItem {
@@ -91,6 +92,8 @@ const AddPurchaseOrder = () => {
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
 
   const [showEditingRowProduct, setShowEditingRowProduct] = useState<boolean>(false);
+  const {entrustOrderId} = useParams();
+  const [initCustomer, setInitCustomer] = useState<string>('');
 
   useEffect(() => {
     fetchProductOptions();
@@ -98,6 +101,9 @@ const AddPurchaseOrder = () => {
     fetchSettlementCurrencyOptions();
     fetchStorehouseOptions();
     fetchCustomerOptions();
+    if(entrustOrderId && entrustOrderId !== 'new') {
+      fetchEntrustOrderInfo();
+    }
   }, []);
 
   const showEditProductRow = (record: TableFormOrderItem) => {
@@ -215,6 +221,24 @@ const AddPurchaseOrder = () => {
     }
   };
 
+
+  const fetchEntrustOrderInfo = async () => {
+    try {
+      const response = await getEntrustOrderInfo({ uuid: entrustOrderId });
+      if (response.code === 200) {
+        // form.setFieldsValue(response.data);
+        // setDetails(response.data.details);
+        form.setFieldsValue({
+          customer_uuid: response.data.team_uuid,
+        });
+      } else {
+        message.error('获取委托订单信息失败');
+      }
+    } catch (error) {
+      message.error('获取委托订单信息失败');
+    }
+  }
+
   const downloadTemplate = () => {
     // 模板下载链接，可以是一个存放模板的静态文件链接
     const url = '/public/采购订单明细-期货-模板.xlsx';
@@ -315,6 +339,7 @@ const AddPurchaseOrder = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      values.entrust_order_id = entrustOrderId;
       values.deposit_amount = parseFloat(values.deposit_amount);
       values.deposit_ratio = parseFloat(values.deposit_ratio);
       values.details = details.map((d) => ({
@@ -704,6 +729,7 @@ const AddPurchaseOrder = () => {
           name="customer_uuid"
           label="客户名称"
           wrapperCol={{ span: 6 }}
+          initialValue={form.getFieldValue('customer_uuid') || ''}
           rules={[{ required: true, message: '请选择客户' }]}
         >
           <Select placeholder="请选择客户">

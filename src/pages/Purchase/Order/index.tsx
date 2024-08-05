@@ -252,7 +252,7 @@ const PurchaseOrderManagement = () => {
         scroll={{ x: 'max-content' }}
         options={false}
         toolBarRender={() => [
-          <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/order/add-futures')} type="primary">
+          <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/order/add-futures/new')} type="primary">
             添加采购单(期货)
           </Button>,
           <Button key="button" icon={<PlusOutlined />} onClick={() => navigate('/purchase/order/add-spot')} style={{color: "green"}}>

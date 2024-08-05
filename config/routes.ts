@@ -224,6 +224,12 @@ export default [
         component: './EntrustOrder',
       },
       {
+        name: '委托详情',
+        path: '/purchase/entrust/detail/:orderId',
+        component: './EntrustOrder/Detail',
+        hideInMenu: true,
+      },
+      {
         name: '合同管理',
         path: '/purchase/agreement',
         component: './Purchase/Agreement',
@@ -346,6 +352,19 @@ export default [
         component: './Sales/Agreement',
       },
       {
+        name: '创建销售合同',
+        path: '/sales/agreement/create/:orderNo',
+        component: './Sales/Agreement/Create',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑销售合同',
+        path: '/sales/agreement/edit/:agreementUuid',
+        component: './Sales/Agreement/Edit',
+        hideInMenu: true,
+      },
+      
+      {
         name: '销售订单',
         path: '/sales/order',
         component: './Sales/Order',
@@ -358,14 +377,14 @@ export default [
       },
       {
         name: '添加订单',
-        path: '/sales/order/add',
+        path: '/sales/order/add/:purchaseOrderId',
         component: './Sales/Order/Add',
         hideInMenu: true,
       },
       {
         name: '编辑订单',
         path: '/sales/order/edit/:uuid',
-        component: './Sales/Order/Add',
+        component: './Sales/Order/Edit',
         hideInMenu: true,
       },
       {
@@ -472,6 +491,26 @@ export default [
         hideInMenu: true,
         path: '/system/permission/menu/:permissionId',
         component: './Sys/Permission/BindMenu',
+      },
+      {
+        name: '用户注册协议',
+        path: '/system/user-agreement',
+        component: './Sys/UserAgreement',
+      },
+      {
+        name: '隐私政策',
+        path: '/system/privacy-policy',
+        component: './Sys/PrivacyPolicy',
+      },
+      {
+        name: '关于我们',
+        path: '/system/about-us',
+        component: './Sys/AboutUs',
+      },
+      {
+        name: '微信用户管理',
+        path: '/system/wx-user',
+        component: './Sys/WxUser',
       },
     ],
   },

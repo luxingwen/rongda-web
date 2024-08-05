@@ -6,6 +6,8 @@ import RightContent from '@/components/RightContent';
 import { getMyUserInfo } from '@/services/user';
 import Footer from '@/components/Footer';
 
+import './global.less';
+
 
 const loginPath = '/login';
 

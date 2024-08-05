@@ -1,0 +1,42 @@
+/* ContractSigning.css */
+
+.content {
+    padding: 20px;
+    background-color: white;
+  }
+  
+  .pdf-container {
+    border: 1px solid #d9d9d9;
+    padding: 10px;
+    border-radius: 4px;
+    position: relative;
+    overflow: auto;
+    max-width: 100%;
+    margin-bottom: 20px;
+    background-color: #f0f0f0; /* Set the background to grey */
+    display: flex;
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+  }
+  
+  .pdf-page {
+    position: relative;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: white; /* Ensure the PDF page has a white background */
+  }
+  
+  .signature-box {
+    width: 100px;
+    height: 50px;
+    background-color: rgba(255, 0, 0, 0.3);
+    border: 1px solid red;
+    cursor: move;
+  }
+  
+  .pdf-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  

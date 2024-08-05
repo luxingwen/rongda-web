@@ -33,7 +33,7 @@ const { Option } = Select;
 const SalesOrderForm = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { uuid } = useParams();
+  const { purchaseOrderId } = useParams();
   const [productOptions, setProductOptions] = useState([]);
   const [customerOptions, setCustomerOptions] = useState([]);
   const [skuOptions, setSkuOptions] = useState([]);
@@ -56,10 +56,7 @@ const SalesOrderForm = () => {
     fetchCustomerOptions();
     fetchPurchaseOrderOptions();
     fetchSettlementCurrencyOptions();
-    if (uuid) {
-      fetchSalesOrderDetail(uuid);
-    }
-  }, [uuid]);
+  }, []);
 
 
   
@@ -81,6 +78,14 @@ const SalesOrderForm = () => {
     const response = await getPurchaseOrdersByStatus({ status_list: ['待处理', '处理中', '已处理', '已审核',  '已完成', '已入库'] });
     if (response.code === 200) {
       setPurchaseOrderOptions(response.data);
+      if (purchaseOrderId && purchaseOrderId !== 'new') {
+        form.setFieldsValue({ purchase_order_no: purchaseOrderId });
+        const currentOrder = response.data.find(order => order.order_no === purchaseOrderId);
+    
+        form.setFieldsValue({ customer_uuid: currentOrder.customer_uuid });
+        fetchPurchaseOrderInfo(purchaseOrderId);
+      }
+        
     } else {
       message.error('获取采购单选项失败');
     }
@@ -211,7 +216,7 @@ const SalesOrderForm = () => {
 
   const handleSubmit = async (values) => {
     try {
-      values.order_no = uuid ? uuid : "";
+
       values.deposit = parseFloat(values.deposit_amount);
       values.order_amount = parseFloat(values.order_amount);
       values.final_payment_amount = parseFloat(values.final_payment_amount);
@@ -233,6 +238,7 @@ const SalesOrderForm = () => {
 
       if (currentPurchaseOrder) {
         values.purchase_order_no = currentPurchaseOrder.order_no;
+        values.entrust_order_id = currentPurchaseOrder.entrust_order_id;
       }
 
       if (editingOrder) {
@@ -629,8 +635,11 @@ const SalesOrderForm = () => {
       <Form.Item name="order_date" label="订单日期" rules={[{ required: true, message: '请输入订单日期' }]}>
         <Input type="date" />
       </Form.Item>
-      <Form.Item name="purchase_order_no" label="采购订单" rules={[{ required: true, message: '请选择采购订单' }]}>
-        <Select showSearch allowClear mode="combobox" onChange={handlePuchaseOrderChange} filterOption={(input, option) =>
+      <Form.Item
+      initialValue={purchaseOrderId}
+      name="purchase_order_no" label="采购订单" rules={[{ required: true, message: '请选择采购订单' }]}>
+        <Select 
+        showSearch allowClear mode="combobox" onChange={handlePuchaseOrderChange} filterOption={(input, option) =>
           option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
         } placeholder="请选择采购订单">
           {purchaseOrderOptions.map(order => (
