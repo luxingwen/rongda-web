@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import RightContent from '@/components/RightContent';
 import { getMyUserInfo } from '@/services/user';
 import Footer from '@/components/Footer';
+import logopng from '@/assets/images/logo.png';
 
 import './global.less';
 
@@ -47,7 +48,7 @@ export async function getInitialState(): Promise<{
 
 export const layout = () => {
   return {
-    logo: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-28-27.svg',
+    logo: logopng,
     menu: {
       locale: false,
     },

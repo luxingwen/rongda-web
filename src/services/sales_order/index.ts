@@ -72,3 +72,11 @@ export async function createSalesagreement(data) {
     },
   });
 }
+
+// 获取步骤列表
+export async function getSalesOrderStepList(data) {
+  return request('/api/v1/sales_order/step/list', {
+    method: 'POST',
+    data,
+  });
+}

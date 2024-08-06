@@ -3,7 +3,7 @@ import proxy from './proxy';
 import routes from './routes';
 
 export default defineConfig({
-  favicons: ['/logo.png'],
+  favicons: ['/public/logo.png'],
   antd: {
     configProvider: {
       theme: {

@@ -1,6 +1,7 @@
 import {
   getSalesOrderDetail,
   getSalesOrderProductList,
+  getSalesOrderStepList,
 } from '@/services/sales_order';
 import { RouteContext } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
@@ -16,10 +17,12 @@ const SalesOrderDetail = () => {
   const [orderInfo, setOrderInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [productList, setProductList] = useState([]);
+  const [stepList, setStepList] = useState([]);
 
   useEffect(() => {
     fetchOrderDetail(uuid);
     fetchProductList(uuid);
+    fetchStepList(uuid);
   }, [uuid]);
 
   const fetchOrderDetail = async (uuid) => {
@@ -49,6 +52,20 @@ const SalesOrderDetail = () => {
       message.error('获取商品列表失败');
     }
   };
+
+  const fetchStepList = async (uuid) => {
+    try {
+      const response = await getSalesOrderStepList({ uuid });
+      if (response.code === 200) {
+        setStepList(response.data);
+      } else {
+        message.error('获取步骤列表失败');
+      }
+    } catch (error) {
+      message.error('获取步骤列表失败');
+    }
+  };
+
 
   const columns = [
     {
@@ -191,12 +208,13 @@ const SalesOrderDetail = () => {
           <RouteContext.Consumer>
             {() => (
               <div className="steps-container">
-                <Steps current={1} className="steps-content">
-                  {steps.map((step, index) => (
+                <Steps className="steps-content">
+                  {stepList.map((step, index) => (
                     <Step
                       key={index}
                       title={step.title}
                       description={step.description}
+                      status={step.status}
                     />
                   ))}
                 </Steps>
