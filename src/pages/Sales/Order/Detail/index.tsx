@@ -5,9 +5,10 @@ import {
 } from '@/services/sales_order';
 import { RouteContext } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { Card, Divider, message, Spin, Steps, Table } from 'antd';
+import { Button, Card, Divider, message, Spin, Steps, Table } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { history } from '@umijs/max';
 import './SalesOrderDetail.css';
 
 const { Step } = Steps;
@@ -18,6 +19,11 @@ const SalesOrderDetail = () => {
   const [loading, setLoading] = useState(true);
   const [productList, setProductList] = useState([]);
   const [stepList, setStepList] = useState([]);
+  const [current, setCurrent] = useState(0);
+
+  const onChange = current => {
+    setCurrent(current);
+  };
 
   useEffect(() => {
     fetchOrderDetail(uuid);
@@ -66,6 +72,9 @@ const SalesOrderDetail = () => {
     }
   };
 
+  const handleButtonClick = (path) => {
+    history.push(path);
+  };
 
   const columns = [
     {
@@ -117,30 +126,117 @@ const SalesOrderDetail = () => {
     0,
   );
 
-  const steps = [
-    { title: "创建订单" },
-    { title: "订单确认", description: "客户确认订单" },
-    { title: "创建合同", description: "创建订单合同" },
-    { title: "签署合同" },
-    { title: "创建定金合同" },
-    { title: "签署定金合同" },
-    { title: "支付定金" },
-    { title: "更新单据信息" },
-    { title: "船期更新" },
-    { title: "创建尾款合同" },
-    { title: "签署尾款合同" },
-    { title: "支付尾款" },
-    { title: "等待货物到港清关" },
-    { title: "货物流向" },
-    { title: "货物海关放行" },
-    { title: "入库或倒柜直提" },
-    { title: "预约提货" },
-    { title: "账单结算" },
-    { title: "账单确认" },
-    { title: "货款支付" },
-    { title: "货物放行" },
-    { title: "完成" },
-  ];
+  const renderStepContent = (step) => {
+    switch (step.title) {
+      case '创建订单':
+        return <Card>创建订单的具体内容</Card>;
+      case '订单确认':
+        return <Card>订单确认的具体内容</Card>;
+      case '创建合同':
+        return (
+          <Card>
+            {step?.ref_id ? (
+              <Button onClick={() => handleButtonClick(`/sales/agreement/edit/${step.ref_id}`)}>
+                编辑合同
+              </Button>
+            ) : (
+              <Button onClick={() => handleButtonClick(`/sales/agreement/create/${uuid}`)}>
+                创建合同
+              </Button>
+            )}
+          </Card>
+        );
+      case '签署合同':
+        return <Card>签署合同的具体内容</Card>;
+      case '创建定金合同':
+        return (
+          <Card>
+              {step?.ref_id ? (
+                <Button onClick={() => handleButtonClick(`/sales/agreement/edit-deposit/${step.ref_id}`)}>
+                  编辑定金合同
+                </Button>
+              ) : (
+                <Button onClick={() => handleButtonClick(`/sales/agreement/create-deposit/${uuid}`)}>
+                  创建定金合同
+                </Button>
+              )}
+          </Card>
+        );
+      case '签署定金合同':
+        return <Card>签署定金合同的具体内容</Card>;
+      case '支付定金':
+        return <Card>
+          {step?.ref_id ? (
+            <Button onClick={() => handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)}>
+              编辑支付账单
+            </Button>
+          ) : (
+            <Button onClick={() => handleButtonClick(`/sales/payment-bill/create/${uuid}`)}>
+              创建支付账单
+            </Button>
+          )}  
+          
+
+        </Card>;
+      case '更新单据信息':
+        return <Card>更新单据信息的具体内容</Card>;
+      case '船期更新':
+        return <Card>船期更新的具体内容</Card>;
+      case '创建尾款合同':
+        return (
+          <Card>
+            {step?.ref_id ? (
+              <Button onClick={() => handleButtonClick(`/sales/agreement/edit-final-payment/${step.ref_id}`)}>
+                编辑尾款合同
+              </Button>
+            ) : (
+              <Button onClick={() => handleButtonClick(`/sales/agreement/create-final-payment/${uuid}`)}>
+                创建尾款合同
+              </Button>
+            )}
+
+          </Card>
+        );
+      case '签署尾款合同':
+        return <Card>签署尾款合同的具体内容</Card>;
+      case '支付尾款':
+        return <Card>
+          { step?.ref_id ? (
+            <Button onClick={() => handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)}>
+              编辑支付账单
+            </Button>
+          ) : (
+            <Button onClick={() => handleButtonClick(`/sales/payment-bill/final/create/${uuid}`)}>
+              创建支付账单
+            </Button>
+          )  
+          }
+
+        </Card>;
+      case '等待货物到港清关':
+        return <Card>等待货物到港清关的具体内容</Card>;
+      case '货物流向':
+        return <Card>货物流向的具体内容</Card>;
+      case '货物海关放行':
+        return <Card>货物海关放行的具体内容</Card>;
+      case '入库或倒柜直提':
+        return <Card>入库或倒柜直提的具体内容</Card>;
+      case '预约提货':
+        return <Card>预约提货的具体内容</Card>;
+      case '账单结算':
+        return <Card>账单结算的具体内容</Card>;
+      case '账单确认':
+        return <Card>账单确认的具体内容</Card>;
+      case '货款支付':
+        return <Card>货款支付的具体内容</Card>;
+      case '货物放行':
+        return <Card>货物放行的具体内容</Card>;
+      case '完成':
+        return <Card>订单完成的具体内容</Card>;
+      default:
+        return <Card>该步骤暂无内容</Card>;
+    }
+  };
 
   return (
     <Spin spinning={loading}>
@@ -208,7 +304,9 @@ const SalesOrderDetail = () => {
           <RouteContext.Consumer>
             {() => (
               <div className="steps-container">
-                <Steps className="steps-content">
+                <Steps 
+                  current={current} onChange={onChange}
+                  className="steps-content">
                   {stepList.map((step, index) => (
                     <Step
                       key={index}
@@ -218,6 +316,9 @@ const SalesOrderDetail = () => {
                     />
                   ))}
                 </Steps>
+                <div style={{ marginTop: 24 }}>
+                  {renderStepContent(stepList[current] || {})}
+                </div>
               </div>
             )}
           </RouteContext.Consumer>

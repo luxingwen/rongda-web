@@ -80,3 +80,41 @@ export async function getSalesOrderStepList(data) {
     data,
   });
 }
+
+// 创建定金合同
+export async function createDepositAgreement(data) {
+  return request('/api/v1/sales_order/create_deposit_agreement', {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+// 创建尾款合同
+export async function createFinalPaymentAgreement(data) {
+  return request('/api/v1/sales_order/create_final_agreement', {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+// 创建定金支付账单
+export async function createDepositPaymentBill(data) {
+  return request('/api/v1/sales_order/create_deposit_payment_bill', {
+    method: 'POST',
+    data,
+  });
+}
+
+// 创建尾款支付账单
+export async function createFinalPaymentBill(data) {
+  return request('/api/v1/sales_order/create_final_payment_bill', {
+    method: 'POST',
+    data,
+  });
+}

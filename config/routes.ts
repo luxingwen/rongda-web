@@ -363,7 +363,33 @@ export default [
         component: './Sales/Agreement/Edit',
         hideInMenu: true,
       },
+
+      {
+        name: '创建定金合同',
+        path: '/sales/agreement/create-deposit/:orderNo',
+        component: './Sales/Agreement/Create/deposit',
+        hideInMenu: true,
+      },
       
+      
+      {
+        name: '编辑定金合同',
+        path: '/sales/agreement/edit-deposit/:agreementUuid',
+        component: './Sales/Agreement/Edit',
+        hideInMenu: true,
+      },
+      {
+        name: '创建尾款合同',
+        path: '/sales/agreement/create-final-payment/:orderNo',
+        component: './Sales/Agreement/Create/final_payment',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑尾款合同',
+        path: '/sales/agreement/edit-final-payment/:agreementUuid',
+        component: './Sales/Agreement/Edit',
+        hideInMenu: true,
+      },
       {
         name: '销售订单',
         path: '/sales/order',
@@ -419,6 +445,29 @@ export default [
         name: '发票',
         path: '/sales/bill',
         component: './Bill',
+      },
+      {
+        name: '支付账单',
+        path: '/sales/payment-bill',
+        component: './PaymentBill',
+      },
+      {
+        name: '创建定金支付账单',
+        path: '/sales/payment-bill/create/:orderNo',
+        component: './PaymentBill/Create/SalesDeposit',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑支付账单',
+        path: '/sales/payment-bill/edit/:uuid',
+        component: './PaymentBill/Edit',
+        hideInMenu: true,
+      },
+      {
+        name: '创建尾款支付账单',
+        path: '/sales/payment-bill/final/create/:orderNo',
+        component: './PaymentBill/Create/SalesFinal',
+        hideInMenu: true,
       },
       {
         name: '添加发票',

@@ -81,6 +81,7 @@ const SalesOrderManagement = () => {
   const statusColors = {
     待处理: 'blue',
     处理中: 'orange',
+    待确认: 'volcano',
     待支付: 'green',
     已支付: 'purple',
     待发货: 'red',

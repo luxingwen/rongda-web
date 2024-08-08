@@ -34,3 +34,11 @@ export async function getAgreement(data) {
     data,
   });
 }
+
+// GetAgreementByOrder
+export async function getAgreementByOrder(data) {
+  return request('/api/v1/agreement/order', {
+    method: 'POST',
+    data,
+  });
+}
