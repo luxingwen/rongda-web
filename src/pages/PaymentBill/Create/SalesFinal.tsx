@@ -84,6 +84,8 @@ const PaymentBillCreate = () => {
       values.unpaid_amount = parseFloat(values.unpaid_amount) || 0;
       values.advance_amount = parseFloat(values.advance_amount) || 0;
       values.team_uuid = salesOrder?.customer_uuid || '';
+      values.exchange_rate = parseFloat(values.exchange_rate) || 0;
+      values.lock_exchange_rate = parseFloat(values.lock_exchange_rate) || 0;
       const res = await createFinalPaymentBill(values);
       if (res.code !== 200) {
         message.error(res.message);
