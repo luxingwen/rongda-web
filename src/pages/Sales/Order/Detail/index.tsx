@@ -5,10 +5,12 @@ import {
 } from '@/services/sales_order';
 import { RouteContext } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { Button, Card, Divider, message, Spin, Steps, Table } from 'antd';
+import { Button, Card, Divider, message, Spin, Steps, Table, Upload, Modal } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { history } from '@umijs/max';
+import { UploadOutlined } from '@ant-design/icons';
+import { uploadDocments } from '@/services/sales_order';
 import './SalesOrderDetail.css';
 
 const { Step } = Steps;
@@ -20,6 +22,52 @@ const SalesOrderDetail = () => {
   const [productList, setProductList] = useState([]);
   const [stepList, setStepList] = useState([]);
   const [current, setCurrent] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [docFileList, setDocFileList] = useState([]);
+  const [exsitingDocFileList, setExistingDocFileList] = useState([]);
+
+  const handleFileChange = ({ fileList: newFileList }) => {
+    setDocFileList(newFileList);
+  };
+  
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+  
+  const handleOk = async () => {
+  
+    // Here you can handle the file upload process
+    console.log('Uploaded files:', docFileList);
+    const formData = new FormData();
+    docFileList.forEach(file => {
+      formData.append('attachment', file.originFileObj);
+    });
+
+    formData.append('order_no', uuid);
+    if (exsitingDocFileList.length > 0) {
+      formData.append('existfiles', JSON.stringify(exsitingDocFileList));
+    }
+
+    const res = await uploadDocments(formData);
+    if (res.code === 200) {
+      message.success('上传成功');
+      setIsModalVisible(false);
+      fetchOrderDetail(uuid);
+    } else {
+      message.error('上传失败');
+    }
+
+
+
+  
+
+  };
+  
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
 
   const onChange = current => {
     setCurrent(current);
@@ -36,6 +84,10 @@ const SalesOrderDetail = () => {
       const response = await getSalesOrderDetail({ uuid });
       if (response.code === 200) {
         setOrderInfo(response.data);
+        if (response.data?.documents !=="") {
+          const documents = JSON.parse(response.data.documents);
+          setExistingDocFileList(documents);
+        }
       } else {
         message.error('获取订单详情失败');
       }
@@ -44,6 +96,13 @@ const SalesOrderDetail = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleRemoveFileParams = (index) => {
+    const newFileList = [...exsitingDocFileList];
+    newFileList.splice(index, 1);
+    setExistingDocFileList(newFileList);
   };
 
   const fetchProductList = async (uuid) => {
@@ -179,7 +238,59 @@ const SalesOrderDetail = () => {
 
         </Card>;
       case '更新单据信息':
-        return <Card>更新单据信息的具体内容</Card>;
+        return ( <Card>
+        <Button type="primary" onClick={showModal}>
+          更新单据
+        </Button>
+        <Modal
+          title="更新单据信息"
+          visible={isModalVisible}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="上传"
+          cancelText="取消"
+        >
+          <Upload
+            onRemove={(file) => {
+              const index = docFileList.indexOf(file);
+              const newFileList = docFileList.slice();
+              newFileList.splice(index, 1);
+              setDocFileList(newFileList);
+            }}
+            beforeUpload={(file) => {
+              setDocFileList([...docFileList, file]);
+              return false;
+            }}
+            fileList={docFileList}
+            onChange={handleFileChange}
+          >
+            <Button icon={<UploadOutlined />}>选择文件</Button>
+          </Upload>
+
+          {exsitingDocFileList.length > 0 && (
+            <div>
+              {exsitingDocFileList.map((file, index) => (
+                <div key={index} className="file-item">
+                   <a
+                      href={'/public/' + file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                    <span>{file.name}</span>
+                  </a>
+                  <Button
+                    type="link"
+                    onClick={() => handleRemoveFileParams(index)}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </Modal>
+      </Card>);
       case '船期更新':
         return <Card>船期更新的具体内容</Card>;
       case '创建尾款合同':
@@ -224,7 +335,18 @@ const SalesOrderDetail = () => {
       case '预约提货':
         return <Card>预约提货的具体内容</Card>;
       case '账单结算':
-        return <Card>账单结算的具体内容</Card>;
+        return <Card>
+          {step?.ref_id ? (
+            <Button onClick={() => handleButtonClick(`/sales/settlement/edit/${step.ref_id}`)}>
+              编辑结算账单
+            </Button>
+          ) : (
+            <Button onClick={() => handleButtonClick(`/sales/settlement/create/${uuid}`)}>
+              创建结算账单
+            </Button>
+          )}
+
+        </Card>;
       case '账单确认':
         return <Card>账单确认的具体内容</Card>;
       case '货款支付':

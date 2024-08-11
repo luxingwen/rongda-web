@@ -82,12 +82,14 @@ const SalesOrderManagement = () => {
     待处理: 'blue',
     处理中: 'orange',
     待确认: 'volcano',
-    待支付: 'green',
-    已支付: 'purple',
-    待发货: 'red',
-    已发货: 'gold',
-    已完成: 'teal',
-    已取消: 'cyan',
+    已确认: 'green',
+    待付头款: 'cyan',
+    已付头款: 'geekblue',
+    待付尾款: 'purple',
+    已付尾款: 'magenta',
+    清关中: 'gold',
+    已放行: 'lime',
+    已完成: 'green',
   };
 
   const renderStatus = (status, record) => {
@@ -98,6 +100,7 @@ const SalesOrderManagement = () => {
     return (
       <Select
         value={status}
+        style={{ width: 120 }}
         onChange={(value) => handleChangeStatus(value, record.order_no)}
       >
         {Object.keys(statusColors).map((status) => (

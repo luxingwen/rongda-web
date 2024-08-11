@@ -118,3 +118,15 @@ export async function createFinalPaymentBill(data) {
     data,
   });
 }
+
+
+// 上传单据
+export async function uploadDocments(data) {
+  return request('/api/v1/sales_order/update_docment', {
+    method: 'POST',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}

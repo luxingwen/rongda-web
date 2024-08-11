@@ -439,7 +439,19 @@ export default [
       {
         name: '结算',
         path: '/sales/settlement',
-        component: './Sales/Settlement',
+        component: './Settlement',
+      },
+      {
+        name: '创建结算单',
+        path: '/sales/settlement/create/:orderNo',
+        component: './Settlement/Create',
+        hideInMenu: true,
+      },
+      {
+        name: '编辑结算单',
+        path: '/sales/settlement/edit/:uuid',
+        component: './Settlement/Edit',
+        hideInMenu: true,
       },
       {
         name: '发票',
