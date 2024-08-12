@@ -386,7 +386,7 @@ const AddPurchaseOrder = () => {
         ci_total_amount: parseFloat(d.ci_total_amount),
         tariff: parseFloat(d.tariff),
         vat: parseFloat(d.vat),
-        box_num: parseInt(d.box_num),
+        box_num: parseFloat(d.box_num),
       }));
 
       if (fileList.length > 0) {

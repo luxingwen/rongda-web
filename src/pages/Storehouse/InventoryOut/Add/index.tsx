@@ -246,7 +246,7 @@ const StorehouseOutboundForm = () => {
       values.detail = detailData.map((item) => ({
         ...item,
         storehouse_product_uuid: item.uuid,
-        quantity: parseInt(item.quantity, 10),
+        quantity: parseFloat(item.quantity),
       }));
 
       const res = await addOutbound(values);

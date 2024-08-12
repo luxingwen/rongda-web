@@ -83,10 +83,10 @@ const AddSalesOutOfStock = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      values.status = parseInt(values.status);
+      values.status = parseFloat(values.status);
       values.items = values.items.map((item) => ({
         ...item,
-        quantity: parseInt(item.quantity),
+        quantity: parseFloat(item.quantity),
         price: parseFloat(item.price),
         total_amount: parseFloat(item.total_amount),
       }));

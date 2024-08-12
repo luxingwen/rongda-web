@@ -102,7 +102,7 @@ const StorehouseProductManagement = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      values.quantity = parseInt(values.quantity);
+      values.quantity = parseFloat(values.quantity);
       if (editingProduct) {
         await updateStorehouseProduct({ ...editingProduct, ...values });
         message.success('更新成功');

@@ -222,10 +222,10 @@ const SalesOrderForm = () => {
 
       values.product_list = details.map(item => ({
         ...item,
-        product_quantity: parseInt(item.quantity, 10),
+        product_quantity: parseFloat(item.quantity),
         product_price: parseFloat(item.price),
         product_amount: parseFloat(item.amount),
-        box_num: parseInt(item.box_num, 10),
+        box_num: parseFloat(item.box_num),
       }));
 
       console.log("details", details);
@@ -293,11 +293,11 @@ const SalesOrderForm = () => {
         const quantity = isFutureOrder? originData.ci_quantity : originData.quantity;
         const box_num = isFutureOrder? originData.ci_box_num : originData.box_num;
 
-        if (originData && quantity < parseInt(values.quantity, 10)) {
+        if (originData && quantity < parseFloat(values.quantity)) {
           message.error('数量不能大于采购数量 ' + quantity);
           return;
         }
-        if (originData && box_num < parseInt(values.box_num, 10)) {
+        if (originData && box_num < parseFloat(values.box_num)) {
           message.error('箱数不能大于采购箱数 ' + box_num);
           return;
         }
@@ -313,8 +313,8 @@ const SalesOrderForm = () => {
           }
           values.key = details.length + 1;
           originData.key = values.key;
-          originData.quantity = parseInt(values.quantity, 10);
-          originData.box_num = parseInt(values.box_num, 10);
+          originData.quantity = parseFloat(values.quantity);
+          originData.box_num = parseFloat(values.box_num);
           setDetails([...details, { ...originData }]);
         }
         setModalVisible(false);
@@ -440,7 +440,7 @@ const SalesOrderForm = () => {
                   console.log("originData quantity", originData.quantity);
                   console.log("value", value);
 
-                  if (originData && parseInt(value) > num) {
+                  if (originData && parseFloat(value) > num) {
                     console.log("originData.quantity 111", num);
                     return Promise.reject('数量不能大于采购数量' + num);
                   }
@@ -451,7 +451,7 @@ const SalesOrderForm = () => {
           >
             <Input type="number"  defaultValue={record.quantity}  onChange={(e) => {
               // 当输入改变时，手动触发表格数据更新
-              const newQuantity = parseInt(e.target.value, 10);
+              const newQuantity = parseFloat(e.target.value);
               record.quantity = newQuantity;
               setCurrentEditRow(record);
               if (record.quantity <= originData.quantity) {
@@ -494,7 +494,7 @@ const SalesOrderForm = () => {
                   const isFutureOrder = currentPurchaseOrder?.order_type === '1';
                   const num = isFutureOrder? originData.ci_box_num : originData.box_num;
 
-                  if (originData && parseInt(value) > num) {
+                  if (originData && parseFloat(value) > num) {
                     console.log("originData.quantity 111", num);
                     return Promise.reject('数量不能大于采购箱数' + num);
                   }
@@ -505,7 +505,7 @@ const SalesOrderForm = () => {
           >
             <Input type="number"  defaultValue={record.box_num}  onChange={(e) => {
               // 当输入改变时，手动触发表格数据更新
-              const val = parseInt(e.target.value, 10);
+              const val = parseFloat(e.target.value);
               record.box_num = val;
               setCurrentEditRow(record);
               if (record.box_num <= originData.box_num) {
@@ -717,12 +717,12 @@ const SalesOrderForm = () => {
                       const num_quantity = isFutureOrder? originData.ci_quantity : originData.quantity;
                       const num_box_num = isFutureOrder? originData.ci_box_num : originData.box_num;
 
-                      if(num_quantity < parseInt(row.quantity)) {
+                      if(num_quantity < parseFloat(row.quantity)) {
                         message.error('数量不能大于采购数量 ' + num_quantity);
                         return;
                       }
         
-                      if(num_box_num < parseInt(row.box_num)) {
+                      if(num_box_num < parseFloat(row.box_num)) {
                         message.error('箱数不能大于采购箱数 ' + num_box_num);
                         return;
                       }

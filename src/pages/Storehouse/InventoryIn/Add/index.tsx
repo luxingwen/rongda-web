@@ -152,8 +152,8 @@ const StorehouseInboundForm = () => {
       const item = newData[index];
 
       const citem = purchaseOrderProductList.find( (product) => product.purchase_order_product_no === item.purchase_order_product_no);
-      const quantity = parseInt(row.quantity);
-      const box_num = parseInt(row.box_num);
+      const quantity = parseFloat(row.quantity);
+      const box_num = parseFloat(row.box_num);
       if (citem.quantity < quantity) {
         row.quantity = citem.quantity;
       }
@@ -187,8 +187,8 @@ const StorehouseInboundForm = () => {
       const citem = purchaseOrderProductList.find(
         (product) => product.purchase_order_product_no === record.purchase_order_product_no
       );
-      const quantity = parseInt(updatedRecord.quantity);
-      const box_num = parseInt(updatedRecord.box_num);
+      const quantity = parseFloat(updatedRecord.quantity);
+      const box_num = parseFloat(updatedRecord.box_num);
   
       if (citem.quantity < quantity) {
         message.error('入库数量不能大于采购数量' + citem.quantity);
@@ -233,8 +233,8 @@ const StorehouseInboundForm = () => {
       values.purchase_order_product_type = currentPurchaseOrder.order_type;
       values.detail = detailData.map((item) => ({
         ...item,
-        quantity: parseInt(item.quantity),
-        box_num: parseInt(item.box_num),
+        quantity: parseFloat(item.quantity),
+        box_num: parseFloat(item.box_num),
       }));
 
       // 判断数量是否超过采购数量
@@ -287,13 +287,13 @@ const StorehouseInboundForm = () => {
         );
 
         // 判断数量是否超过采购数量
-        if (originData && originData.quantity < parseInt(values.quantity)) {
+        if (originData && originData.quantity < parseFloat(values.quantity)) {
           message.error('入库数量不能大于采购数量' + originData.quantity);
           return;
         }
 
         // 判断箱数是否超过采购箱数
-        if (originData && originData.box_num < parseInt(values.box_num)) {
+        if (originData && originData.box_num < parseFloat(values.box_num)) {
           message.error('入库箱数不能大于采购箱数' + originData.box_num);
           return;
         }

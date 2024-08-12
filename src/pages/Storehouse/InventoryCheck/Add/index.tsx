@@ -44,13 +44,13 @@ const AddInventoryCheck = () => {
 
   const handleOk = async () => {
     const values = await form.validateFields();
-    values.status = parseInt(values.status);
+    values.status = parseFloat(values.status);
     values.detail = details.map(item => ({
       storehouse_product_uuid: item.uuid,
       product_uuid: item.product_uuid,
       sku_uuid: item.sku_uuid,
-      quantity: parseInt(item.quantity),
-      box_num: parseInt(item.box_num),
+      quantity: parseFloat(item.quantity),
+      box_num: parseFloat(item.box_num),
     }));
     const res = await addInventoryCheck(values);
     if (res.code === 200) {
