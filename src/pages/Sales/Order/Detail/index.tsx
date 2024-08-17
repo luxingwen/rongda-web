@@ -1,16 +1,27 @@
+import RemittanceBillCreateForm from '@/components/RemittanceBill/RemittanceBillCreate';
 import {
   getSalesOrderDetail,
   getSalesOrderProductList,
   getSalesOrderStepList,
+  uploadDocments,
 } from '@/services/sales_order';
+import { UploadOutlined } from '@ant-design/icons';
 import { RouteContext } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { Button, Card, Divider, message, Spin, Steps, Table, Upload, Modal } from 'antd';
+import { history } from '@umijs/max';
+import {
+  Button,
+  Card,
+  Divider,
+  message,
+  Modal,
+  Spin,
+  Steps,
+  Table,
+  Upload,
+} from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { history } from '@umijs/max';
-import { UploadOutlined } from '@ant-design/icons';
-import { uploadDocments } from '@/services/sales_order';
 import './SalesOrderDetail.css';
 
 const { Step } = Steps;
@@ -25,22 +36,23 @@ const SalesOrderDetail = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [docFileList, setDocFileList] = useState([]);
   const [exsitingDocFileList, setExistingDocFileList] = useState([]);
+  // 添加付汇弹窗
+  const [remittanceBillVisible, setRemittanceBillVisible] = useState(false);
+  const [remittanceBillType, setRemittanceBillType] = useState('定金');
 
   const handleFileChange = ({ fileList: newFileList }) => {
     setDocFileList(newFileList);
   };
-  
 
   const showModal = () => {
     setIsModalVisible(true);
   };
-  
+
   const handleOk = async () => {
-  
     // Here you can handle the file upload process
     console.log('Uploaded files:', docFileList);
     const formData = new FormData();
-    docFileList.forEach(file => {
+    docFileList.forEach((file) => {
       formData.append('attachment', file.originFileObj);
     });
 
@@ -57,19 +69,13 @@ const SalesOrderDetail = () => {
     } else {
       message.error('上传失败');
     }
-
-
-
-  
-
   };
-  
+
   const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-
-  const onChange = current => {
+  const onChange = (current) => {
     setCurrent(current);
   };
 
@@ -84,7 +90,7 @@ const SalesOrderDetail = () => {
       const response = await getSalesOrderDetail({ uuid });
       if (response.code === 200) {
         setOrderInfo(response.data);
-        if (response.data?.documents !=="") {
+        if (response.data?.documents !== '') {
           const documents = JSON.parse(response.data.documents);
           setExistingDocFileList(documents);
         }
@@ -97,7 +103,6 @@ const SalesOrderDetail = () => {
       setLoading(false);
     }
   };
-
 
   const handleRemoveFileParams = (index) => {
     const newFileList = [...exsitingDocFileList];
@@ -195,11 +200,19 @@ const SalesOrderDetail = () => {
         return (
           <Card>
             {step?.ref_id ? (
-              <Button onClick={() => handleButtonClick(`/sales/agreement/edit/${step.ref_id}`)}>
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/agreement/edit/${step.ref_id}`)
+                }
+              >
                 编辑合同
               </Button>
             ) : (
-              <Button onClick={() => handleButtonClick(`/sales/agreement/create/${uuid}`)}>
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/agreement/create/${uuid}`)
+                }
+              >
                 创建合同
               </Button>
             )}
@@ -210,120 +223,195 @@ const SalesOrderDetail = () => {
       case '创建定金合同':
         return (
           <Card>
-              {step?.ref_id ? (
-                <Button onClick={() => handleButtonClick(`/sales/agreement/edit-deposit/${step.ref_id}`)}>
-                  编辑定金合同
-                </Button>
-              ) : (
-                <Button onClick={() => handleButtonClick(`/sales/agreement/create-deposit/${uuid}`)}>
-                  创建定金合同
-                </Button>
-              )}
+            {step?.ref_id ? (
+              <Button
+                onClick={() =>
+                  handleButtonClick(
+                    `/sales/agreement/edit-deposit/${step.ref_id}`,
+                  )
+                }
+              >
+                编辑定金合同
+              </Button>
+            ) : (
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/agreement/create-deposit/${uuid}`)
+                }
+              >
+                创建定金合同
+              </Button>
+            )}
           </Card>
         );
       case '签署定金合同':
         return <Card>签署定金合同的具体内容</Card>;
       case '支付定金':
-        return <Card>
-          {step?.ref_id ? (
-            <Button onClick={() => handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)}>
-              编辑支付账单
-            </Button>
-          ) : (
-            <Button onClick={() => handleButtonClick(`/sales/payment-bill/create/${uuid}`)}>
-              创建支付账单
-            </Button>
-          )}  
-          
+        return (
+          <Card>
+            {step?.ref_id ? (
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)
+                }
+              >
+                编辑支付账单
+              </Button>
+            ) : (
+              <div>
+                <Button
+                  onClick={() =>
+                    handleButtonClick(`/sales/payment-bill/create/${uuid}`)
+                  }
+                >
+                  创建支付账单
+                </Button>
+              </div>
+            )}
 
-        </Card>;
+            <Button
+              onClick={() => {
+                setRemittanceBillType('定金');
+                setRemittanceBillVisible(true);
+              }}
+            >
+              创建支付付汇单
+            </Button>
+          </Card>
+        );
       case '更新单据信息':
-        return ( <Card>
-        <Button type="primary" onClick={showModal}>
-          更新单据
-        </Button>
-        <Modal
-          title="更新单据信息"
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={handleCancel}
-          okText="上传"
-          cancelText="取消"
-        >
-          <Upload
-            onRemove={(file) => {
-              const index = docFileList.indexOf(file);
-              const newFileList = docFileList.slice();
-              newFileList.splice(index, 1);
-              setDocFileList(newFileList);
-            }}
-            beforeUpload={(file) => {
-              setDocFileList([...docFileList, file]);
-              return false;
-            }}
-            fileList={docFileList}
-            onChange={handleFileChange}
-          >
-            <Button icon={<UploadOutlined />}>选择文件</Button>
-          </Upload>
+        return (
+          <Card>
+            <Button type="primary" onClick={showModal}>
+              更新单据
+            </Button>
+            <Modal
+              title="更新单据信息"
+              visible={isModalVisible}
+              onOk={handleOk}
+              onCancel={handleCancel}
+              okText="上传"
+              cancelText="取消"
+            >
+              <Upload
+                onRemove={(file) => {
+                  const index = docFileList.indexOf(file);
+                  const newFileList = docFileList.slice();
+                  newFileList.splice(index, 1);
+                  setDocFileList(newFileList);
+                }}
+                beforeUpload={(file) => {
+                  setDocFileList([...docFileList, file]);
+                  return false;
+                }}
+                fileList={docFileList}
+                onChange={handleFileChange}
+              >
+                <Button icon={<UploadOutlined />}>选择文件</Button>
+              </Upload>
 
-          {exsitingDocFileList.length > 0 && (
-            <div>
-              {exsitingDocFileList.map((file, index) => (
-                <div key={index} className="file-item">
-                   <a
-                      href={'/public/' + file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                    <span>{file.name}</span>
-                  </a>
-                  <Button
-                    type="link"
-                    onClick={() => handleRemoveFileParams(index)}
-                  >
-                    删除
-                  </Button>
+              {exsitingDocFileList.length > 0 && (
+                <div>
+                  {exsitingDocFileList.map((file, index) => (
+                    <div key={index} className="file-item">
+                      <a
+                        href={'/public/' + file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span>{file.name}</span>
+                      </a>
+                      <Button
+                        type="link"
+                        onClick={() => handleRemoveFileParams(index)}
+                      >
+                        删除
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-        </Modal>
-      </Card>);
+              )}
+            </Modal>
+          </Card>
+        );
       case '船期更新':
-        return <Card>船期更新的具体内容</Card>;
+        return (
+          <Card>
+            <Button
+              onClick={() => {
+                history.push(
+                  `/purchase/order/edit-futures/${orderInfo.purchase_order_info.order_no}`,
+                );
+              }}
+            >
+              {' '}
+              去更新船期{' '}
+            </Button>
+          </Card>
+        );
       case '创建尾款合同':
         return (
           <Card>
             {step?.ref_id ? (
-              <Button onClick={() => handleButtonClick(`/sales/agreement/edit-final-payment/${step.ref_id}`)}>
+              <Button
+                onClick={() =>
+                  handleButtonClick(
+                    `/sales/agreement/edit-final-payment/${step.ref_id}`,
+                  )
+                }
+              >
                 编辑尾款合同
               </Button>
             ) : (
-              <Button onClick={() => handleButtonClick(`/sales/agreement/create-final-payment/${uuid}`)}>
+              <Button
+                onClick={() =>
+                  handleButtonClick(
+                    `/sales/agreement/create-final-payment/${uuid}`,
+                  )
+                }
+              >
                 创建尾款合同
               </Button>
             )}
-
           </Card>
         );
       case '签署尾款合同':
         return <Card>签署尾款合同的具体内容</Card>;
       case '支付尾款':
-        return <Card>
-          { step?.ref_id ? (
-            <Button onClick={() => handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)}>
-              编辑支付账单
-            </Button>
-          ) : (
-            <Button onClick={() => handleButtonClick(`/sales/payment-bill/final/create/${uuid}`)}>
-              创建支付账单
-            </Button>
-          )  
-          }
+        return (
+          <Card>
+            {step?.ref_id ? (
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/payment-bill/edit/${step.ref_id}`)
+                }
+              >
+                编辑支付账单
+              </Button>
+            ) : (
+              <div>
+                <Button
+                  onClick={() =>
+                    handleButtonClick(
+                      `/sales/payment-bill/final/create/${uuid}`,
+                    )
+                  }
+                >
+                  创建支付账单
+                </Button>
+              </div>
+            )}
 
-        </Card>;
+            <Button
+              onClick={() => {
+                setRemittanceBillType('尾款');
+                setRemittanceBillVisible(true);
+              }}
+            >
+              创建支付付汇单
+            </Button>
+          </Card>
+        );
       case '等待货物到港清关':
         return <Card>等待货物到港清关的具体内容</Card>;
       case '货物流向':
@@ -335,18 +423,27 @@ const SalesOrderDetail = () => {
       case '预约提货':
         return <Card>预约提货的具体内容</Card>;
       case '账单结算':
-        return <Card>
-          {step?.ref_id ? (
-            <Button onClick={() => handleButtonClick(`/sales/settlement/edit/${step.ref_id}`)}>
-              编辑结算账单
-            </Button>
-          ) : (
-            <Button onClick={() => handleButtonClick(`/sales/settlement/create/${uuid}`)}>
-              创建结算账单
-            </Button>
-          )}
-
-        </Card>;
+        return (
+          <Card>
+            {step?.ref_id ? (
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/settlement/edit/${step.ref_id}`)
+                }
+              >
+                编辑结算账单
+              </Button>
+            ) : (
+              <Button
+                onClick={() =>
+                  handleButtonClick(`/sales/settlement/create/${uuid}`)
+                }
+              >
+                创建结算账单
+              </Button>
+            )}
+          </Card>
+        );
       case '账单确认':
         return <Card>账单确认的具体内容</Card>;
       case '货款支付':
@@ -426,9 +523,11 @@ const SalesOrderDetail = () => {
           <RouteContext.Consumer>
             {() => (
               <div className="steps-container">
-                <Steps 
-                  current={current} onChange={onChange}
-                  className="steps-content">
+                <Steps
+                  current={current}
+                  onChange={onChange}
+                  className="steps-content"
+                >
                   {stepList.map((step, index) => (
                     <Step
                       key={index}
@@ -445,6 +544,19 @@ const SalesOrderDetail = () => {
             )}
           </RouteContext.Consumer>
         </Card>
+        <Modal
+          title="创建付汇账单"
+          open={remittanceBillVisible}
+          onCancel={() => setRemittanceBillVisible(false)}
+          footer={null}
+        >
+          <RemittanceBillCreateForm
+            orderInfo={orderInfo} // Pass the orderNo if needed
+            type={remittanceBillType}
+            onSuccess={() => setRemittanceBillVisible(false)}
+            onCancel={() => setRemittanceBillVisible(false)}
+          />
+        </Modal>
       </Card>
     </Spin>
   );
