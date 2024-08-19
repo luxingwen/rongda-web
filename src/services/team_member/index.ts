@@ -23,3 +23,11 @@ export async function deleteTeamMember(data) {
     data,
   });
 }
+
+export async function updateTeamMemberRole(data) {
+
+  return request('/api/v1/team_member/update_role', {
+    method: 'POST',
+    data,
+  });
+}

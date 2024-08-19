@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, message, Popconfirm, Modal, Form, Select } from 'antd';
 import ProTable from '@ant-design/pro-table';
-import { addTeamMember, deleteTeamMember, getTeamMembers } from '@/services/team_member';
+import { addTeamMember, deleteTeamMember, getTeamMembers,updateTeamMemberRole } from '@/services/team_member';
 import { getWxUserOption } from '@/services/user/wx_user'; // 假设有获取用户列表的服务
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
@@ -75,6 +75,21 @@ const TeamMemberManagement = () => {
     setIsModalVisible(false);
   };
 
+  // 更改角色
+  const handleUpdateRole = async (uuid, role) => {
+    try {
+      const res = await updateTeamMemberRole({ team_uuid:teamId,  user_uuid: uuid, role:role });
+      if (res.code === 200) {
+        message.success('更新成功');
+        actionRef.current?.reload();
+      } else {
+        message.error('更新失败 :' + res.message);
+      }
+    } catch (error) {
+      message.error('更新失败');
+    }
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
     { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300 },
@@ -97,6 +112,19 @@ const TeamMemberManagement = () => {
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
+          {record.role === '管理员' ? (
+
+            <Button onClick={
+              () => {
+                handleUpdateRole(record.uuid, '职员');
+              }
+            } > 设置为职员</Button>
+          ) : (
+          <Button onClick={
+            () => {
+              handleUpdateRole(record.uuid, '管理员');
+            }
+          } > 设置为管理员</Button>)}
         </span>
       ),
     },

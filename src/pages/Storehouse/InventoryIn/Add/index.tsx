@@ -230,6 +230,7 @@ const StorehouseInboundForm = () => {
     try {
       values.status = parseInt(values.status);
       values.customer_uuid = currentPurchaseOrder.customer_uuid;
+      values.purchase_order_no = currentPurchaseOrder.order_no;
       values.purchase_order_product_type = currentPurchaseOrder.order_type;
       values.detail = detailData.map((item) => ({
         ...item,

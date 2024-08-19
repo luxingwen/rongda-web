@@ -416,7 +416,13 @@ export default [
       {
         name: '出库登记',
         path: '/sales/outbound',
-        component: './Sales/OutOfStock',
+        component: './Storehouse/OutOrder',
+      },
+      {
+        name: '添加物流信息',
+        path: '/sales/outbound/add-logistics/:uuid',
+        component: './LogisticsForm',
+        hideInMenu: true,
       },
       {
         name: '添加出库登记',
