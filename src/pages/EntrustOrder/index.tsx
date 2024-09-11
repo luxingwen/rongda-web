@@ -155,7 +155,7 @@ const EntrustOrderManagement = () => {
             style={{ marginRight: 8 }}
           >
             {' '}
-            {record.purchase_order_no == '' ? '创建' : '编辑'}采购订单
+            {record.purchase_order_no == '' ? '创建' : '编辑'}期货采购订单
           </Button>
           <Button
             icon={<FileAddOutlined />}
@@ -163,7 +163,7 @@ const EntrustOrderManagement = () => {
             style={{ marginRight: 8 }}
           >
             {' '}
-            {record.sales_order_no == '' ? '创建' : '编辑'}销售订单
+            {record.sales_order_no == '' ? '创建' : '编辑'}期货销售订单
           </Button>
           <Button
             icon={<EditOutlined />}

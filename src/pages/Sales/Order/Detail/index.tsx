@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './SalesOrderDetail.css';
+import { render } from '@react-pdf/renderer';
 
 const { Step } = Steps;
 
@@ -140,45 +141,209 @@ const SalesOrderDetail = () => {
     history.push(path);
   };
 
-  const columns = [
+  const columns: ProColumns[] = [
     {
-      title: '商品',
-      dataIndex: ['product', 'name'],
-      key: 'product_uuid',
-      render: (_, record) => record.product?.name,
-    },
-    {
-      title: 'SKU',
-      dataIndex: ['sku', 'code'],
-      key: 'sku_uuid',
-      render: (_, record) => record.sku?.code,
+      title: '产品名称',
+      dataIndex: 'product_uuid',
+      render: (text, record) => record.product?.name,
     },
     {
       title: '规格',
-      dataIndex: ['sku', 'specification'],
-      key: 'sku_uuid',
-      render: (_, record) => record.sku?.specification,
+      dataIndex: 'spec',
+      render: (text, record) => record.sku?.specification,
+    },
+    {
+      title: 'SKU',
+      dataIndex: 'sku',
+      render: (text, record) => record.sku?.code,
     },
     {
       title: '国家',
-      dataIndex: 'country',
-      key: 'country',
-      render: (_, record) => record.sku?.country,
+      dataIndex: 'sku_country',
+      render: (text, record) => record.sku?.country,
     },
     {
       title: '厂号',
-      dataIndex: 'factory_no',
-      key: 'factory_no',
-      render: (_, record) => record.sku?.factory_no,
+      dataIndex: 'sku_factory_no',
+      render: (text, record) => record.sku?.factory_no,
     },
-    { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
-    { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
-    { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
-    { title: '单价', dataIndex: 'product_price', key: 'product_price' },
-    { title: '数量', dataIndex: 'product_quantity', key: 'product_quantity' },
-    { title: '箱数', dataIndex: 'box_num', key: 'box_num' },
-    { title: '总价', dataIndex: 'product_amount', key: 'product_amount' },
+    {
+      title: '产品数量',
+      dataIndex: 'quantity',
+      render: (text, record) => record.purchase_order_item?.quantity,
+    },
+    {
+      title: '产品价格',
+      dataIndex: 'price',
+      render: (text, record) => record.purchase_order_item?.price,
+    },
+    {
+      title: '产品总金额',
+      dataIndex: 'total_amount',
+      render: (text, record) => record.purchase_order_item?.total_amount,
+    },
+    {
+      title: 'PI箱数',
+      dataIndex: 'pi_box_num',
+      render: (text, record) => record.purchase_order_item?.pi_box_num,
+    },
+    {
+      title: 'PI数量',
+      dataIndex: 'pi_quantity',
+      render: (text, record) => record.purchase_order_item?.pi_quantity,
+    },
+    {
+      title: 'PI单价',
+      dataIndex: 'pi_unit_price',
+      render: (text, record) => record.purchase_order_item?.pi_unit_price,
+    },
+    {
+      title: 'PI总金额',
+      dataIndex: 'pi_total_amount',
+      render: (text, record) => record.purchase_order_item?.pi_total_amount,
+    },
+    {
+      title: '柜号',
+      dataIndex: 'cabinet_no',
+      render: (text, record) => record.purchase_order_item?.cabinet_no,
+    },
+    {
+      title: '提单号',
+      dataIndex: 'bill_of_lading_no',
+      render: (text, record) => record.purchase_order_item?.bill_of_lading_no,
+    },
+    {
+      title: '船名',
+      dataIndex: 'ship_name',
+      render: (text, record) => record.purchase_order_item?.ship_name,
+    },
+    {
+      title: '航次',
+      dataIndex: 'voyage',
+      render: (text, record) => record.purchase_order_item?.voyage,
+    },
+    {
+      title: 'CI发票号',
+      dataIndex: 'ci_invoice_no',
+      render: (text, record) => record.purchase_order_item?.ci_invoice_no,
+    },
+    {
+      title: 'CI箱数',
+      dataIndex: 'ci_box_num',
+      render: (text, record) => record.purchase_order_item?.ci_box_num,
+    },
+    {
+      title: 'CI数量',
+      dataIndex: 'ci_quantity',
+      render: (text, record) => record.purchase_order_item?.ci_quantity,
+    },
+    {
+      title: 'CI单价',
+      dataIndex: 'ci_unit_price',
+      render: (text, record) => record.purchase_order_item?.ci_unit_price,
+    },
+    {
+      title: 'CI总金额',
+      dataIndex: 'ci_total_amount',
+      render: (text, record) => record.purchase_order_item?.ci_total_amount,
+    },
+    {
+      title: 'CI尾款金额',
+      dataIndex: 'ci_residual_amount',
+      key: 'ci_residual_amount',
+      render: (text, record) => record.purchase_order_item?.ci_residual_amount,
+    },
+    {
+      title: '生产日期',
+      dataIndex: 'production_date',
+      render: (text, record) => record.purchase_order_item?.production_date,
+    },
+    {
+      title: '预计到港日期',
+      dataIndex: 'estimated_arrival_date',
+      render: (text, record) => record.purchase_order_item?.estimated_arrival_date,
+    },
+    {
+      title: 'RMB定金金额',
+      dataIndex: 'rmb_deposit_amount',
+      key: 'rmb_deposit_amount',
+      render: (text, record) => record.purchase_order_item?.rmb_deposit_amount,
+    },
+    {
+      title: 'RMB尾款金额',
+      dataIndex: 'rmb_residual_amount',
+      key: 'rmb_residual_amount',
+      render: (text, record) => record.purchase_order_item?.rmb_residual_amount,
+    },
+    {
+      title: '定金汇率',
+      dataIndex: 'deposit_exchange_rate',
+      key: 'deposit_exchange_rate',
+      render: (text, record) => record.purchase_order_item?.deposit_exchange_rate,
+    },
+    {
+      title: '尾款汇率',
+      dataIndex: 'residual_exchange_rate',
+      key: 'residual_exchange_rate',
+      render: (text, record) => record.purchase_order_item?.residual_exchange_rate,
+    },
+    {
+      title: '关税',
+      dataIndex: 'tariff',
+      render: (text, record) => record.purchase_order_item?.tariff,
+    },
+    {
+      title: '增值税',
+      dataIndex: 'vat',
+      render: (text, record) => record.purchase_order_item?.vat,
+    },
+    {
+      title: '缴费日期',
+      dataIndex: 'payment_date',
+      render: (text, record) => record.purchase_order_item?.payment_date,
+    },
   ];
+
+
+  // const columns = [
+  //   {
+  //     title: '商品',
+  //     dataIndex: ['product', 'name'],
+  //     key: 'product_uuid',
+  //     render: (_, record) => record.product?.name,
+  //   },
+  //   {
+  //     title: 'SKU',
+  //     dataIndex: ['sku', 'code'],
+  //     key: 'sku_uuid',
+  //     render: (_, record) => record.sku?.code,
+  //   },
+  //   {
+  //     title: '规格',
+  //     dataIndex: ['sku', 'specification'],
+  //     key: 'sku_uuid',
+  //     render: (_, record) => record.sku?.specification,
+  //   },
+  //   {
+  //     title: '国家',
+  //     dataIndex: 'country',
+  //     key: 'country',
+  //     render: (_, record) => record.sku?.country,
+  //   },
+  //   {
+  //     title: '厂号',
+  //     dataIndex: 'factory_no',
+  //     key: 'factory_no',
+  //     render: (_, record) => record.sku?.factory_no,
+  //   },
+  //   { title: '柜号', dataIndex: 'cabinet_no', key: 'cabinet_no' },
+  //   { title: '发票号', dataIndex: 'invoice_no', key: 'invoice_no' },
+  //   { title: '合同号', dataIndex: 'contract_no', key: 'contract_no' },
+  //   { title: '单价', dataIndex: 'product_price', key: 'product_price' },
+  //   { title: '数量', dataIndex: 'product_quantity', key: 'product_quantity' },
+  //   { title: '箱数', dataIndex: 'box_num', key: 'box_num' },
+  //   { title: '总价', dataIndex: 'product_amount', key: 'product_amount' },
+  // ];
 
   const totalQuantity = productList.reduce(
     (acc, item) => acc + item.product_quantity,
@@ -499,18 +664,19 @@ const SalesOrderDetail = () => {
             dataSource={productList}
             rowKey="id"
             pagination={false}
-            summary={() => (
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={9}>
-                  总计
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={7}>
-                  {totalQuantity}
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={8}>{totalBoxNum}</Table.Summary.Cell>
-                <Table.Summary.Cell index={9}>{totalAmount}</Table.Summary.Cell>
-              </Table.Summary.Row>
-            )}
+            scroll={{ x: 'max-content' }}
+            // summary={() => (
+            //   <Table.Summary.Row>
+            //     <Table.Summary.Cell index={0} colSpan={9}>
+            //       总计
+            //     </Table.Summary.Cell>
+            //     <Table.Summary.Cell index={7}>
+            //       {totalQuantity}
+            //     </Table.Summary.Cell>
+            //     <Table.Summary.Cell index={8}>{totalBoxNum}</Table.Summary.Cell>
+            //     <Table.Summary.Cell index={9}>{totalAmount}</Table.Summary.Cell>
+            //   </Table.Summary.Row>
+            // )}
           />
         </Card>
 

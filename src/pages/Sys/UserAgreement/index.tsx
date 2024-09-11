@@ -53,6 +53,7 @@ const UserAgreementEditor = () => {
               <CKEditor
                 editor={ClassicEditor}
                 data={editorData}
+                style={{height: '500px'}}
                 onChange={(event, editor) => {
                   const data = editor.getData();
                   setEditorData(data);

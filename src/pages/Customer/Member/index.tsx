@@ -42,7 +42,7 @@ const TeamMemberManagement = () => {
 
   const handleDeleteMember = async (id) => {
     try {
-      const res = await deleteTeamMember({ uuid: id });
+      const res = await deleteTeamMember({ user_uuid: id, team_uuid: teamId });
       if (res.code !== 200) {
         message.error('删除失败 :' + res.message);
       } else {
