@@ -6,9 +6,12 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { ProTable } from '@ant-design/pro-table';
-import { Card, Divider, List, message, Spin } from 'antd';
+import { Card, Divider, List, message, Spin,Tabs,Table,Button } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import type { TabsProps } from 'antd';
+import { data } from 'autoprefixer';
+import { render } from '@react-pdf/renderer';
 
 const PurchaseOrderDetail = () => {
   const { uuid } = useParams();
@@ -202,81 +205,104 @@ const PurchaseOrderDetail = () => {
   // const totalQuantity = productList.reduce((sum, item) => sum + item.quantity, 0);
   // const totalAmount = productList.reduce((sum, item) => sum + item.total_amount, 0);
 
-  return (
-    <Spin spinning={loading}>
-      <Card bordered={false} title="采购订单详情">
-        <ProDescriptions column={2}>
-          <ProDescriptions.Item label="采购单号">
-            {orderInfo?.order_no}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="标题">
-            {orderInfo?.title}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="客户">
-            {orderInfo?.customer_info?.name}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="供应商">
-            {orderInfo?.supplier?.name}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="采购日期">
-            {orderInfo?.date}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="订单币种">
-            {orderInfo?.order_currency_info?.name}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="结算币种">
-            {orderInfo?.settlement_currency_info?.name}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="定金金额">
-            {orderInfo?.deposit_amount}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="定金比例">
-            {orderInfo?.deposit_ratio}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="起运地">
-            {orderInfo?.departure}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="目的地">
-            {orderInfo?.destination}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="预计装船日期">
-            {orderInfo?.estimated_shipping_date}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="预计入库仓库">
-            {orderInfo?.estimated_warehouse_info?.name}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">
-            {orderInfo?.status}
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="备注">
-            {orderInfo?.remarks}
-          </ProDescriptions.Item>
-        </ProDescriptions>
 
-        <Divider />
-        <Card title="附件列表" bordered={false}>
-          <List
-            itemLayout="horizontal"
-            dataSource={orderInfo?.attachments || []}
-            renderItem={(item) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {item.name}
-                    </a>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        </Card>
-        <Card title="采购单明细" bordered={false}>
-          <ProTable
+ // 证件数据
+ const certificateDatas = [
+  {
+    key: '1',
+    title: '形式发票/采购订单附件',
+    value: orderInfo?.invoice_attachment,
+  },
+  {
+    key: '2',
+    title: '商业发票',
+    value: orderInfo?.commercial_invoice,
+  },
+  {
+    key: '3',
+    title: '装箱单',
+    value: orderInfo?.packing_list,
+  },
+  {
+    key: '4',
+    title: '船公司提单',
+    value: orderInfo?.bill_of_lading,
+  },
+  {
+    key: '5',
+    title: '批次单',
+    value: orderInfo?.batch_order,
+  },
+  {
+    key: '6',
+    title: '卫生证',
+    value: orderInfo?.sanitary_certificate,
+  },
+  {
+    key: '7',
+    title: '产地证',
+    value: orderInfo?.certificate_of_origin,
+  },
+  {
+    key: '8',
+    title: '报关单',
+    value: orderInfo?.customs_declaration,
+  },
+  {
+    key: '9',
+    title: '检疫证',
+    value: orderInfo?.quarantine_certificate,
+  },
+  {
+    key: '10',
+    title: '其它证件',
+    value: "",
+  },
+];
+
+ const handleDeleteCertificate = (key) => {
+ // const newCertificateDatas = certificateDatas.filter((item) => item.key !== key);
+  //setCertificateDatas(newCertificateDatas);
+}
+
+  // 证件头
+  const certificateHeader = [
+    {
+    key: '1',
+    title: '证件类型',
+    dataIndex: 'title',
+    width: '300px',
+  },
+  {
+    key: '2',
+    title: '合同单证',
+    dataIndex: 'value',
+    render: (text, record) => {
+      // 如果是空的，显示按钮上传证件
+      console.log(record);
+      if (record.value === '' || record.value === undefined) {
+        return <Button>上传证件</Button>;
+      }
+      return (
+        <div>
+        <a href={text} target="_blank" rel="noopener noreferrer">
+          查看证件
+        </a>
+         <Button onClick={() => handleDeleteCertificate(record.key)}>删除</Button>
+         </div>
+      );
+
+    }
+  }
+];
+
+
+  const itemTabs: TabsProps['items'] = [
+    {
+      key: '1',
+      label: '采购单明细',
+      children: (
+        <ProTable
             style={{
               marginBottom: 24,
             }}
@@ -298,7 +324,168 @@ const PurchaseOrderDetail = () => {
             // )}
             rowKey="id"
           />
+      ),
+    },
+    {
+      key: '2',
+      label: '付款信息',
+      children: 'Content of Tab Pane 2',
+    },
+    {
+      key: '3',
+      label: '结算',
+      children: 'Content of Tab Pane 3',
+    },
+    {
+      key: '4',
+      label: '进程明细',
+      children: 'Content of Tab Pane 4',
+    },
+    {
+      key: '5',
+      label: '证件明细',
+      children: (
+        <Table dataSource={certificateDatas} columns={certificateHeader} />
+      ),
+    },
+  ];
+
+  const onTabChange = (key: string) => {
+    // console.log(key);
+  };
+
+ 
+    
+
+  return (
+    <Spin spinning={loading}>
+      <Card bordered={false} title="采购订单详情">
+        <ProDescriptions column={3}>
+          <ProDescriptions.Item label="采购单号(合同号)">
+            {orderInfo?.order_no}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="供应商">
+            {orderInfo?.supplier?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="采购时间">
+            {orderInfo?.date}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计船期">
+            {orderInfo?.supplier?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="境内收货人">
+            {orderInfo?.domestic_consignee}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="消费使用单位">
+            {orderInfo?.order_currency_info?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="贸易条款">
+            {orderInfo?.settlement_currency_info?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="付款比例">
+            {orderInfo?.deposit_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="PI总金额">
+            {orderInfo?.deposit_ratio}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预付款金额（美元）">
+            {orderInfo?.ci_total_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="CI总金额">
+            {orderInfo?.ci_total_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="尾款金额（美元）">
+            {orderInfo?.residual_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计入库仓库">
+            {orderInfo?.estimated_warehouse_info?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="是否海关放行">
+            {orderInfo?.is_customs_clearance}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="订单状态">
+            {orderInfo?.remarks}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="起运港口">
+            {orderInfo?.departure}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="目的地">
+            {orderInfo?.destination}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="实际到港时间">
+            {orderInfo?.actual_arrival_date}
+          </ProDescriptions.Item>
+        </ProDescriptions>
+
+        <Divider />
+
+        <Card bordered={false} title="">
+        <ProDescriptions column={3}>
+          <ProDescriptions.Item label="船公司">
+            {orderInfo?.ship_company}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="船名">
+            {orderInfo?.ship_name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="航次">
+            {orderInfo?.voyage}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="提单号">
+            {orderInfo?.bill_of_lading_no}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="柜号">
+            {orderInfo?.cabinet_no}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="柜型">
+            {orderInfo?.cabinet_type}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计装船时间">
+            {orderInfo?.estimated_shipping_date}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计到港时间">
+            {orderInfo?.estimated_arrival_date}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="起运港">
+            {orderInfo?.departure_port}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="目的地">
+            {orderInfo?.destination_port}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="实际到港时间">
+            {orderInfo?.actual_arrival_port}
+          </ProDescriptions.Item>
+
+
+          </ProDescriptions>
         </Card>
+
+        <Tabs defaultActiveKey="1" items={itemTabs} onChange={onTabChange} />
+
+        {/* <Card title="附件列表" bordered={false}>
+          <List
+            itemLayout="horizontal"
+            dataSource={orderInfo?.attachments || []}
+            renderItem={(item) => (
+              <List.Item>
+                <List.Item.Meta
+                  title={
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.name}
+                    </a>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        </Card> */}
+        
+        {/* <Card title="采购单明细" bordered={false}>
+          
+        </Card> */}
       </Card>
     </Spin>
   );
