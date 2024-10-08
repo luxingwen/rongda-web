@@ -118,4 +118,12 @@ export async function getPurchaseOrdersByStatus(data) {
   });
 }
 
-// 
+// UpdatePurchaseOrderItem
+export async function updatePurchaseOrderItem(data) {
+  return request('/api/v1/purchase_order/item/update_item', {
+    method: 'POST',
+    data,
+  });
+}
+
+
