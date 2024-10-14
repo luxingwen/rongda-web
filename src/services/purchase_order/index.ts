@@ -127,3 +127,20 @@ export async function updatePurchaseOrderItem(data) {
 }
 
 
+// UpdatePurchaseOrderReceiptFile
+export async function updatePurchaseOrderReceiptFile(data) {
+  return request('/api/v1/purchase_order/update_receipt_file', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    data,
+  });
+}
+// DeletePurchaseOrderReceiptFile
+export async function deletePurchaseOrderReceiptFile(data) {
+  return request('/api/v1/purchase_order/delete_receipt_file', {
+    method: 'POST',
+    data,
+  });
+}

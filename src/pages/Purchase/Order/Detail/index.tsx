@@ -4,6 +4,8 @@ import {
   getPurchaseOrderProductList,
   getPurchaseOrdersInfo,
   updatePurchaseOrderItem,
+  updatePurchaseOrderReceiptFile,
+  deletePurchaseOrderReceiptFile,
 } from '@/services/purchase_order';
 import { getStorehouseOptions } from '@/services/storehouse';
 import { getSupplierOptions } from '@/services/supplier';
@@ -22,6 +24,7 @@ import {
   Table,
   Tabs,
   Tag,
+  Upload,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -36,6 +39,7 @@ const PurchaseOrderDetail = () => {
   const [storehouseOptions, setStorehouseOptions] = useState([]);
 
   const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
+  const [fileList, setFileList] = useState([]);
 
   useEffect(() => {
     fetchOrderDetail(uuid);
@@ -268,47 +272,47 @@ const PurchaseOrderDetail = () => {
   // 证件数据
   const certificateDatas = [
     {
-      key: '1',
+      key: 'invoice_attachment',
       title: '形式发票/采购订单附件',
       value: orderInfo?.invoice_attachment,
     },
     {
-      key: '2',
+      key: 'commercial_invoice',
       title: '商业发票',
       value: orderInfo?.commercial_invoice,
     },
     {
-      key: '3',
+      key: 'packing_list',
       title: '装箱单',
       value: orderInfo?.packing_list,
     },
     {
-      key: '4',
+      key: 'bill_of_lading',
       title: '船公司提单',
       value: orderInfo?.bill_of_lading,
     },
     {
-      key: '5',
+      key: 'batch_order',
       title: '批次单',
       value: orderInfo?.batch_order,
     },
     {
-      key: '6',
+      key: 'sanitary_certificate',
       title: '卫生证',
       value: orderInfo?.sanitary_certificate,
     },
     {
-      key: '7',
+      key: 'certificate_of_origin',
       title: '产地证',
       value: orderInfo?.certificate_of_origin,
     },
     {
-      key: '8',
+      key: 'customs_declaration',
       title: '报关单',
       value: orderInfo?.customs_declaration,
     },
     {
-      key: '9',
+      key: 'quarantine_certificate',
       title: '检疫证',
       value: orderInfo?.quarantine_certificate,
     },
@@ -319,10 +323,55 @@ const PurchaseOrderDetail = () => {
     },
   ];
 
+  
+
   const handleDeleteCertificate = (key) => {
     // const newCertificateDatas = certificateDatas.filter((item) => item.key !== key);
     //setCertificateDatas(newCertificateDatas);
+    deletePurchaseOrderReceiptFile({ key, order_no: uuid }).then((response) => {
+      if (response.code === 200) {
+        message.success('文件删除成功');
+        fetchOrderDetail(uuid);
+      } else {
+        message.error('文件删除失败');
+      }
+    });
   };
+
+
+  const handleUploadCertificate = async (fileList0, key) => {
+    // console.log(key);
+    setFileList(fileList0);
+
+    if (fileList0.length > 0) {
+      const file = fileList0[0].originFileObj;
+      try {
+        // 获取表单中的其他值
+      
+        // 创建 FormData
+        const formData = new FormData();
+        formData.append('file', file); // 添加文件
+        formData.append('key', key); // 添加其它字段，比如 name
+        formData.append('order_no', uuid);
+        console.log("key:", key);
+
+        // 使用 axios 上传文件和其他数据
+        const response = await updatePurchaseOrderReceiptFile(formData);
+        if (response.code === 200) {
+          
+
+          message.success('文件上传成功');
+          fetchOrderDetail(uuid);
+        }else{
+          message.error('文件上传失败0');
+        }
+      } catch (error) {
+        message.error('文件上传失败1:' + error);
+      }
+      setFileList([]);
+    }
+  };
+
 
   // 证件头
   const certificateHeader = [
@@ -340,11 +389,20 @@ const PurchaseOrderDetail = () => {
         // 如果是空的，显示按钮上传证件
         console.log(record);
         if (record.value === '' || record.value === undefined) {
-          return <Button>上传证件</Button>;
+
+          return (
+            <Upload
+            beforeUpload={() => false} // 禁用自动上传
+            fileList={fileList}
+            onChange={({fileList}) => handleUploadCertificate(fileList, record.key)} // 文件选择后自动上传
+          >
+            <Button>上传证件</Button>
+            </Upload>
+            );
         }
         return (
           <div>
-            <a href={text} target="_blank" rel="noopener noreferrer">
+            <a href={"/public/"+ text} target="_blank" rel="noopener noreferrer">
               查看证件
             </a>
             <Button onClick={() => handleDeleteCertificate(record.key)}>
@@ -353,6 +411,62 @@ const PurchaseOrderDetail = () => {
           </div>
         );
       },
+    },
+  ];
+
+
+  const columnsHeaderPaymentInfo = [
+    {
+      title: '产品名称',
+      dataIndex: 'payment_date',
+    },
+    {
+      title: '重量',
+      dataIndex: 'payment_amount',
+    },
+    {
+      title: '件数',
+      dataIndex: 'payment_method',
+    },
+    {
+      title: '预付款时间',
+      dataIndex: 'payer',
+    },
+    {
+      title: '已付预付款金额',
+      dataIndex: 'remark',
+    },
+    {
+      title: '已付尾款时间',
+      dataIndex: 'remark',
+    },
+    {
+      title: '已付尾款金额',
+      dataIndex: 'remark',
+    },
+    {
+      title: '缴税时间',
+      dataIndex: 'remark',
+    },
+    {
+      title: '关税',
+      dataIndex: 'remark',
+    },
+    {
+      title: '增值税',
+      dataIndex: 'remark',
+    },
+    {
+      title: '预付款手续费',
+      dataIndex: 'remark',
+    },
+    {
+      title: '尾款手续费',
+      dataIndex: 'remark',
+    },
+    {
+      title: '合计金额',
+      dataIndex: 'remark',
     },
   ];
 
@@ -388,7 +502,22 @@ const PurchaseOrderDetail = () => {
     {
       key: '2',
       label: '付款信息',
-      children: 'Content of Tab Pane 2',
+      children: (
+        <ProTable
+        style={{
+          marginBottom: 24,
+        }}
+        columns={columnsHeaderPaymentInfo}
+        dataSource={[]}
+        pagination={false}
+        search={false}
+        loading={loading}
+        options={false}
+        toolBarRender={false}
+        scroll={{ x: 'max-content' }}
+        rowKey="id"
+      />
+      ),
     },
     {
       key: '3',
@@ -398,7 +527,34 @@ const PurchaseOrderDetail = () => {
     {
       key: '4',
       label: '进程明细',
-      children: 'Content of Tab Pane 4',
+      children: (
+        <ProDescriptions layout='vertical' bordered column={8} >
+          <ProDescriptions.Item label="接单时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预付款付汇时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="尾款付汇时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="收到副本时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="收单正本时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="海关放行时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+        </ProDescriptions>
+      ),
     },
     {
       key: '5',
