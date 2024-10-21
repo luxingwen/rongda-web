@@ -18,8 +18,11 @@ import {
   Spin,
   Steps,
   Table,
+  Tabs,
   Upload,
 } from 'antd';
+import { ProTable } from '@ant-design/pro-table';
+import type { TabsProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './SalesOrderDetail.css';
@@ -622,65 +625,338 @@ const SalesOrderDetail = () => {
     }
   };
 
+
+  const columnsLogisticsPaymentInfo = [
+    {
+      title: '船公司',
+      dataIndex: 'payment_date',
+    },
+    {
+      title: '船名',
+      dataIndex: 'payment_amount',
+    },
+    {
+      title: '航次',
+      dataIndex: 'payment_method',
+    },
+    {
+      title: '提单号',
+      dataIndex: 'payer',
+    },
+    {
+      title: '柜号',
+      dataIndex: 'remark',
+    },
+    {
+      title: '柜型',
+      dataIndex: 'remark',
+    },
+    {
+      title: '预计装船时间',
+      dataIndex: 'remark',
+    },
+    {
+      title: '预计到港时间',
+      dataIndex: 'remark',
+    },
+    {
+      title: '起运港',
+      dataIndex: 'remark',
+    },
+    {
+      title: '目的地',
+      dataIndex: 'remark',
+    },
+    {
+      title: '实际到港时间',
+      dataIndex: 'remark',
+    },
+  ];
+
+  
+  const columnsSettlementInfo = [
+    {
+      title: '货物名称',
+      dataIndex: 'payment_date',
+    },
+    {
+      title: '重量',
+      dataIndex: 'payment_amount',
+    },
+    {
+      title: '件数',
+      dataIndex: 'payment_method',
+    },
+    {
+      title: '账单金额',
+      dataIndex: 'payer',
+    },
+    {
+      title: '已付金额',
+      dataIndex: 'remark',
+    },
+    {
+      title: '欠款金额',
+      dataIndex: 'remark',
+    },
+    {
+      title: '垫资天数',
+      dataIndex: 'remark',
+    },
+    {
+      title: '开票状态',
+      dataIndex: 'remark',
+    },
+  ];
+
+
+
+  const itemTabs: TabsProps['items'] = [
+    {
+      key: '1',
+      label: '明细',
+      children: (
+        <ProTable
+          style={{
+            marginBottom: 24,
+          }}
+          columns={columns}
+          dataSource={productList}
+          rowKey="id"
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+          search={false}
+          toolBarRender={false}
+        />
+      ),
+    },
+    {
+      key: '2',
+      label: '物流信息',
+      children: (
+        <ProTable
+        style={{
+          marginBottom: 24,
+        }}
+        columns={columnsLogisticsPaymentInfo}
+        dataSource={[]}
+        pagination={false}
+        search={false}
+        loading={loading}
+        options={false}
+        toolBarRender={false}
+        scroll={{ x: 'max-content' }}
+        rowKey="id"
+      />
+      ),
+    },
+    {
+      key: '3',
+      label: '付款明细',
+      children: (
+        <ProTable
+        style={{
+          marginBottom: 24,
+        }}
+        columns={columnsSettlementInfo}
+        dataSource={[]}
+        pagination={false}
+        search={false}
+        loading={loading}
+        options={false}
+        toolBarRender={false}
+        scroll={{ x: 'max-content' }}
+        rowKey="id"
+      />
+      ),
+    },
+    {
+      key: '4',
+      label: '进程明细',
+      children: (
+        <ProDescriptions layout='vertical' bordered column={8} >
+          <ProDescriptions.Item label="接单时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="支付预付款时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="支付尾款时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="提货时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="开发票时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
+            -
+          </ProDescriptions.Item>
+        </ProDescriptions>
+      ),
+    },
+    {
+      key: '5',
+      label: '仓库信息管理',
+      children: (
+        <ProDescriptions  bordered column={2} >
+        <ProDescriptions.Item label="冷库名称" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="地址" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="联系人" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="联系电话" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="银行账户" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="开户行" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="类型" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="合同到期时间" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="合同到期提醒" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+      </ProDescriptions>
+      ),
+    },
+    {
+      key: '6',
+      label: '冷库费用价格',
+      children: (
+        <ProDescriptions layout='vertical' bordered column={10} >
+        <ProDescriptions.Item label="冷藏费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="装卸费/出入库费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="处置费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="搬运费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="货转费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="分选费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="缠绕膜费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="充电费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="抄码费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="打冷费" dataIndex="process_detail">
+          -
+        </ProDescriptions.Item>
+      </ProDescriptions>
+      ),
+    },
+  ];
+
+  const onTabChange = (key: string) => {
+    // console.log(key);
+  };
+
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="订单详情">
-        <ProDescriptions column={2}>
-          <ProDescriptions.Item label="订单号">
+        <ProDescriptions column={3}>
+          <ProDescriptions.Item label="采购单号（合同号）">
             {orderInfo?.order_no}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="订单类型">
-            {orderInfo?.order_type}
+          <ProDescriptions.Item label="供应商">
+            {orderInfo?.purchase_order_info?.supplier?.name}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="订单日期">
-            {orderInfo?.order_date}
+          <ProDescriptions.Item label="采购时间">
+            {orderInfo?.purchase_order_info?.date}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="客户">
+          <ProDescriptions.Item label="境内收货人">
             {orderInfo?.customer_info?.name}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="定金">
-            {orderInfo?.deposit}
+          <ProDescriptions.Item label="是否垫资">
+            {orderInfo?.is_advance_fund ? '是' : '否'}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="订单金额">
-            {orderInfo?.order_amount}
+          <ProDescriptions.Item label="是否垫税">
+            {orderInfo?.is_advance_tax ? '是' : '否'}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="税费">
-            {orderInfo?.tax_amount}
+          <ProDescriptions.Item label="垫资天数">
+            {orderInfo?.advance_fund_days || '-'}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="销售人">
-            {orderInfo?.salesman_info?.nickname}
+          <ProDescriptions.Item label="是否分期支付">
+            {orderInfo?.is_installment_payment ? '是' : '否'}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">
+          <ProDescriptions.Item label="付款比例">
+            {orderInfo?.deposit_ratio}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="PI总金额">
+            {orderInfo?.purchase_order_info?.pi_total_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="CI总金额">
+            {orderInfo?.purchase_order_info.ci_total_amount}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计船期">
+            {orderInfo?.purchase_order_info?.estimated_arrival_date}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="起运港">
+            {orderInfo?.purchase_order_info?.departure_port}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="目的地">
+            {orderInfo?.purchase_order_info?.destination_port}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="预计入库仓库">
+            {orderInfo?.purchase_order_info?.estimated_warehouse_info?.name}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="是否海关放行">
+            {orderInfo?.purchase_order_info?.is_customs_clearance}
+          </ProDescriptions.Item>
+          <ProDescriptions.Item label="订单状态">
             {orderInfo?.order_status}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="备注">
-            {orderInfo?.remarks}
+          <ProDescriptions.Item label="入库状态">
+            {orderInfo?.order_status}
           </ProDescriptions.Item>
         </ProDescriptions>
         <Divider />
-        <Card title="商品列表" bordered={false}>
+        <Tabs defaultActiveKey="1" items={itemTabs} onChange={onTabChange} />
+        {/* <Card title="商品列表" bordered={false}>
           <Table
             columns={columns}
             dataSource={productList}
             rowKey="id"
             pagination={false}
             scroll={{ x: 'max-content' }}
-            // summary={() => (
-            //   <Table.Summary.Row>
-            //     <Table.Summary.Cell index={0} colSpan={9}>
-            //       总计
-            //     </Table.Summary.Cell>
-            //     <Table.Summary.Cell index={7}>
-            //       {totalQuantity}
-            //     </Table.Summary.Cell>
-            //     <Table.Summary.Cell index={8}>{totalBoxNum}</Table.Summary.Cell>
-            //     <Table.Summary.Cell index={9}>{totalAmount}</Table.Summary.Cell>
-            //   </Table.Summary.Row>
-            // )}
+           
           />
-        </Card>
+        </Card> */}
 
-        <Card
+        {/* <Card
           title="流程进度"
           style={{
             marginBottom: 24,
@@ -709,7 +985,7 @@ const SalesOrderDetail = () => {
               </div>
             )}
           </RouteContext.Consumer>
-        </Card>
+        </Card> */}
         <Modal
           title="创建付汇账单"
           open={remittanceBillVisible}
