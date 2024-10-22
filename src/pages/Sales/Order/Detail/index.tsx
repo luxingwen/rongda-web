@@ -754,6 +754,27 @@ const SalesOrderDetail = () => {
       key: '3',
       label: '付款明细',
       children: (
+      //   <ProTable
+      //   style={{
+      //     marginBottom: 24,
+      //   }}
+      //   columns={columnsSettlementInfo}
+      //   dataSource={[]}
+      //   pagination={false}
+      //   search={false}
+      //   loading={loading}
+      //   options={false}
+      //   toolBarRender={false}
+      //   scroll={{ x: 'max-content' }}
+      //   rowKey="id"
+      // />
+      <div>1</div>
+      ),
+    },
+    {
+      key: '3-1',
+      label: '结算',
+      children: (
         <ProTable
         style={{
           marginBottom: 24,

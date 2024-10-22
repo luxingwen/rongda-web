@@ -24,6 +24,7 @@
     "autoprefixer": "^10.4.19",
     "ckeditor5": "^42.0.2",
     "dayjs": "^1.11.11",
+    "decimal.js": "^10.4.3",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
