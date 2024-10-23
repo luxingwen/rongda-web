@@ -93,24 +93,77 @@ const StorehouseDetail = () => {
   return (
     <Spin spinning={loading}>
       <Card bordered={false} title="仓库详情">
-        <ProDescriptions 
-          column={1} 
-          bordered 
-          labelStyle={{ fontWeight: 'bold', paddingRight: '8px' }}
-          contentStyle={{ paddingLeft: '8px' }}
-        >
-          <ProDescriptions.Item label="名称">{storehouseInfo?.name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="UUID">{storehouseInfo?.uuid}</ProDescriptions.Item>
-          <ProDescriptions.Item label="地址">{storehouseInfo?.address}</ProDescriptions.Item>
-          <ProDescriptions.Item label="联系人">{storehouseInfo?.contact_person}</ProDescriptions.Item>
-          <ProDescriptions.Item label="联系电话">{storehouseInfo?.contact_phone}</ProDescriptions.Item>
-          <ProDescriptions.Item label="开户行">{storehouseInfo?.bank_name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="银行账户">{storehouseInfo?.bank_account}</ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">{renderStatus(storehouseInfo?.status)}</ProDescriptions.Item>
-          <ProDescriptions.Item label="类型">{renderType(storehouseInfo?.type)}</ProDescriptions.Item>
-        </ProDescriptions>
+
+      <ProDescriptions  column={2} >
+        <ProDescriptions.Item label="冷库名称" dataIndex="name">
+          {storehouseInfo?.name}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="地址" dataIndex="address">
+          {storehouseInfo?.address}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="联系人" dataIndex="contact_person">
+          {storehouseInfo?.contact_person}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="联系电话" dataIndex="contact_phone">
+          {storehouseInfo?.contact_phone}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="银行账户" dataIndex="bank_account">
+          {storehouseInfo?.bank_account}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="开户行" dataIndex="bank_name">
+          {storehouseInfo?.bank_name}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="类型" dataIndex="type">
+          {renderType(storehouseInfo?.type)}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="签订合同时间" dataIndex="contract_date">
+          {storehouseInfo?.contract_date}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="合同到期时间" dataIndex="contract_expire_date">
+          {storehouseInfo?.contract_expire_date}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="合同到期提醒" dataIndex="contract_expire_remind">
+          {storehouseInfo?.contract_expire_remind}
+        </ProDescriptions.Item>
+      </ProDescriptions>
+
         <Divider />
-        <Card title="库存信息" bordered={false}>
+        <Card title="冷库费用价格" bordered={false}>
+        <ProDescriptions layout='vertical' bordered column={10} >
+        <ProDescriptions.Item label="冷藏费" dataIndex="cold_storage_fee">
+          {storehouseInfo?.cold_storage_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="装卸费/出入库费" dataIndex="loading_unloading_fee">
+          {storehouseInfo?.loading_unloading_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="处置费" dataIndex="disposal_fee">
+          {storehouseInfo?.disposal_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="搬运费" dataIndex="handling_fee">
+          {storehouseInfo?.handling_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="货转费" dataIndex="goods_transfer_fee">
+          {storehouseInfo?.goods_transfer_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="分选费" dataIndex="sorting_fee">
+          {storehouseInfo?.sorting_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="缠绕膜费" dataIndex="wrapping_film_fee">
+          {storehouseInfo?.wrapping_film_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="充电费" dataIndex="charging_fee">
+          {storehouseInfo?.charging_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="抄码费" dataIndex="reading_code_fee">
+          {storehouseInfo?.reading_code_fee}
+        </ProDescriptions.Item>
+        <ProDescriptions.Item label="打冷费" dataIndex="cold_fee">
+          {storehouseInfo?.cold_fee}
+        </ProDescriptions.Item>
+      </ProDescriptions>
+      </Card>
+
+        {/* <Card title="库存信息" bordered={false}>
           <ProTable
             columns={columns}
             actionRef={actionRef}
@@ -127,7 +180,7 @@ const StorehouseDetail = () => {
             search={false}
             toolBarRender={false}
           />
-        </Card>
+        </Card> */}
       </Card>
     </Spin>
   );

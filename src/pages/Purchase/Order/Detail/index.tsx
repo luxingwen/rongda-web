@@ -97,6 +97,9 @@ const PurchaseOrderDetail = () => {
 
   const [paymentInfoDatas, setPaymentInfoDatas] = useState([]);
 
+  const [process_detail, setProcess_detail] = useState({});
+  const [is_customs_clearance, setIs_customs_clearance] = useState<boolean>(false);
+
   useEffect(() => {
     fetchProductOptions();
     fetchOrderDetail(uuid);
@@ -246,6 +249,22 @@ const PurchaseOrderDetail = () => {
             }),
           );
         }
+
+        setProcess_detail(prev => ({
+
+          ...prev,
+          orders_date: response.data.date,
+          deposit_amount_time: response.data.deposit_amount_time,
+          residual_amount_time: response.data.residual_amount_time,
+          received_copy_time: response.data.received_copy_time,
+          received_original_time: response.data.received_original_time,
+          customs_clearance_time: response.data.customs_clearance_time,
+          storage_time: response.data.storage_time,
+        })
+        );
+
+        const is_customs_clearance_val = response.data.is_customs_clearance === 'true' ? true : false;
+        setIs_customs_clearance(is_customs_clearance_val);
 
         setOrderInfo(response.data);
       } else {
@@ -629,16 +648,16 @@ const PurchaseOrderDetail = () => {
       value: orderInfo?.quarantine_certificate,
     },
     {
-      key: '10',
+      key: 'other_certificate',
       title: '其它证件',
-      value: '',
+      value:  orderInfo?.other_certificate,
     },
   ];
 
-  const handleDeleteCertificate = (key) => {
+  const handleDeleteCertificate = (key, filename, file_url) => {
     // const newCertificateDatas = certificateDatas.filter((item) => item.key !== key);
     //setCertificateDatas(newCertificateDatas);
-    deletePurchaseOrderReceiptFile({ key, order_no: uuid }).then((response) => {
+    deletePurchaseOrderReceiptFile({ key, filename, file_url, order_no: uuid }).then((response) => {
       if (response.code === 200) {
         message.success('文件删除成功');
         fetchOrderDetail(uuid);
@@ -694,8 +713,44 @@ const PurchaseOrderDetail = () => {
       render: (text, record) => {
         // 如果是空的，显示按钮上传证件
         console.log(record);
-        if (record.value === '' || record.value === undefined) {
-          return (
+       let attachment = [];
+       try {
+        attachment = JSON.parse(text);
+       } catch (error) {
+        
+       }
+
+
+      
+
+       
+      
+        return (
+          <div>
+            
+
+            {attachment.length > 0 && (
+            <div>
+              {attachment.map((file, index) => (
+                <div key={index} className="file-item">
+                   <a
+                      href={'/public/' + file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                    <span>{file.name}</span>
+                  </a>
+                  <Button
+                    type="link"
+                    onClick={() =>handleDeleteCertificate(record.key, file.name, file.url)}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
             <Upload
               beforeUpload={() => false} // 禁用自动上传
               fileList={fileList}
@@ -705,21 +760,8 @@ const PurchaseOrderDetail = () => {
             >
               <Button>上传证件</Button>
             </Upload>
-          );
-        }
-        return (
-          <div>
-            <a
-              href={'/public/' + text}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              查看证件
-            </a>
-            <Button onClick={() => handleDeleteCertificate(record.key)}>
-              删除
-            </Button>
           </div>
+          
         );
       },
     },
@@ -1077,33 +1119,62 @@ const PurchaseOrderDetail = () => {
       key: '4',
       label: '进程明细',
       children: (
-        <ProDescriptions layout="vertical" bordered column={8}>
-          <ProDescriptions.Item label="接单时间" dataIndex="process_detail">
-            -
+        <ProDescriptions layout="vertical" bordered column={8}
+        editable={{
+          editableKeys,
+          onChange: setEditableKeys,
+          onSave: async (key, record) => {
+            console.log('Saved record:', record, 'key:', key);
+            const data = {
+              key: key,
+              value: record[key],
+              order_no: orderInfo.order_no,
+            };
+
+            updatePurchaseOrderItem(data).then((response) => {
+              if (response.code === 200) {
+                message.success('保存成功');
+                fetchOrderDetail(uuid);
+              } else {
+                message.error('保存失败' + response.message);
+              }
+            });
+          },
+        }}
+        >
+          <ProDescriptions.Item label="接单时间" dataIndex="orders_date" editable={false}>
+            {process_detail?.orders_date}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
+          <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail" editable={false} >
             -
           </ProDescriptions.Item>
           <ProDescriptions.Item
             label="预付款付汇时间"
-            dataIndex="process_detail"
+            dataIndex="deposit_amount_time"
+            editable={false}
           >
-            -
+            {process_detail?.deposit_amount_time}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="尾款付汇时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="尾款付汇时间" dataIndex="residual_amount_time" editable={false}>
+            {process_detail?.residual_amount_time}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="收到副本时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="收到副本时间" dataIndex="received_copy_time"  valueType="date">
+            {process_detail?.received_copy_time}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="收单正本时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="收单正本时间" dataIndex="received_original_time"  valueType="date">
+            {process_detail?.received_original_time}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="海关放行时间" dataIndex="process_detail">
-            -
+         { (is_customs_clearance ? 
+          <ProDescriptions.Item label="海关放行时间" dataIndex="customs_clearance_time"  valueType="date">
+            {process_detail?.customs_clearance_time}
+          </ProDescriptions.Item> : 
+          <ProDescriptions.Item label="海关放行时间" dataIndex="customs_clearance_time"  valueType="date" editable={false}>
+            {process_detail?.customs_clearance_time}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
-            -
+          )
+        }
+          <ProDescriptions.Item label="入库时间" dataIndex="storage_time"  valueType="date">
+            {process_detail?.storage_time}
           </ProDescriptions.Item>
         </ProDescriptions>
       ),

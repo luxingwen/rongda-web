@@ -28,6 +28,8 @@ import { useParams } from 'react-router-dom';
 import './SalesOrderDetail.css';
 import { render } from '@react-pdf/renderer';
 
+const { Column, ColumnGroup } = Table;
+
 const { Step } = Steps;
 
 const SalesOrderDetail = () => {
@@ -43,6 +45,10 @@ const SalesOrderDetail = () => {
   // 添加付汇弹窗
   const [remittanceBillVisible, setRemittanceBillVisible] = useState(false);
   const [remittanceBillType, setRemittanceBillType] = useState('定金');
+
+  const [logisticsData, setLogisticsData] = useState([]);
+  const [processDetail, setProcessDetail] = useState({});
+  const [paymentInfoData, setPaymentInfoData] = useState([]);
 
   const handleFileChange = ({ fileList: newFileList }) => {
     setDocFileList(newFileList);
@@ -98,6 +104,32 @@ const SalesOrderDetail = () => {
           const documents = JSON.parse(response.data.documents);
           setExistingDocFileList(documents);
         }
+
+        const logisticsDataArr = [{
+          ship_company: response.data?.purchase_order_info?.ship_company,
+          ship_name: response.data?.purchase_order_info?.ship_name,
+          voyage: response.data?.purchase_order_info?.voyage,
+          bill_of_lading_no: response.data?.purchase_order_info?.bill_of_lading_no,
+          cabinet_no: response.data?.purchase_order_info?.cabinet_no,
+          cabinet_type: response.data?.purchase_order_info?.cabinet_type,
+          estimated_shipping_date: response.data?.purchase_order_info?.estimated_shipping_date,
+          estimated_arrival_date: response.data?.purchase_order_info?.estimated_arrival_date,
+          departure_port: response.data?.purchase_order_info?.departure_port,
+          destination_port: response.data?.purchase_order_info?.destination_port,
+          actual_arrival_port: response.data?.purchase_order_info?.actual_arrival_port,
+        }];
+
+        setLogisticsData(logisticsDataArr);
+
+        const processDetailInfo = {
+          order_date: response.data?.purchase_order_info?.date,
+          deposit_amount_date: response.data?.deposit_amount_date,
+          final_payment_amount_date: response.data?.final_payment_amount_date,
+          invoice_date: response.data?.invoice_date,
+        };
+
+        setProcessDetail(processDetailInfo);
+
       } else {
         message.error('获取订单详情失败');
       }
@@ -629,47 +661,47 @@ const SalesOrderDetail = () => {
   const columnsLogisticsPaymentInfo = [
     {
       title: '船公司',
-      dataIndex: 'payment_date',
+      dataIndex: 'ship_company',
     },
     {
       title: '船名',
-      dataIndex: 'payment_amount',
+      dataIndex: 'ship_name',
     },
     {
       title: '航次',
-      dataIndex: 'payment_method',
+      dataIndex: 'voyage',
     },
     {
       title: '提单号',
-      dataIndex: 'payer',
+      dataIndex: 'bill_of_lading_no',
     },
     {
       title: '柜号',
-      dataIndex: 'remark',
+      dataIndex: 'cabinet_no',
     },
     {
       title: '柜型',
-      dataIndex: 'remark',
+      dataIndex: 'cabinet_type',
     },
     {
       title: '预计装船时间',
-      dataIndex: 'remark',
+      dataIndex: 'estimated_shipping_date',
     },
     {
       title: '预计到港时间',
-      dataIndex: 'remark',
+      dataIndex: 'estimated_arrival_date',
     },
     {
       title: '起运港',
-      dataIndex: 'remark',
+      dataIndex: 'departure_port',
     },
     {
       title: '目的地',
-      dataIndex: 'remark',
+      dataIndex: 'destination_port',
     },
     {
       title: '实际到港时间',
-      dataIndex: 'remark',
+      dataIndex: 'actual_arrival_port',
     },
   ];
 
@@ -739,7 +771,7 @@ const SalesOrderDetail = () => {
           marginBottom: 24,
         }}
         columns={columnsLogisticsPaymentInfo}
-        dataSource={[]}
+        dataSource={logisticsData}
         pagination={false}
         search={false}
         loading={loading}
@@ -754,21 +786,32 @@ const SalesOrderDetail = () => {
       key: '3',
       label: '付款明细',
       children: (
-      //   <ProTable
-      //   style={{
-      //     marginBottom: 24,
-      //   }}
-      //   columns={columnsSettlementInfo}
-      //   dataSource={[]}
-      //   pagination={false}
-      //   search={false}
-      //   loading={loading}
-      //   options={false}
-      //   toolBarRender={false}
-      //   scroll={{ x: 'max-content' }}
-      //   rowKey="id"
-      // />
-      <div>1</div>
+        <Table dataSource={[]} scroll={{ x: 'max-content' }}>
+           <ColumnGroup title="货物明细">
+            <Column title="货物名称" dataIndex="product_name" key="product_name" />
+            <Column title="重量" dataIndex="weight" key="weight" />
+            <Column title="件数" dataIndex="box_num" key="box_num" />
+           </ColumnGroup>
+           <ColumnGroup title="支付供应商">
+            <Column title="支付供应商预付款" dataIndex="product_name" key="product_name" />
+            <Column title="支付供应商预付款时间" dataIndex="weight" key="weight" />
+            <Column title="支付供应商尾款" dataIndex="box_num" key="box_num" />
+            <Column title="支付供应商尾款时间" dataIndex="box_num" key="box_num" />
+            <Column title="支付增值税" dataIndex="box_num" key="box_num" />
+            <Column title="支付关税" dataIndex="box_num" key="box_num" />
+            <Column title="缴税时间" dataIndex="box_num" key="box_num" />
+            <Column title="合计金额" dataIndex="box_num" key="box_num" />
+           </ColumnGroup>
+           <ColumnGroup title="支付融大">
+            <Column title="支付融达预付款" dataIndex="product_name" key="product_name" />
+            <Column title="支付融达预付款时间" dataIndex="weight" key="weight" />
+            <Column title="支付融大尾款" dataIndex="box_num" key="box_num" />
+            <Column title="支付融大尾款时间" dataIndex="box_num" key="box_num" />
+            <Column title="合计金额" dataIndex="box_num" key="box_num" />
+           </ColumnGroup>
+          
+          
+        </Table>
       ),
     },
     {
@@ -796,17 +839,17 @@ const SalesOrderDetail = () => {
       label: '进程明细',
       children: (
         <ProDescriptions layout='vertical' bordered column={8} >
-          <ProDescriptions.Item label="接单时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="接单时间" dataIndex="order_date">
+            {processDetail?.order_date}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
             -
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="支付预付款时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="支付预付款时间" dataIndex="deposit_amount_date">
+            {processDetail?.deposit_amount_date}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="支付尾款时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="支付尾款时间" dataIndex="final_payment_amount_date">
+            {processDetail?.final_payment_amount_date}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
             -
@@ -814,91 +857,13 @@ const SalesOrderDetail = () => {
           <ProDescriptions.Item label="提货时间" dataIndex="process_detail">
             -
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="开发票时间" dataIndex="process_detail">
-            -
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
-            -
+          <ProDescriptions.Item label="开发票时间" dataIndex="invoice_date">
+            {processDetail?.invoice_date}
           </ProDescriptions.Item>
         </ProDescriptions>
       ),
     },
-    {
-      key: '5',
-      label: '仓库信息管理',
-      children: (
-        <ProDescriptions  bordered column={2} >
-        <ProDescriptions.Item label="冷库名称" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="地址" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="联系人" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="联系电话" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="银行账户" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="开户行" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="类型" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="合同到期时间" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="合同到期提醒" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-      </ProDescriptions>
-      ),
-    },
-    {
-      key: '6',
-      label: '冷库费用价格',
-      children: (
-        <ProDescriptions layout='vertical' bordered column={10} >
-        <ProDescriptions.Item label="冷藏费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="装卸费/出入库费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="处置费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="搬运费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="货转费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="分选费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="缠绕膜费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="充电费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="抄码费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-        <ProDescriptions.Item label="打冷费" dataIndex="process_detail">
-          -
-        </ProDescriptions.Item>
-      </ProDescriptions>
-      ),
-    },
+    
   ];
 
   const onTabChange = (key: string) => {
