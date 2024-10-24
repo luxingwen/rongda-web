@@ -1,18 +1,25 @@
 import RemittanceBillCreateForm from '@/components/RemittanceBill/RemittanceBillCreate';
 import {
+  deleteOrderFile,
+  getOrderFileList,
+  uploadSalesOrderFile,
+} from '@/services/file';
+import {
   getSalesOrderDetail,
   getSalesOrderProductList,
   getSalesOrderStepList,
   uploadDocments,
 } from '@/services/sales_order';
 import { UploadOutlined } from '@ant-design/icons';
-import { RouteContext } from '@ant-design/pro-components';
 import ProDescriptions from '@ant-design/pro-descriptions';
+import { ProTable } from '@ant-design/pro-table';
 import { history } from '@umijs/max';
+import type { TabsProps } from 'antd';
 import {
   Button,
   Card,
   Divider,
+  Input,
   message,
   Modal,
   Spin,
@@ -21,12 +28,10 @@ import {
   Tabs,
   Upload,
 } from 'antd';
-import { ProTable } from '@ant-design/pro-table';
-import type { TabsProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Decimal from 'decimal.js';
 import './SalesOrderDetail.css';
-import { render } from '@react-pdf/renderer';
 
 const { Column, ColumnGroup } = Table;
 
@@ -49,6 +54,29 @@ const SalesOrderDetail = () => {
   const [logisticsData, setLogisticsData] = useState([]);
   const [processDetail, setProcessDetail] = useState({});
   const [paymentInfoData, setPaymentInfoData] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const [certificateDatas, setCertificateDatas] = useState([]);
+  const [salesPaymentInfo, setSalesPaymentInfo] = useState([]);
+
+  const [editingPaymentInfoIndex, setEditingPaymentInfoIndex] = useState(null);
+  const [inputValuePaymentInfo, setInputValuePaymentInfo] = useState('');
+  const [isSavingPaymentInfo, setIsSavingPaymentInfo] = useState(false);
+
+  const handleSavePaymentInfo = (index) => {
+    // 保存操作
+    setEditingPaymentInfoIndex(null);
+    setIsSavingPaymentInfo(false);
+    console.log('保存的值:', inputValuePaymentInfo);
+  };
+
+  const handleCancelPaymentInfo = () => {
+    // 取消编辑
+    setEditingPaymentInfoIndex(null);
+    setIsSavingPaymentInfo(false);
+    setInputValuePaymentInfo('');
+  };
+
+
 
   const handleFileChange = ({ fileList: newFileList }) => {
     setDocFileList(newFileList);
@@ -93,6 +121,7 @@ const SalesOrderDetail = () => {
     fetchOrderDetail(uuid);
     fetchProductList(uuid);
     fetchStepList(uuid);
+    fetchOrderFileList(uuid);
   }, [uuid]);
 
   const fetchOrderDetail = async (uuid) => {
@@ -105,19 +134,26 @@ const SalesOrderDetail = () => {
           setExistingDocFileList(documents);
         }
 
-        const logisticsDataArr = [{
-          ship_company: response.data?.purchase_order_info?.ship_company,
-          ship_name: response.data?.purchase_order_info?.ship_name,
-          voyage: response.data?.purchase_order_info?.voyage,
-          bill_of_lading_no: response.data?.purchase_order_info?.bill_of_lading_no,
-          cabinet_no: response.data?.purchase_order_info?.cabinet_no,
-          cabinet_type: response.data?.purchase_order_info?.cabinet_type,
-          estimated_shipping_date: response.data?.purchase_order_info?.estimated_shipping_date,
-          estimated_arrival_date: response.data?.purchase_order_info?.estimated_arrival_date,
-          departure_port: response.data?.purchase_order_info?.departure_port,
-          destination_port: response.data?.purchase_order_info?.destination_port,
-          actual_arrival_port: response.data?.purchase_order_info?.actual_arrival_port,
-        }];
+        const logisticsDataArr = [
+          {
+            ship_company: response.data?.purchase_order_info?.ship_company,
+            ship_name: response.data?.purchase_order_info?.ship_name,
+            voyage: response.data?.purchase_order_info?.voyage,
+            bill_of_lading_no:
+              response.data?.purchase_order_info?.bill_of_lading_no,
+            cabinet_no: response.data?.purchase_order_info?.cabinet_no,
+            cabinet_type: response.data?.purchase_order_info?.cabinet_type,
+            estimated_shipping_date:
+              response.data?.purchase_order_info?.estimated_shipping_date,
+            estimated_arrival_date:
+              response.data?.purchase_order_info?.estimated_arrival_date,
+            departure_port: response.data?.purchase_order_info?.departure_port,
+            destination_port:
+              response.data?.purchase_order_info?.destination_port,
+            actual_arrival_port:
+              response.data?.purchase_order_info?.actual_arrival_port,
+          },
+        ];
 
         setLogisticsData(logisticsDataArr);
 
@@ -129,7 +165,6 @@ const SalesOrderDetail = () => {
         };
 
         setProcessDetail(processDetailInfo);
-
       } else {
         message.error('获取订单详情失败');
       }
@@ -137,6 +172,38 @@ const SalesOrderDetail = () => {
       message.error('获取订单详情失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrderFileList = async (uuid) => {
+    try {
+      const response = await getOrderFileList({ order_no: uuid });
+      if (response.code === 200) {
+        let fileList = response.data;
+        fileList.push({
+          name: '',
+          url: '',
+        });
+        setCertificateDatas(response.data);
+      } else {
+        message.error('获取文件列表失败');
+      }
+    } catch (error) {
+      message.error('获取文件列表失败');
+    }
+  };
+
+  const handleDeleteCertificate = async (uuid0) => {
+    try {
+      const response = await deleteOrderFile({ uuid: uuid0 });
+      if (response.code === 200) {
+        message.success('删除成功');
+        fetchOrderFileList(uuid);
+      } else {
+        message.error('删除失败');
+      }
+    } catch (error) {
+      message.error('删除失败');
     }
   };
 
@@ -151,6 +218,51 @@ const SalesOrderDetail = () => {
       const response = await getSalesOrderProductList({ uuid });
       if (response.code === 200) {
         setProductList(response.data);
+
+        let salesPaymentInfoArr = [];
+
+        response.data.forEach((item) => {
+          // let totalAmount = item.purchase_order_item?.rmb_deposit_amount + item.purchase_order_item?.rmb_residual_amount + item.purchase_order_item?.tariff + item.purchase_order_item?.vat;
+          // let totalRongda = item?.pay_rongda_deposit + item?.pay_rongda_final_payment;
+
+          const calculateTotalAmount = () => {
+            return new Decimal(item.purchase_order_item?.rmb_deposit_amount || 0)
+                .plus(item.purchase_order_item?.rmb_residual_amount || 0)
+                .plus(item.purchase_order_item?.tariff || 0)
+                .plus(item.purchase_order_item?.vat || 0)
+                .toNumber(); // 转为普通数字
+          };
+
+          const calculateTotalRongdaAmount = () => {
+            return new Decimal(item.pay_rongda_deposit || 0)
+                .plus(item.pay_rongda_final_payment || 0)
+                .toNumber(); // 转为普通数字
+          };
+          
+          let salesPaymentInfo = {
+            uuid: item.uuid,
+            product_name: item.product?.name,
+            weight: item.purchase_order_item?.weight,
+            box_num: item.purchase_order_item?.box_num,
+            rmb_deposit_amount: item.purchase_order_item?.rmb_deposit_amount,
+            rmb_deposit_amount_time: item.purchase_order_item?.rmb_deposit_amount_time,
+            rmb_residual_amount: item.purchase_order_item?.rmb_residual_amount,
+            rmb_residual_amount_time: item.purchase_order_item?.rmb_residual_amount_time,
+            tariff: item.purchase_order_item?.tariff,
+            vat: item.purchase_order_item?.vat,
+            payment_date: item.purchase_order_item?.payment_date,
+            total_amount: calculateTotalAmount(),
+            pay_rongda_deposit: item?.pay_rongda_deposit,
+            pay_rongda_deposit_date: item?.pay_rongda_deposit_date,
+            pay_rongda_final_payment: item?.pay_rongda_final_payment,
+            pay_rongda_final_payment_date: item?.pay_rongda_final_payment_date,
+            total_rongda: calculateTotalRongdaAmount(),
+          };
+          salesPaymentInfoArr.push(salesPaymentInfo);
+        });
+
+        setSalesPaymentInfo(salesPaymentInfoArr);
+
       } else {
         message.error('获取商品列表失败');
       }
@@ -296,7 +408,8 @@ const SalesOrderDetail = () => {
     {
       title: '预计到港日期',
       dataIndex: 'estimated_arrival_date',
-      render: (text, record) => record.purchase_order_item?.estimated_arrival_date,
+      render: (text, record) =>
+        record.purchase_order_item?.estimated_arrival_date,
     },
     {
       title: 'RMB定金金额',
@@ -314,13 +427,15 @@ const SalesOrderDetail = () => {
       title: '定金汇率',
       dataIndex: 'deposit_exchange_rate',
       key: 'deposit_exchange_rate',
-      render: (text, record) => record.purchase_order_item?.deposit_exchange_rate,
+      render: (text, record) =>
+        record.purchase_order_item?.deposit_exchange_rate,
     },
     {
       title: '尾款汇率',
       dataIndex: 'residual_exchange_rate',
       key: 'residual_exchange_rate',
-      render: (text, record) => record.purchase_order_item?.residual_exchange_rate,
+      render: (text, record) =>
+        record.purchase_order_item?.residual_exchange_rate,
     },
     {
       title: '关税',
@@ -338,7 +453,6 @@ const SalesOrderDetail = () => {
       render: (text, record) => record.purchase_order_item?.payment_date,
     },
   ];
-
 
   // const columns = [
   //   {
@@ -657,7 +771,6 @@ const SalesOrderDetail = () => {
     }
   };
 
-
   const columnsLogisticsPaymentInfo = [
     {
       title: '船公司',
@@ -705,7 +818,6 @@ const SalesOrderDetail = () => {
     },
   ];
 
-  
   const columnsSettlementInfo = [
     {
       title: '货物名称',
@@ -741,7 +853,85 @@ const SalesOrderDetail = () => {
     },
   ];
 
+  const handleUploadCertificate = async (fileList0) => {
+    // console.log(key);
+    setFileList(fileList0);
 
+    if (fileList0.length > 0) {
+      const file = fileList0[0].originFileObj;
+      try {
+        // 获取表单中的其他值
+
+        // 创建 FormData
+        const formData = new FormData();
+        formData.append('file', file); // 添加文件
+        formData.append('order_no', uuid);
+        // 使用 axios 上传文件和其他数据
+        const response = await uploadSalesOrderFile(formData);
+        if (response.code === 200) {
+          message.success('文件上传成功');
+          fetchOrderFileList(uuid);
+        } else {
+          message.error('文件上传失败0');
+        }
+      } catch (error) {
+        message.error('文件上传失败1:' + error);
+      }
+      setFileList([]);
+    }
+  };
+
+  // 证件头
+  const certificateHeader = [
+    {
+      key: '1',
+      title: '证件类型',
+      dataIndex: 'name',
+      width: '300px',
+    },
+    {
+      key: '2',
+      title: '合同单证',
+      dataIndex: 'url',
+      render: (text, record) => {
+        // 如果是空的，显示按钮上传证件
+        console.log(record);
+        if (text === '') {
+          return (
+            <Upload
+              beforeUpload={() => false} // 禁用自动上传
+              fileList={fileList}
+              onChange={({ fileList }) => handleUploadCertificate(fileList)} // 文件选择后自动上传
+            >
+              <Button>上传证件</Button>
+            </Upload>
+          );
+        }
+
+        return (
+          <div>
+            <div>
+              <div className="file-item">
+                <a
+                  href={'/public/' + text}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>{record.filename}</span>
+                </a>
+                <Button
+                  type="link"
+                  onClick={() => handleDeleteCertificate(record.uuid)}
+                >
+                  删除
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+  ];
 
   const itemTabs: TabsProps['items'] = [
     {
@@ -767,50 +957,207 @@ const SalesOrderDetail = () => {
       label: '物流信息',
       children: (
         <ProTable
-        style={{
-          marginBottom: 24,
-        }}
-        columns={columnsLogisticsPaymentInfo}
-        dataSource={logisticsData}
-        pagination={false}
-        search={false}
-        loading={loading}
-        options={false}
-        toolBarRender={false}
-        scroll={{ x: 'max-content' }}
-        rowKey="id"
-      />
+          style={{
+            marginBottom: 24,
+          }}
+          columns={columnsLogisticsPaymentInfo}
+          dataSource={logisticsData}
+          pagination={false}
+          search={false}
+          loading={loading}
+          options={false}
+          toolBarRender={false}
+          scroll={{ x: 'max-content' }}
+          rowKey="id"
+        />
       ),
     },
     {
       key: '3',
       label: '付款明细',
       children: (
-        <Table dataSource={[]} scroll={{ x: 'max-content' }}>
-           <ColumnGroup title="货物明细">
-            <Column title="货物名称" dataIndex="product_name" key="product_name" />
+        <Table dataSource={salesPaymentInfo} scroll={{ x: 'max-content' }} rowKey='uuid'>
+          <ColumnGroup title="货物明细">
+            <Column
+              title="货物名称"
+              dataIndex="product_name"
+              key="product_name"
+            />
             <Column title="重量" dataIndex="weight" key="weight" />
             <Column title="件数" dataIndex="box_num" key="box_num" />
-           </ColumnGroup>
-           <ColumnGroup title="支付供应商">
-            <Column title="支付供应商预付款" dataIndex="product_name" key="product_name" />
-            <Column title="支付供应商预付款时间" dataIndex="weight" key="weight" />
-            <Column title="支付供应商尾款" dataIndex="box_num" key="box_num" />
-            <Column title="支付供应商尾款时间" dataIndex="box_num" key="box_num" />
-            <Column title="支付增值税" dataIndex="box_num" key="box_num" />
-            <Column title="支付关税" dataIndex="box_num" key="box_num" />
-            <Column title="缴税时间" dataIndex="box_num" key="box_num" />
-            <Column title="合计金额" dataIndex="box_num" key="box_num" />
-           </ColumnGroup>
-           <ColumnGroup title="支付融大">
-            <Column title="支付融达预付款" dataIndex="product_name" key="product_name" />
-            <Column title="支付融达预付款时间" dataIndex="weight" key="weight" />
-            <Column title="支付融大尾款" dataIndex="box_num" key="box_num" />
-            <Column title="支付融大尾款时间" dataIndex="box_num" key="box_num" />
-            <Column title="合计金额" dataIndex="box_num" key="box_num" />
-           </ColumnGroup>
-          
-          
+          </ColumnGroup>
+          <ColumnGroup title="支付供应商">
+            <Column
+              title="支付供应商预付款"
+              dataIndex="rmb_deposit_amount"
+              key="rmb_deposit_amount"
+            />
+            <Column
+              title="支付供应商预付款时间"
+              dataIndex="rmb_deposit_amount_time"
+              key="rmb_deposit_amount_time"
+            />
+            <Column title="支付供应商尾款" dataIndex="rmb_residual_amount" key="rmb_residual_amount" />
+            <Column
+              title="支付供应商尾款时间"
+              dataIndex="rmb_residual_amount_time"
+              key="rmb_residual_amount_time"
+            />
+            <Column title="支付增值税" dataIndex="vat" key="vat" />
+            <Column title="支付关税" dataIndex="tariff" key="tariff" />
+            <Column title="缴税时间" dataIndex="payment_date" key="payment_date" />
+            <Column title="合计金额" dataIndex="total_amount" key="total_amount" />
+          </ColumnGroup>
+          <ColumnGroup title="支付融大">
+            <Column
+              title="支付融大预付款"
+              dataIndex="pay_rongda_deposit"
+              key="pay_rongda_deposit"
+              render={(text, record, index) => {
+                const indexKey = `${index}_pay_rongda_deposit`; // 组合 index 和 key
+                return (
+                  <div
+                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                    // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
+                  >
+                    {editingPaymentInfoIndex  === indexKey ? (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Input
+                          value={inputValuePaymentInfo}
+                          onChange={(e) => setInputValuePaymentInfo(e.target.value)}
+                          style={{ marginRight: 8 }}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setIsSavingPaymentInfo(true);
+                            handleSavePaymentInfo(index);
+                          }}
+                          style={{ marginRight: 8 }}
+                        >
+                          保存
+                        </Button>
+                        <Button onClick={handleCancelPaymentInfo}>取消</Button>
+                      </div>
+                    ) : (
+                      <span>{text || '无数据'}</span>
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <Column
+              title="支付融大预付款时间"
+              dataIndex="pay_rongda_deposit_date"
+              key="pay_rongda_deposit_date"
+              render={(text, record, index) => {
+                const indexKey = `${index}_pay_rongda_deposit_date`; // 组合 index 和 key
+                return (
+                  <div
+                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                    // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
+                  >
+                    {editingPaymentInfoIndex  === indexKey ? (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Input
+                          value={inputValuePaymentInfo}
+                          onChange={(e) => setInputValuePaymentInfo(e.target.value)}
+                          style={{ marginRight: 8 }}
+                          type='date'
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setIsSavingPaymentInfo(true);
+                            handleSavePaymentInfo(index);
+                          }}
+                          style={{ marginRight: 8 }}
+                        >
+                          保存
+                        </Button>
+                        <Button onClick={handleCancelPaymentInfo}>取消</Button>
+                      </div>
+                    ) : (
+                      <span>{text || '无数据'}</span>
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <Column title="支付融大尾款" dataIndex="pay_rongda_final_payment" key="pay_rongda_final_payment" 
+             render={(text, record, index) => {
+              const indexKey = `${index}_pay_rongda_final_payment`; // 组合 index 和 key
+              return (
+                <div
+                  onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                  // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
+                >
+                  {editingPaymentInfoIndex  === indexKey ? (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Input
+                        value={inputValuePaymentInfo}
+                        onChange={(e) => setInputValuePaymentInfo(e.target.value)}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Button
+                        type="primary"
+                        onClick={() => {
+                          setIsSavingPaymentInfo(true);
+                          handleSavePaymentInfo(index);
+                        }}
+                        style={{ marginRight: 8 }}
+                      >
+                        保存
+                      </Button>
+                      <Button onClick={handleCancelPaymentInfo}>取消</Button>
+                    </div>
+                  ) : (
+                    <span>{text || '无数据'}</span>
+                  )}
+                </div>
+              );
+            }}
+            />
+            <Column
+              title="支付融大尾款时间"
+              dataIndex="pay_rongda_final_payment_date"
+              key="pay_rongda_final_payment_date"
+              render={(text, record, index) => {
+                const indexKey = `${index}_pay_rongda_final_payment_date`; // 组合 index 和 key
+                return (
+                  <div
+                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                    // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
+                  >
+                    {editingPaymentInfoIndex  === indexKey ? (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Input
+                          value={inputValuePaymentInfo}
+                          onChange={(e) => setInputValuePaymentInfo(e.target.value)}
+                          style={{ marginRight: 8 }}
+                          type='date'
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setIsSavingPaymentInfo(true);
+                            handleSavePaymentInfo(index);
+                          }}
+                          style={{ marginRight: 8 }}
+                        >
+                          保存
+                        </Button>
+                        <Button onClick={handleCancelPaymentInfo}>取消</Button>
+                      </div>
+                    ) : (
+                      <span>{text || '无数据'}</span>
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <Column title="合计金额" dataIndex="total_rongda" key="total_rongda" />
+          </ColumnGroup>
         </Table>
       ),
     },
@@ -819,36 +1166,42 @@ const SalesOrderDetail = () => {
       label: '结算',
       children: (
         <ProTable
-        style={{
-          marginBottom: 24,
-        }}
-        columns={columnsSettlementInfo}
-        dataSource={[]}
-        pagination={false}
-        search={false}
-        loading={loading}
-        options={false}
-        toolBarRender={false}
-        scroll={{ x: 'max-content' }}
-        rowKey="id"
-      />
+          style={{
+            marginBottom: 24,
+          }}
+          columns={columnsSettlementInfo}
+          dataSource={[]}
+          pagination={false}
+          search={false}
+          loading={loading}
+          options={false}
+          toolBarRender={false}
+          scroll={{ x: 'max-content' }}
+          rowKey="id"
+        />
       ),
     },
     {
       key: '4',
       label: '进程明细',
       children: (
-        <ProDescriptions layout='vertical' bordered column={8} >
+        <ProDescriptions layout="vertical" bordered column={8}>
           <ProDescriptions.Item label="接单时间" dataIndex="order_date">
             {processDetail?.order_date}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="签订合同时间" dataIndex="process_detail">
             -
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="支付预付款时间" dataIndex="deposit_amount_date">
+          <ProDescriptions.Item
+            label="支付预付款时间"
+            dataIndex="deposit_amount_date"
+          >
             {processDetail?.deposit_amount_date}
           </ProDescriptions.Item>
-          <ProDescriptions.Item label="支付尾款时间" dataIndex="final_payment_amount_date">
+          <ProDescriptions.Item
+            label="支付尾款时间"
+            dataIndex="final_payment_amount_date"
+          >
             {processDetail?.final_payment_amount_date}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="入库时间" dataIndex="process_detail">
@@ -863,7 +1216,13 @@ const SalesOrderDetail = () => {
         </ProDescriptions>
       ),
     },
-    
+    {
+      key: '5',
+      label: '证件明细',
+      children: (
+        <Table dataSource={certificateDatas} columns={certificateHeader} />
+      ),
+    },
   ];
 
   const onTabChange = (key: string) => {
