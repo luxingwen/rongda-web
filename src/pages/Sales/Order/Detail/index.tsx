@@ -9,6 +9,7 @@ import {
   getSalesOrderProductList,
   getSalesOrderStepList,
   uploadDocments,
+  updateSalesOrderProductItem,
 } from '@/services/sales_order';
 import { UploadOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
@@ -31,6 +32,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Decimal from 'decimal.js';
+import { EditOutlined } from '@ant-design/icons';
 import './SalesOrderDetail.css';
 
 const { Column, ColumnGroup } = Table;
@@ -62,11 +64,26 @@ const SalesOrderDetail = () => {
   const [inputValuePaymentInfo, setInputValuePaymentInfo] = useState('');
   const [isSavingPaymentInfo, setIsSavingPaymentInfo] = useState(false);
 
-  const handleSavePaymentInfo = (index) => {
+  const handleSavePaymentInfo = (uuid0, key) => {
     // 保存操作
     setEditingPaymentInfoIndex(null);
     setIsSavingPaymentInfo(false);
     console.log('保存的值:', inputValuePaymentInfo);
+    let val = inputValuePaymentInfo;
+    if (key === 'pay_rongda_deposit' || key === 'pay_rongda_final_payment') {
+      val = parseFloat(val);
+    }
+
+    updateSalesOrderProductItem({ uuid: uuid0, key: key, value: val }).then((res) => {
+      if (res.code === 200) {
+        message.success('保存成功');
+        fetchProductList(uuid);
+      } else {
+        message.error('保存失败');
+      }
+    });
+
+    setInputValuePaymentInfo('');
   };
 
   const handleCancelPaymentInfo = () => {
@@ -1017,7 +1034,7 @@ const SalesOrderDetail = () => {
                 const indexKey = `${index}_pay_rongda_deposit`; // 组合 index 和 key
                 return (
                   <div
-                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                    // onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
                     // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
                   >
                     {editingPaymentInfoIndex  === indexKey ? (
@@ -1031,7 +1048,7 @@ const SalesOrderDetail = () => {
                           type="primary"
                           onClick={() => {
                             setIsSavingPaymentInfo(true);
-                            handleSavePaymentInfo(index);
+                            handleSavePaymentInfo(record.uuid, 'pay_rongda_deposit');
                           }}
                           style={{ marginRight: 8 }}
                         >
@@ -1040,7 +1057,16 @@ const SalesOrderDetail = () => {
                         <Button onClick={handleCancelPaymentInfo}>取消</Button>
                       </div>
                     ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => {
+                        if (editingPaymentInfoIndex === null) {
+                          setEditingPaymentInfoIndex(indexKey)
+                        }else{
+                          message.error('请先保存当前编辑的数据')
+                        }
+                      }}>
                       <span>{text || '无数据'}</span>
+                      <EditOutlined style={{ marginLeft: 8 }} />
+                    </span>
                     )}
                   </div>
                 );
@@ -1054,7 +1080,7 @@ const SalesOrderDetail = () => {
                 const indexKey = `${index}_pay_rongda_deposit_date`; // 组合 index 和 key
                 return (
                   <div
-                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                  //  onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
                     // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
                   >
                     {editingPaymentInfoIndex  === indexKey ? (
@@ -1069,7 +1095,7 @@ const SalesOrderDetail = () => {
                           type="primary"
                           onClick={() => {
                             setIsSavingPaymentInfo(true);
-                            handleSavePaymentInfo(index);
+                            handleSavePaymentInfo(record.uuid, 'pay_rongda_deposit_date');
                           }}
                           style={{ marginRight: 8 }}
                         >
@@ -1078,7 +1104,16 @@ const SalesOrderDetail = () => {
                         <Button onClick={handleCancelPaymentInfo}>取消</Button>
                       </div>
                     ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() =>{
+                        if (editingPaymentInfoIndex === null) {
+                          setEditingPaymentInfoIndex(indexKey)
+                        }else{
+                          message.error('请先保存当前编辑的数据')
+                        }
+                      }}>
                       <span>{text || '无数据'}</span>
+                      <EditOutlined style={{ marginLeft: 8 }} />
+                    </span>
                     )}
                   </div>
                 );
@@ -1089,7 +1124,7 @@ const SalesOrderDetail = () => {
               const indexKey = `${index}_pay_rongda_final_payment`; // 组合 index 和 key
               return (
                 <div
-                  onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                 // onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
                   // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
                 >
                   {editingPaymentInfoIndex  === indexKey ? (
@@ -1103,7 +1138,7 @@ const SalesOrderDetail = () => {
                         type="primary"
                         onClick={() => {
                           setIsSavingPaymentInfo(true);
-                          handleSavePaymentInfo(index);
+                          handleSavePaymentInfo(record.uuid, 'pay_rongda_final_payment');
                         }}
                         style={{ marginRight: 8 }}
                       >
@@ -1112,7 +1147,16 @@ const SalesOrderDetail = () => {
                       <Button onClick={handleCancelPaymentInfo}>取消</Button>
                     </div>
                   ) : (
-                    <span>{text || '无数据'}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() =>{
+                      if (editingPaymentInfoIndex === null) {
+                        setEditingPaymentInfoIndex(indexKey)
+                      }else{
+                        message.error('请先保存当前编辑的数据')
+                      }
+                    }}>
+                      <span>{text || '无数据'}</span>
+                      <EditOutlined style={{ marginLeft: 8 }} />
+                    </span>
                   )}
                 </div>
               );
@@ -1126,7 +1170,7 @@ const SalesOrderDetail = () => {
                 const indexKey = `${index}_pay_rongda_final_payment_date`; // 组合 index 和 key
                 return (
                   <div
-                    onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
+                    //onMouseEnter={() => editingPaymentInfoIndex === null && setEditingPaymentInfoIndex(indexKey)}
                     // onMouseLeave={() => !isSavingPaymentInfo && setEditingPaymentInfoIndex(null)}
                   >
                     {editingPaymentInfoIndex  === indexKey ? (
@@ -1141,7 +1185,7 @@ const SalesOrderDetail = () => {
                           type="primary"
                           onClick={() => {
                             setIsSavingPaymentInfo(true);
-                            handleSavePaymentInfo(index);
+                            handleSavePaymentInfo(record.uuid, 'pay_rongda_final_payment_date');
                           }}
                           style={{ marginRight: 8 }}
                         >
@@ -1150,7 +1194,18 @@ const SalesOrderDetail = () => {
                         <Button onClick={handleCancelPaymentInfo}>取消</Button>
                       </div>
                     ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() =>{
+
+                        if (editingPaymentInfoIndex === null) {
+                          setEditingPaymentInfoIndex(indexKey)
+                        }else{
+                          message.error('请先保存当前编辑的数据')
+                        }
+                        
+                      }}>
                       <span>{text || '无数据'}</span>
+                      <EditOutlined style={{ marginLeft: 8 }} />
+                    </span>
                     )}
                   </div>
                 );

@@ -43,6 +43,19 @@ const StorehouseManagement = () => {
     try {
       const values = await form.validateFields();
       values.status = values.status ? 1 : 0;
+
+      values.cold_storage_fee = values.cold_storage_fee ?  parseFloat(values.cold_storage_fee) : 0;
+      values.loading_unloading_fee = values.loading_unloading_fee ?  parseFloat(values.loading_unloading_fee) : 0;
+      values.disposal_fee = values.disposal_fee ?  parseFloat(values.disposal_fee) : 0;
+      values.handling_fee = values.handling_fee ?  parseFloat(values.handling_fee) : 0;
+      values.goods_transfer_fee = values.goods_transfer_fee ?  parseFloat(values.goods_transfer_fee) : 0;
+      values.sorting_fee = values.sorting_fee ?  parseFloat(values.sorting_fee) : 0;
+      values.wrapping_film_fee = values.wrapping_film_fee ?  parseFloat(values.wrapping_film_fee) : 0;
+      values.charging_fee = values.charging_fee ?  parseFloat(values.charging_fee) : 0;
+      values.reading_code_fee = values.reading_code_fee ?  parseFloat(values.reading_code_fee) : 0;
+      values.cold_fee = values.cold_fee ?  parseFloat(values.cold_fee) : 0;
+      
+
       if (editingStorehouse) {
         await updateStorehouse({ ...editingStorehouse, ...values });
         message.success('更新成功');
@@ -245,6 +258,110 @@ const StorehouseManagement = () => {
               <Option value="2">第三方仓库</Option>
             </Select>
           </Form.Item>
+          <Form.Item
+            name="contract_date"
+            label="签订合同时间"
+            rules={[{ required: false, message: '签订合同时间' }]}
+          >
+            <Input type='date' />
+          </Form.Item>
+
+          <Form.Item
+            name="contract_expire_date"
+            label="合同到期时间"
+            rules={[{ required: false, message: '合同到期时间' }]}
+          >
+            <Input type='date' />
+          </Form.Item>
+
+          <Form.Item
+            name="contract_expire_remind"
+            label="合同到期提醒"
+            rules={[{ required: false, message: '合同到期提醒' }]}
+          >
+            <Input type='date'  />
+          </Form.Item>
+
+          <Form.Item
+            name="cold_storage_fee"
+            label="冷藏费"
+            rules={[{ required: false, message: '冷藏费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+
+          <Form.Item
+            name="loading_unloading_fee"
+            label="装卸费/出入库费"
+            rules={[{ required: false, message: '装卸费/出入库费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="disposal_fee"
+            label="处置费"
+            rules={[{ required: false, message: '处置费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="handling_fee"
+            label="搬运费"
+            rules={[{ required: false, message: '搬运费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="goods_transfer_fee"
+            label="货转费"
+            rules={[{ required: false, message: '货转费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="sorting_fee"
+            label="分选费"
+            rules={[{ required: false, message: '分选费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+          <Form.Item
+            name="wrapping_film_fee"
+            label="缠绕膜费"
+            rules={[{ required: false, message: '缠绕膜费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="charging_fee"
+            label="充电费"
+            rules={[{ required: false, message: '充电费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="reading_code_fee"
+            label="抄码费"
+            rules={[{ required: false, message: '抄码费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
+          <Form.Item
+            name="cold_fee"
+            label="打冷费"
+            rules={[{ required: false, message: '打冷费' }]}
+          >
+            <Input type='number'  />
+          </Form.Item>
+
         </Form>
       </Modal>
     </PageContainer>

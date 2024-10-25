@@ -130,3 +130,12 @@ export async function uploadDocments(data) {
     },
   });
 }
+
+
+// UpdateSalesOrderProductItem
+export async function updateSalesOrderProductItem(data) {
+  return request('/api/v1/sales_order/product_item/update', {
+    method: 'POST',
+    data,
+  });
+}
