@@ -131,34 +131,34 @@ const StorehouseDetail = () => {
         <Card title="冷库费用价格" bordered={false}>
         <ProDescriptions layout='vertical' bordered column={10} >
         <ProDescriptions.Item label="冷藏费" dataIndex="cold_storage_fee">
-          {storehouseInfo?.cold_storage_fee}
+          {storehouseInfo?.cold_storage_fee}   {storehouseInfo?.cold_storage_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="装卸费/出入库费" dataIndex="loading_unloading_fee">
-          {storehouseInfo?.loading_unloading_fee}
+          {storehouseInfo?.loading_unloading_fee} {storehouseInfo?.loading_unloading_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="处置费" dataIndex="disposal_fee">
-          {storehouseInfo?.disposal_fee}
+          {storehouseInfo?.disposal_fee} {storehouseInfo?.disposal_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="搬运费" dataIndex="handling_fee">
-          {storehouseInfo?.handling_fee}
+          {storehouseInfo?.handling_fee} {storehouseInfo?.handling_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="货转费" dataIndex="goods_transfer_fee">
-          {storehouseInfo?.goods_transfer_fee}
+          {storehouseInfo?.goods_transfer_fee} {storehouseInfo?.goods_transfer_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="分选费" dataIndex="sorting_fee">
-          {storehouseInfo?.sorting_fee}
+          {storehouseInfo?.sorting_fee} {storehouseInfo?.sorting_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="缠绕膜费" dataIndex="wrapping_film_fee">
-          {storehouseInfo?.wrapping_film_fee}
+          {storehouseInfo?.wrapping_film_fee} {storehouseInfo?.wrapping_film_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="充电费" dataIndex="charging_fee">
-          {storehouseInfo?.charging_fee}
+          {storehouseInfo?.charging_fee} {storehouseInfo?.charging_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="抄码费" dataIndex="reading_code_fee">
-          {storehouseInfo?.reading_code_fee}
+          {storehouseInfo?.reading_code_fee}  {storehouseInfo?.reading_code_fee_type}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="打冷费" dataIndex="cold_fee">
-          {storehouseInfo?.cold_fee}
+          {storehouseInfo?.cold_fee} {storehouseInfo?.cold_fee_type}
         </ProDescriptions.Item>
       </ProDescriptions>
       </Card>

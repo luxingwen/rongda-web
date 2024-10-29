@@ -1319,7 +1319,7 @@ const SalesOrderDetail = () => {
             {orderInfo?.purchase_order_info?.pi_total_amount}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="CI总金额">
-            {orderInfo?.purchase_order_info.ci_total_amount}
+            {orderInfo?.purchase_order_info?.ci_total_amount}
           </ProDescriptions.Item>
           <ProDescriptions.Item label="预计船期">
             {orderInfo?.purchase_order_info?.estimated_arrival_date}

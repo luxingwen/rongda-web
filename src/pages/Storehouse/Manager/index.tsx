@@ -1,12 +1,33 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ProTable from '@ant-design/pro-table';
-import { Button, Modal, Form, Input, Switch, message, Tag, Popconfirm, Select, Badge } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getStorehouses, addStorehouse, updateStorehouse, deleteStorehouse } from '@/services/storehouse';
-import { EyeOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { render } from 'react-dom';
+import {
+  addStorehouse,
+  deleteStorehouse,
+  getStorehouses,
+  updateStorehouse,
+} from '@/services/storehouse';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import ProTable from '@ant-design/pro-table';
+import {
+  Badge,
+  Button,
+  Col,
+  Form,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Row,
+  Select,
+  Switch,
+  Tag,
+} from 'antd';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
@@ -44,17 +65,34 @@ const StorehouseManagement = () => {
       const values = await form.validateFields();
       values.status = values.status ? 1 : 0;
 
-      values.cold_storage_fee = values.cold_storage_fee ?  parseFloat(values.cold_storage_fee) : 0;
-      values.loading_unloading_fee = values.loading_unloading_fee ?  parseFloat(values.loading_unloading_fee) : 0;
-      values.disposal_fee = values.disposal_fee ?  parseFloat(values.disposal_fee) : 0;
-      values.handling_fee = values.handling_fee ?  parseFloat(values.handling_fee) : 0;
-      values.goods_transfer_fee = values.goods_transfer_fee ?  parseFloat(values.goods_transfer_fee) : 0;
-      values.sorting_fee = values.sorting_fee ?  parseFloat(values.sorting_fee) : 0;
-      values.wrapping_film_fee = values.wrapping_film_fee ?  parseFloat(values.wrapping_film_fee) : 0;
-      values.charging_fee = values.charging_fee ?  parseFloat(values.charging_fee) : 0;
-      values.reading_code_fee = values.reading_code_fee ?  parseFloat(values.reading_code_fee) : 0;
-      values.cold_fee = values.cold_fee ?  parseFloat(values.cold_fee) : 0;
-      
+      values.cold_storage_fee = values.cold_storage_fee
+        ? parseFloat(values.cold_storage_fee)
+        : 0;
+      values.loading_unloading_fee = values.loading_unloading_fee
+        ? parseFloat(values.loading_unloading_fee)
+        : 0;
+      values.disposal_fee = values.disposal_fee
+        ? parseFloat(values.disposal_fee)
+        : 0;
+      values.handling_fee = values.handling_fee
+        ? parseFloat(values.handling_fee)
+        : 0;
+      values.goods_transfer_fee = values.goods_transfer_fee
+        ? parseFloat(values.goods_transfer_fee)
+        : 0;
+      values.sorting_fee = values.sorting_fee
+        ? parseFloat(values.sorting_fee)
+        : 0;
+      values.wrapping_film_fee = values.wrapping_film_fee
+        ? parseFloat(values.wrapping_film_fee)
+        : 0;
+      values.charging_fee = values.charging_fee
+        ? parseFloat(values.charging_fee)
+        : 0;
+      values.reading_code_fee = values.reading_code_fee
+        ? parseFloat(values.reading_code_fee)
+        : 0;
+      values.cold_fee = values.cold_fee ? parseFloat(values.cold_fee) : 0;
 
       if (editingStorehouse) {
         await updateStorehouse({ ...editingStorehouse, ...values });
@@ -70,40 +108,60 @@ const StorehouseManagement = () => {
     }
   };
 
-
   const handleViewStorehouse = (uuid) => {
     navigate(`/storehouse/detail/${uuid}`);
-  }
+  };
 
   const handleCancel = () => {
     setIsModalVisible(false);
   };
 
   const renderStatus = (status) => (
-    <Tag color={status === 1 ? 'green' : 'red'}>{status === 1 ? '启用' : '未启用'}</Tag>
+    <Tag color={status === 1 ? 'green' : 'red'}>
+      {status === 1 ? '启用' : '未启用'}
+    </Tag>
   );
 
   const renderType = (type) => {
     switch (type) {
-      case "1":
+      case '1':
         return <Badge status="success" text="自有仓库" />;
-      case "2":
+      case '2':
         return <Badge status="processing" text="第三方仓库" />;
       default:
         return <Badge status="error" text="未知" />;
     }
   };
-  
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', hideInSearch: true },
-    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300,  },
+    { title: 'UUID', dataIndex: 'uuid', key: 'uuid', width: 300 },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '地址', dataIndex: 'address', key: 'address', hideInSearch: true },
-    { title: '联系人', dataIndex: 'contact_person', key: 'contact_person', hideInSearch: true },
-    { title: '联系电话', dataIndex: 'contact_phone', key: 'contact_phone', hideInSearch: true },
-    { title: '银行开户行', dataIndex: 'bank_name', key: 'bank_name', hideInSearch: true },
-    { title: '银行账户', dataIndex: 'bank_account', key: 'bank_account', hideInSearch: true },
+    {
+      title: '联系人',
+      dataIndex: 'contact_person',
+      key: 'contact_person',
+      hideInSearch: true,
+    },
+    {
+      title: '联系电话',
+      dataIndex: 'contact_phone',
+      key: 'contact_phone',
+      hideInSearch: true,
+    },
+    {
+      title: '银行开户行',
+      dataIndex: 'bank_name',
+      key: 'bank_name',
+      hideInSearch: true,
+    },
+    {
+      title: '银行账户',
+      dataIndex: 'bank_account',
+      key: 'bank_account',
+      hideInSearch: true,
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -111,14 +169,24 @@ const StorehouseManagement = () => {
       hideInSearch: true,
       render: (status) => renderStatus(status),
     },
-    { title: '类型', dataIndex: 'type', key: 'type', render: renderType, hideInSearch: true },
+    {
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      render: renderType,
+      hideInSearch: true,
+    },
     {
       title: '操作',
       key: 'action',
       hideInSearch: true,
       render: (_, record) => (
         <span>
-           <Button icon={<EyeOutlined />} onClick={() => handleViewStorehouse(record.uuid)} style={{ marginRight: 8 }} />
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewStorehouse(record.uuid)}
+            style={{ marginRight: 8 }}
+          />
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEditStorehouse(record)}
@@ -194,6 +262,7 @@ const StorehouseManagement = () => {
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        maskClosable={false}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -263,7 +332,7 @@ const StorehouseManagement = () => {
             label="签订合同时间"
             rules={[{ required: false, message: '签订合同时间' }]}
           >
-            <Input type='date' />
+            <Input type="date" />
           </Form.Item>
 
           <Form.Item
@@ -271,7 +340,7 @@ const StorehouseManagement = () => {
             label="合同到期时间"
             rules={[{ required: false, message: '合同到期时间' }]}
           >
-            <Input type='date' />
+            <Input type="date" />
           </Form.Item>
 
           <Form.Item
@@ -279,89 +348,294 @@ const StorehouseManagement = () => {
             label="合同到期提醒"
             rules={[{ required: false, message: '合同到期提醒' }]}
           >
-            <Input type='date'  />
+            <Input type="date" />
           </Form.Item>
 
-          <Form.Item
-            name="cold_storage_fee"
-            label="冷藏费"
-            rules={[{ required: false, message: '冷藏费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="冷藏费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="cold_storage_fee"
+                  rules={[{ required: false, message: '冷藏费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="cold_storage_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨/天"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨/天">吨/天</Select.Option>
+                    <Select.Option value="板/天">板/天</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-
-          <Form.Item
-            name="loading_unloading_fee"
-            label="装卸费/出入库费"
-            rules={[{ required: false, message: '装卸费/出入库费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="装卸费/出入库费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="loading_unloading_fee"
+                  rules={[{ required: false, message: '装卸费/出入库费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="loading_unloading_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="disposal_fee"
-            label="处置费"
-            rules={[{ required: false, message: '处置费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="处置费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="disposal_fee"
+                  rules={[{ required: false, message: '处置费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="disposal_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="handling_fee"
-            label="搬运费"
-            rules={[{ required: false, message: '搬运费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="搬运费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="handling_fee"
+                  rules={[{ required: false, message: '搬运费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="handling_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="goods_transfer_fee"
-            label="货转费"
-            rules={[{ required: false, message: '货转费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="货转费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="goods_transfer_fee"
+                  rules={[{ required: false, message: '货转费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="goods_transfer_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                    <Select.Option value="柜">柜</Select.Option>
+                    <Select.Option value="次">次</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="sorting_fee"
-            label="分选费"
-            rules={[{ required: false, message: '分选费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="分选费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="sorting_fee"
+                  rules={[{ required: false, message: '分选费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="sorting_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                    <Select.Option value="箱">箱</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
-          <Form.Item
-            name="wrapping_film_fee"
-            label="缠绕膜费"
-            rules={[{ required: false, message: '缠绕膜费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="缠绕膜费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="wrapping_film_fee"
+                  rules={[{ required: false, message: '缠绕膜费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="wrapping_film_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                    <Select.Option value="板">板</Select.Option>
+                    <Select.Option value="卷">卷</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="charging_fee"
-            label="充电费"
-            rules={[{ required: false, message: '充电费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="充电费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="charging_fee"
+                  rules={[{ required: false, message: '充电费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="charging_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="小时"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="小时">小时</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="reading_code_fee"
-            label="抄码费"
-            rules={[{ required: false, message: '抄码费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="抄码费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="reading_code_fee"
+                  rules={[{ required: false, message: '抄码费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="reading_code_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="吨"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="吨">吨</Select.Option>
+                    <Select.Option value="箱">箱</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
 
-          <Form.Item
-            name="cold_fee"
-            label="打冷费"
-            rules={[{ required: false, message: '打冷费' }]}
-          >
-            <Input type='number'  />
+          <Form.Item label="打冷费">
+            <Row gutter={8}>
+              <Col>
+                <Form.Item
+                  name="cold_fee"
+                  rules={[{ required: false, message: '打冷费' }]}
+                >
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item
+                  name="cold_fee_type"
+                  noStyle
+                  rules={[{ required: false, message: '请选择单位' }]}
+                >
+                  <Select
+                    style={{ width: '120px' }}
+                    defaultValue="天"
+                    placeholder="单位"
+                  >
+                    <Select.Option value="天">天</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
-
         </Form>
       </Modal>
     </PageContainer>
