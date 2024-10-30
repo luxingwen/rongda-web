@@ -646,9 +646,55 @@ const AddPurchaseOrder = () => {
       key: 'rmb_deposit_amount',
     },
     {
+      title: '预付款时间',
+      dataIndex: 'rmb_deposit_amount_time',
+      key: 'rmb_deposit_amount_time',
+      valueType: 'date',
+      render: (text) => text || '-',
+      renderFormItem: (item, { defaultRender, record }) => {
+        return (
+          <DatePicker
+            format="YYYY-MM-DD"
+            defaultValue={record.rmb_deposit_amount_time ? moment(record.rmb_deposit_amount_time) : undefined}
+            onChange={(date, dateString) => {
+              record.rmb_deposit_amount_time = dateString;
+              const index = details.findIndex((item) => item.key === record.key);
+              if(index!==-1) {
+                details[index] = record;
+                setDetails([...details]);
+              }
+            }}
+          />
+        );
+      },
+    },
+    {
       title: 'RMB尾款金额',
       dataIndex: 'rmb_residual_amount',
       key: 'rmb_residual_amount',
+    },
+    {
+      title: '尾款时间',
+      dataIndex: 'rmb_residual_amount_time',
+      key: 'rmb_residual_amount_time',
+      valueType: 'date',
+      render: (text) => text || '-',
+      renderFormItem: (item, { defaultRender, record }) => {
+        return (
+          <DatePicker
+            format="YYYY-MM-DD"
+            defaultValue={record.rmb_residual_amount_time ? moment(record.rmb_residual_amount_time) : undefined}
+            onChange={(date, dateString) => {
+              record.rmb_residual_amount_time = dateString;
+              const index = details.findIndex((item) => item.key === record.key);
+              if(index!==-1) {
+                details[index] = record;
+                setDetails([...details]);
+              }
+            }}
+          />
+        );
+      },
     },
     {
       title: '定金汇率',

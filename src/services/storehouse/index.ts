@@ -40,3 +40,19 @@ export async function getStorehouseOptions() {
     method: 'POST',
   });
 }
+
+// UpdateStorehouseItem
+export async function updateStorehouseItem(data) {
+  return request('/api/v1/storehouse/update_item', {
+    method: 'POST',
+    data,
+  });
+}
+
+// UpdateStorehouseItemByMap
+export async function updateStorehouseItemByMap(data) {
+  return request('/api/v1/storehouse/update_item_by_map', {
+    method: 'POST',
+    data,
+  });
+}
