@@ -34,15 +34,17 @@ const AgentManagement = () => {
   };
 
   const handleAddAgent = () => {
-    setEditingAgent(null);
-    form.resetFields();
-    setIsModalVisible(true);
+    // setEditingAgent(null);
+    // form.resetFields();
+    // setIsModalVisible(true);
+    history.push('/resource/agent/add');
   };
 
   const handleEditAgent = (record) => {
-    setEditingAgent(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
+    // setEditingAgent(record);
+    // form.setFieldsValue(record);
+    // setIsModalVisible(true);
+    history.push(`/resource/agent/edit/${record.uuid}`);
   };
 
   const handleDeleteAgent = async (id) => {

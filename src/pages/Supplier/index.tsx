@@ -50,15 +50,17 @@ const SupplierManagement = () => {
   };
 
   const handleAddSupplier = () => {
-    setEditingSupplier(null);
-    form.resetFields();
-    setIsModalVisible(true);
+    // setEditingSupplier(null);
+    // form.resetFields();
+    // setIsModalVisible(true);
+    history.push('/resource/supplier/add');
   };
 
   const handleEditSupplier = (record) => {
-    setEditingSupplier(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
+    // setEditingSupplier(record);
+    // form.setFieldsValue(record);
+    // setIsModalVisible(true);
+    history.push(`/resource/supplier/edit/${record.uuid}`);
   };
 
   const handleDeleteSupplier = async (id) => {

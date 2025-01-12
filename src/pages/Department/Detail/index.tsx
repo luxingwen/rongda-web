@@ -190,6 +190,13 @@ const DepartmentDetails = () => {
     },
   ];
 
+  const getNickname = (user) => {
+    if(user?.nickname && user?.nickname !== '') {
+      return user.nickname;
+    }
+    return user?.username;
+  };
+
   return (
     <div>
       <PageContainer>
@@ -243,7 +250,7 @@ const DepartmentDetails = () => {
               >
                 {userOptions.map((user) => (
                   <Option key={user.uuid} value={user.uuid}>
-                    {user?.nickname}
+                    {getNickname(user)}
                   </Option>
                 ))}
               </Select>

@@ -35,9 +35,10 @@ const CustomerManagement = () => {
 
 
   const handleAddCustomer = () => {
-    setEditingCustomer(null);
-    form.resetFields();
-    setIsModalVisible(true);
+    // setEditingCustomer(null);
+    // form.resetFields();
+    // setIsModalVisible(true);
+    history.push('/resource/customer/add');
   };
 
   const handleEditCustomer = (record) => {
@@ -48,7 +49,7 @@ const CustomerManagement = () => {
 
   const handleDeleteCustomer = async (id) => {
     try {
-      await deleteCustomer(id);
+      await deleteCustomer({uuid: id});
       message.success('删除成功');
       actionRef.current?.reload();
     } catch (error) {
@@ -118,14 +119,22 @@ const CustomerManagement = () => {
       render: (_, record) => (
         <span>
           <Button icon={<EyeOutlined />} onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }} />
-          <Button
+          {/* <Button
             icon={<EditOutlined />}
             onClick={() => handleEditCustomer(record)}
+            style={{ marginRight: 8 }}
+          /> */}
+
+        <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              history.push(`/resource/customer/edit/${record.uuid}`);
+            }}
             style={{ marginRight: 8 }}
           />
           <Popconfirm
             title="确定删除吗?"
-            onConfirm={() => handleDeleteCustomer(record.id)}
+            onConfirm={() => handleDeleteCustomer(record.uuid)}
             okText="是"
             cancelText="否"
           >

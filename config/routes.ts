@@ -36,6 +36,18 @@ export default [
         component: './Customer',
       },
       {
+        name: '编辑客户',
+        path: '/resource/customer/edit/:uuid',
+        hideInMenu: true,
+        component: './Customer/Edit',
+      },
+      {
+        name: '添加客户',
+        path: '/resource/customer/add',
+        hideInMenu: true,
+        component: './Customer/Add',
+      },
+      {
         name: '客户成员管理',
         path: '/resource/customer/member/:teamId',
         component: './Customer/Member',
@@ -53,6 +65,18 @@ export default [
         component: './Agent',
       },
       {
+        name: '代理机构-添加',
+        path: '/resource/agent/add',
+        component: './Agent/Add',
+        hideInMenu: true,
+      },
+      {
+        name: '代理机构-编辑',
+        path: '/resource/agent/edit/:uuid',
+        component: './Agent/Edit',
+        hideInMenu: true,
+      },
+      {
         name: '代理机构详情',
         path: '/resource/agent/detail/:uuid',
         component: './Agent/Detail',
@@ -62,6 +86,18 @@ export default [
         name: '供应商管理',
         path: '/resource/supplier',
         component: './Supplier',
+      },
+      {
+        name: '供应商管理-编辑',
+        path: '/resource/supplier/edit/:uuid',
+        component: './Supplier/Edit',
+        hideInMenu: true,
+      },
+      {
+        name: '供应商管理-添加',
+        path: '/resource/supplier/add',
+        component: './Supplier/Add',
+        hideInMenu: true,
       },
       {
         name: '供应商详情',
